@@ -135,6 +135,8 @@ def cmd_help(bot, update):
     "Stellt den Modus um: /modus 0 = Du erhälst nur Benachrichtigungen für Pokemon mit IV und WP \n" + \
     "/modus 1 = Du erhälst auch Benachrichtigungen für Pokémon ohne IV und WP (zum Beispiel, wenn die IV/WP" +\
     "nicht ermittelt werden konnte. Somit bekommst du z.B. auch ein Relaxo ohne IV/WP angezeigt) \n\n" +\
+    "/wasser 0 \n" + \
+    "Scannt auch Pokémon auf dem Wasser: 0 = Nein, 1 = Ja"
     "/entferne 1 \n" + \
     "Nummer des Pokémon löschen, wenn du über dieses nicht mehr benachrichtigt werden willst \n" + \
     "/entferne 1 2 3 ... \n" + \
@@ -164,12 +166,6 @@ def cmd_help(bot, update):
     "wieder einschalten und deine Einstellungen werden geladen \n"
     bot.sendMessage(chat_id, text, parse_mode='Markdown')
 
-    # Old language selection
-    #tmp = ''
-    #for key in pokemon_name:
-        #tmp += "%s, " % (key)
-        #tmp = tmp[:-2]
-    #bot.sendMessage(chat_id, text= 'Verfügbare Sprachen: [%s]' % (tmp))
 
 def cmd_start(bot, update):
     chat_id = update.message.chat_id
@@ -186,7 +182,6 @@ def cmd_start(bot, update):
     "zu *IV*, *WP* und *Level*.\nBitte denk daran deine Einstellungen immer zu *speichern* mit /speichern\n" + \
     "*Fahre fort mit* /hilfe *um die möglichen Befehle aufzulisten*\n"
     bot.sendMessage(chat_id, message % (userName), parse_mode='Markdown')
-    #cmd_help(bot, update)
 
     # Setze default Werte und den Standort auf Kiel
     pref = prefs.get(chat_id)
@@ -244,20 +239,20 @@ def cmd_IV(bot, update, args):
 
     # Wenn nur ein Wert eingegeben wird -> minIV = Eingabe, maxIV = 100.
     if len(args) == 1:
-        IVmin = args[0]
-        IVmax = 100
+        IVmin = float(args[0])
+        IVmax = float(100)
     else:
-        IVmin = args[0]
-        IVmax = args[1]
+        IVmin = float(args[0])
+        IVmax = float(args[1])
     
     # Fange Werte unter 0 und über 100 ab
-    if float(IVmin) > 100 or float(IVmax) > 100 or float(IVmin) < 0 or float(IVmax) < 0:
+    if IVmin > 100 or IVmax > 100 or IVmin < 0 or IVmax < 0:
         bot.sendMessage(chat_id, text='Nutzung: "/iv #minimum #maximum oder /iv #minimum" (Ohne # und nicht über 100 / unter 0!)')
         return
 
     # Setze minIV und maxIV
-    pref.set('user_miniv', float(IVmin))
-    pref.set('user_maxiv', float(IVmax))
+    pref.set('user_miniv', IVmin)
+    pref.set('user_maxiv', IVmax)
 
     # Sende Bestaetigung
     logger.info('[%s@%s] Set minIV to %s and maxIV to %s' % (userName, chat_id, IVmin, IVmax))
@@ -278,20 +273,20 @@ def cmd_CP(bot, update, args):
 
     # Wenn nur ein Wert eingegeben wird -> minCP = Eingabe, maxCP = 5000.
     if len(args) == 1:
-        CPmin = args[0]
-        CPmax = 5000
+        CPmin = int(args[0])
+        CPmax = int(5000)
     else:
-        CPmin = args[0]
-        CPmax = args[1]
+        CPmin = int(args[0])
+        CPmax = int(args[1])
     
     # Fange Werte unter 0 ab
-    if float(CPmin) < 0 or float(CPmax) < 0:
+    if CPmin < 0 or CPmax < 0:
         bot.sendMessage(chat_id, text='Nutzung: "/cp #minimum oder /cp #minimum #maximum" (Ohne # und nicht unter 0!)')
         return
 
     # Setze minCP und maxCP
-    pref.set('user_mincp', int(CPmin))
-    pref.set('user_maxcp', int(CPmax))
+    pref.set('user_mincp', CPmin)
+    pref.set('user_maxcp', CPmax)
 
     # Sende Bestaetigung
     logger.info('[%s@%s] Set minCP to %s and maxCP to %s' % (userName, chat_id, CPmin, CPmax))
@@ -312,20 +307,20 @@ def cmd_LVL(bot, update, args):
 
     # Wenn nur ein Wert eingegeben wird -> minLVL = Eingabe, maxLVL = 30.
     if len(args) == 1:
-        LVLmin = args[0]
-        LVLmax = 30
+        LVLmin = int(args[0])
+        LVLmax = int(30)
     else:
-        LVLmin = args[0]
-        LVLmax = args[1]
+        LVLmin = int(args[0])
+        LVLmax = int(args[1])
 
     # Fange Werte unter 0 ab
-    if float(LVLmin) < 0 or float(LVLmax) < 0:
+    if LVLmin < 0 or LVLmax < 0:
         bot.sendMessage(chat_id, text='Nutzung: "/lvl #minimum oder /lvl #minimum #maximum" (Ohne # und nicht unter 0!)')
         return
 
     # Setze minLVL und maxLVL
-    pref.set('user_minlvl', int(LVLmin))
-    pref.set('user_maxlvl', int(LVLmax))
+    pref.set('user_minlvl', LVLmin)
+    pref.set('user_maxlvl', LVLmax)
 
     # Sende Bestaetigung
     logger.info('[%s@%s] Set minLVL to %s and maxLVL to %s' % (userName, chat_id, LVLmin, LVLmax))
@@ -345,17 +340,45 @@ def cmd_Mode(bot, update, args):
         bot.sendMessage(chat_id, text='Nutzung: "/modus #modus" (Ohne # und einen Wert!)')
         return
 
-    # Setze Modus
-    pref.set('user_mode', args[0])
+    if int(args[0]) == 1 or int(args[0]) == 0:
+        # Setze Modus
+        pref.set('user_mode', int(args[0]))
 
-    # Sende Bestaetigung
-    logger.info('[%s@%s] Set mode to %s' % (userName, chat_id, args[0]))
+        # Sende Bestaetigung
+        logger.info('[%s@%s] Set mode to %s' % (userName, chat_id, args[0]))
 
-    if int(args[0]) == 0:
-        bot.sendMessage(chat_id, text='Modus ist 0: Nur Pokémon mit IV werden gesendet!')
-    if int(args[0]) == 1:
-        bot.sendMessage(chat_id, text='Modus ist 1: Auch Pokémon ohne IV werden gesendet!')
+        if int(args[0]) == 0:
+            bot.sendMessage(chat_id, text='Modus ist 0: Nur Pokémon mit IV werden gesendet!')
+        else:
+            bot.sendMessage(chat_id, text='Modus ist 1: Auch Pokémon ohne IV werden gesendet!')
+    else:
+        bot.sendMessage(chat_id, text='Nutzung: "/modus #modus" (Ohne # und einen Wert: 0 oder 1!)')
 
+def cmd_SendInWater(bot, update, args):
+    chat_id = update.message.chat_id
+    userName = update.message.from_user.username
+
+    # Lade User Einstellungen
+    pref = prefs.get(chat_id)
+
+    # Fange keine Eingabe ab
+    if len(args) < 1 or len(args) > 1:
+        bot.sendMessage(chat_id, text='Nutzung: "/wasser 0 oder /wasser 1" (Einen Wert!)')
+        return
+
+    if int(args[0]) == 1 or int(args[0]) == 0:
+        # Setze Modus
+        pref.set('user_scanwater', int(args[0]))
+
+        # Sende Bestaetigung
+        logger.info('[%s@%s] Switch water_mode to %s' % (userName, chat_id, args[0]))
+
+        if int(args[0]) == 0:
+            bot.sendMessage(chat_id, text='Wasser ist 0: Nur Pokémon auf dem Festland werden gesendet!')
+        else:
+            bot.sendMessage(chat_id, text='Modus ist 1: Auch Pokémon im Wasser werden gesendet!')
+    else:
+        bot.sendMessage(chat_id, text='Nutzung: "/wasser 0 oder /wasser 1" (Einen Wert! 0 oder 1!)')
 
 
 def cmd_ivFilter(bot, update, args, job_queue):
@@ -503,6 +526,7 @@ def cmd_status(bot, update):
     minlvl = pref.get('user_minlvl')
     maxlvl = pref.get('user_maxlvl')
     mode = pref.get('user_mode')
+    water = pref.get('user_scanwater')
     #ivfilter = pref.get('user_ivfilter')
     #lvlfilter = pref.get('user_lvlfilter')
     #ivfilterCMD = copy.deepcopy(ivfilter)
@@ -512,14 +536,15 @@ def cmd_status(bot, update):
     lon = loc[1]
 
     prefmessage = "*Einstellungen:*\nMinimum IV: *%s*, Maximum IV: *%s*\nMinimum WP: *%s*, " % (miniv, maxiv, mincp) + \
-    "Maximum WP: *%s*\nMinimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\nStandort nicht gesetzt" % (maxcp, minlvl, maxlvl, mode)
+    "Maximum WP: *%s*\nMinimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\nPokémon im Wasser: %s\n" % (maxcp, minlvl, maxlvl, mode, water)
+    "Standort nicht gesetzt"
     commandmessage = "*Die Einstellungen entsprechen folgenden Befehlen:*\n\n" + \
-    "/iv %s %s\n/wp %s %s\n/lvl %s %s\n/modus %s" % (miniv, maxiv, mincp, maxcp, minlvl, maxlvl, mode)
+    "/iv %s %s\n/wp %s %s\n/lvl %s %s\n/modus %s\n/wasser %s" % (miniv, maxiv, mincp, maxcp, minlvl, maxlvl, mode, water)
 
     if lat is not None and loc[2] is not None:
         radius = float(loc[2])*1000
         prefmessage = "*Einstellungen:*\n\nMinimum IV: *%s*, Maximum IV: *%s*\nMinimum WP: *%s*, " % (miniv, maxiv, mincp) + \
-        "Maximum WP: *%s*\nMinimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\n" % (maxcp, minlvl, maxlvl, mode) + \
+        "Maximum WP: *%s*\nMinimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\nWasser: *%s*" % (maxcp, minlvl, maxlvl, mode, water) + \
         "Standort: %s,%s\nRadius: %s m" % (lat, lon, radius)
         commandmessage = "*Die Einstellungen entsprechen folgenden Befehlen:*\n\n" 
 
@@ -557,7 +582,7 @@ def cmd_status(bot, update):
 
     prefmessage += tmppref
     commandmessage += tmpcmdPoke #+ tmpcmdIV + tmpcmdLVL
-    commandmessage += "\n/iv %s %s\n/wp %s %s\n/lvl %s %s\n/modus %s\n" % (miniv, maxiv, mincp, maxcp, minlvl, maxlvl, mode)+ \
+    commandmessage += "\n/iv %s %s\n/wp %s %s\n/lvl %s %s\n/modus %s\n/wasser %s" % (miniv, maxiv, mincp, maxcp, minlvl, maxlvl, mode, water)+ \
     "/standort %s,%s\n/radius %s" % (lat, lon, radius)
 
     bot.sendMessage(chat_id, text='%s' % (prefmessage), parse_mode='Markdown')
@@ -724,6 +749,7 @@ def cmd_load(bot, update, job_queue):
         minlvl = pref.get('user_minlvl')
         maxlvl = pref.get('user_maxlvl')
         mode = pref.get('user_mode')
+        water = pref.get('user_scanwater')
         loc = pref.get('location')
         lat = loc[0]
         lon = loc[1]
@@ -748,15 +774,17 @@ def cmd_load(bot, update, job_queue):
             pref.set('user_maxlvl', int(maxlvl))
         if type(mode) is str:
             pref.set('user_mode', int(mode))
+        if type(water) is str:
+            pref.set('user_scanwater', int(water))
 			
         cmd_saveSilent(bot, update)
 		
         prefmessage = "*Einstellungen:*\nMinimum IV: *%s*, Maximum IV: *%s*\nMinimum WP: *%s*, " % (miniv, maxiv, mincp) + \
-        "Maximum WP: *%s*\nMinimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\nStandort nicht gesetzt" % (maxcp, minlvl ,maxlvl, mode)
+        "Maximum WP: *%s*\nMinimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\nWasser: *%s*\nStandort nicht gesetzt" % (maxcp, minlvl ,maxlvl, mode, water)
         if lat is not None:
             radius = float(loc[2])*1000
             prefmessage = "*Einstellungen:*\nMinimum IV: *%s*, Maximum IV: *%s*\nMinimum WP: *%s*, " % (miniv, maxiv, mincp) + \
-            "Maximum WP: *%s*\nMinimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\n" % (maxcp, minlvl, maxlvl, mode)+ \
+            "Maximum WP: *%s*\nMinimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\nWasser: *%s*\n" % (maxcp, minlvl, maxlvl, mode, water)+ \
             "Standort: %s,%s\nRadius: %s m" % (lat, lon, radius)
 
         bot.sendMessage(chat_id, text='%s' % (prefmessage), parse_mode='Markdown')
@@ -897,6 +925,8 @@ def checkAndSetUserDefaults(pref):
         pref.set('user_maxlvl', 30)
     if pref.get('user_mode') is None:
         pref.set('user_mode', 1)
+    if pref.get('user_scanwater') is None:
+        pref.set('user_scanwater', 0)
 		
     loc = pref.get('location')
     if loc[0] is None or loc[1] is None:
@@ -948,6 +978,7 @@ def checkAndSend(bot, chat_id, pokemons):
         user_minlvl = pref['user_minlvl']
         user_maxlvl = pref['user_maxlvl']
         user_mode = pref['user_mode']
+        user_water = pref['user_scanwater']
         #user_ivfilter = pref['user_ivfilter']
         #user_lvlfilter = pref['user_lvlfilter']
 
@@ -958,6 +989,7 @@ def checkAndSend(bot, chat_id, pokemons):
         pokeMinLVL = user_minlvl
         pokeMaxLVL = user_maxlvl
         mode = user_mode
+        water = user_water
 
         counter = 0
 
@@ -977,7 +1009,9 @@ def checkAndSend(bot, chat_id, pokemons):
         if pokeMaxLVL is None:
             pokeMaxLVL = 30
         if mode is None:
-            mode = 1	
+            mode = 1
+        if water is None:
+            water = 0
 
         # Standort setzen wenn keiner eingegeben wurde:
         if location_data[0] is not None and location_data[2] is None:
@@ -1042,6 +1076,11 @@ def checkAndSend(bot, chat_id, pokemons):
             delta = disappear_time - datetime.utcnow()
             deltaStr = '%02dm:%02ds' % (int(delta.seconds / 60), int(delta.seconds % 60))
             disappear_time_str = disappear_time.replace(tzinfo=timezone.utc).astimezone(tz=None).strftime("%H:%M:%S")
+
+            # Überspringe Pokemon auf dem Wasser (True = Wasser)
+            if water == 0:
+                if pokemon.filterbywater(latitude, longitude):
+                    continue
 			
             # Wenn IV vorhanden
             if iv_attack is not None:
@@ -1304,6 +1343,9 @@ def main():
     dp.add_handler(CommandHandler("wp", cmd_CP, pass_args = True))
     dp.add_handler(CommandHandler("Wp", cmd_CP, pass_args = True))
     dp.add_handler(CommandHandler("WP", cmd_CP, pass_args = True))
+    dp.add_handler(CommandHandler("cp", cmd_CP, pass_args = True))
+    dp.add_handler(CommandHandler("Cp", cmd_CP, pass_args = True))
+    dp.add_handler(CommandHandler("CP", cmd_CP, pass_args = True))
     dp.add_handler(CommandHandler("lvl", cmd_LVL, pass_args = True))
     dp.add_handler(CommandHandler("Lvl", cmd_LVL, pass_args = True))
     dp.add_handler(CommandHandler("LVL", cmd_LVL, pass_args = True))
@@ -1311,6 +1353,8 @@ def main():
     dp.add_handler(CommandHandler("Modus", cmd_Mode, pass_args = True))
     dp.add_handler(CommandHandler("status", cmd_status))
     dp.add_handler(CommandHandler("Status", cmd_status))
+    dp.add_handler(CommandHandler("wasser", cmd_SendInWater, pass_args = True))
+    dp.add_handler(CommandHandler("Wasser", cmd_SendInWater, pass_args = True))
     #dp.add_handler(CommandHandler("pokemoniv", cmd_ivFilter, pass_args = True, pass_job_queue=True))
     #dp.add_handler(CommandHandler("Pokemoniv", cmd_ivFilter, pass_args = True, pass_job_queue=True))
     #dp.add_handler(CommandHandler("pokemonlvl", cmd_lvlFilter, pass_args = True, pass_job_queue=True))

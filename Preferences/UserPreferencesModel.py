@@ -32,7 +32,8 @@ class UserPreferencesModel(object):
             user_maxcp = 5000,
             user_minlvl = 0,
             user_maxlvl = 30,
-            user_mode = 1
+            user_mode = 1,
+            user_scanwater = 0,
             #user_ivfilter = [-1] * 251,
             #user_lvlfilter = [-1] * 251,
         )
