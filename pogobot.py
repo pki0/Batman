@@ -59,36 +59,48 @@ move_name = dict()
 #pokemon rarity
 pokemon_rarity = [[],
 	["7","16","19","41","133","161","163","165","167","170","177","183","187","194","198","216","220"],
-	["1","7","10","17","21","23","25","29","32","35","43","46","48","58","60","69","84","92","96","98","120","127","129","147","152","155","158","162","164","166","168","171","178","184","185","188","190","191","200","206","209","211","215","223","228"],
-	["2","4","8","11","14","15","18","20","22","27","37","39","42","47","49","50","52","54","56","61","63","66","70","72","74",\
-    "77","79","81","86","90","93","95","97","100","102","104","107","108","109","111","114","116","118","123","124","125","126","128","138","140","143","153","156","159","169","185","193","195","202","203","204","207","213","218","221","231","234"],
-	["3","5","6","9","12","24","30","31","33","34","36","44","53","55","57","59","64","67","73","75","78","80","85","88","99",\
-    "103","105","106","110","112","113","117","119","121","122","131","134","135","137","142","148","149","179","180","189","205","210","217","219","224","226","227","246","247"],
-	["26","28","38","40","45","51","62","65","68","71","76","82","83","87","89","91","94","101","115","130","132","136","139","141","144","145","146","149","150","151","154","157","160","172","173","174","175","176","181","182","186","192","196","197","199","201","208","210","212","214","222","225","229","230","232","233","235","236","237","238","239","240","241","242","243","244","245","248","249","250","251"],
-    ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30",\
-    "31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49","50","51","52","53","54","55","56","57","58","59","60",\
-    "61","62","63","64","65","66","67","68","69","70","71","72","73","74","75","76","77","78","79","80","81","82","83","84","85","86","87","88","89","90",\
-    "91","92","93","94","95","96","97","98","99","100","101","102","103","104","105","106","107","108","109","110","111","112","113","114","115","116","117","118","119","120",\
-    "121","122","123","124","125","126","127","128","129","130","131","132","133","134","135","136","137","138","139","140",\
-    "141","142","143","144","145","146","147","148","149","150","151"],
-    ["152","153","154","155","156","157","158","159","160","161","162","163","164","165","166","167","168","169","170","171","172",\
-    "173","174","175","176","177","178","179","180","181","182","183","184","185","186","187","188","189","190",\
-    "191","192","193","194","195","196","197","198","199","200","201","202","203","204","205","206","207","208","209","210",\
-    "211","212","213","214","215","216","217","218","219","220","221","222","223","224","225","226","227","228","229","230",\
-    "231","232","233","234","235","236","237","238","239","240","241","242","243","244","245","246","247","248","249","250","251",],
-    ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30",\
-    "31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49","50","51","52","53","54","55","56","57","58","59","60",\
-    "61","62","63","64","65","66","67","68","69","70","71","72","73","74","75","76","77","78","79","80","81","82","83","84","85","86","87","88","89","90",\
-    "91","92","93","94","95","96","97","98","99","100","101","102","103","104","105","106","107","108","109","110","111","112","113","114","115",\
-    "116","117","118","119","120","121","122","123","124","125","126","127","128","129","130","131","132","133","134","135","136","137","138","139","140",\
-    "141","142","143","144","145","146","147","148","149","150","151","152","153","154","155","156","157","158","159","160","161","162","163","164","165",\
-    "166","167","168","169","170","171","172","173","174","175","176","177","178","179","180","181","182","183","184","185","186","187","188","189","190",\
-    "191","192","193","194","195","196","197","198","199","200","201","202","203","204","205","206","207","208","209","210","211","212","213","214","215",\
-    "216","217","218","219","220","221","222","223","224","225","226","227","228","229","230","231","232","233","234","235","236","237","238","239","240",\
-    "241","242","243","244","245","246","247","248","249","250","251",],
+	["1","7","10","17","21","23","25","29","32","35","43","46","48","58","60","69","84","92","96","98",\
+	"120","127","129","147","152","155","158","162","164","166","168","171","178","184","185","188","190",\
+	"191","200","206","209","211","215","223","228"],
+	["2","4","8","11","14","15","18","20","22","27","37","39","42","47","49","50","52","54","56","61","63",\
+	"66","70","72","74","77","79","81","86","90","93","95","97","100","102","104","107","108","109","111",\
+	"114","116","118","123","124","125","126","128","138","140","143","153","156","159","169","185","193",\
+	"195","202","203","204","207","213","218","221","231","234"],
+	["3","5","6","9","12","24","30","31","33","34","36","44","53","55","57","59","64","67","73","75","78",\
+	"80","85","88","99","103","105","106","110","112","113","117","119","121","122","131","134","135","137",\
+	"142","148","149","179","180","189","205","210","217","219","224","226","227","246","247"],
+	["26","28","38","40","45","51","62","65","68","71","76","82","83","87","89","91","94","101","115","130",\
+	"132","136","139","141","144","145","146","149","150","151","154","157","160","172","173","174","175",\
+	"176","181","182","186","192","196","197","199","201","208","210","212","214","222","225","229","230",\
+	"232","233","235","236","237","238","239","240","241","242","243","244","245","248","249","250","251"],
+    ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22",\
+	"23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43",\
+	"44","45","46","47","48","49","50","51","52","53","54","55","56","57","58","59","60","61","62","63","64",\
+	"65","66","67","68","69","70","71","72","73","74","75","76","77","78","79","80","81","82","83","84","85",\
+	"86","87","88","89","90","91","92","93","94","95","96","97","98","99","100","101","102","103","104","105",\
+	"106","107","108","109","110","111","112","113","114","115","116","117","118","119","120","121","122","123",\
+	"124","125","126","127","128","129","130","131","132","133","134","135","136","137","138","139","140","141",\
+	"142","143","144","145","146","147","148","149","150","151"],
+    ["152","153","154","155","156","157","158","159","160","161","162","163","164","165","166","167","168","169",\
+	"170","171","172","173","174","175","176","177","178","179","180","181","182","183","184","185","186","187",\
+	"188","189","190","191","192","193","194","195","196","197","198","199","200","201","202","203","204","205",\
+	"206","207","208","209","210","211","212","213","214","215","216","217","218","219","220","221","222","223",\
+	"224","225","226","227","228","229","230","231","232","233","234","235","236","237","238","239","240","241",\
+	"242","243","244","245","246","247","248","249","250","251",],
+    ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23",\
+	"24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45",\
+	"46","47","48","49","50","51","52","53","54","55","56","57","58","59","60","61","62","63","64","65","66","67",\
+	"68","69","70","71","72","73","74","75","76","77","78","79","80","81","82","83","84","85","86","87","88","89",\
+	"90","91","92","93","94","95","96","97","98","99","100","101","102","103","104","105","106","107","108","109",\
+	"110","111","112","113","114","115","116","117","118","119","120","121","122","123","124","125","126","127",\
+	"128","129","130","131","132","133","134","135","136","137","138","139","140","141","142","143","144","145",\
+	"146","147","148","149","150","151","152","153","154","155","156","157","158","159","160","161","162","163",\
+	"164","165","166","167","168","169","170","171","172","173","174","175","176","177","178","179","180","181",\
+	"182","183","184","185","186","187","188","189","190","191","192","193","194","195","196","197","198","199",\
+	"200","201","202","203","204","205","206","207","208","209","210","211","212","213","214","215","216","217",\
+	"218","219","220","221","222","223","224","225","226","227","228","229","230","231","232","233","234","235",\
+	"236","237","238","239","240","241","242","243","244","245","246","247","248","249","250","251",],
 ];
-
-rarity_value = ["very common","common","uncommon","rare","very rare","ultrarare"]
 
 # Define a few command handlers. These usually take the two arguments bot and
 # update. Error handlers also receive the raised TelegramError object in error.
@@ -105,7 +117,8 @@ def cmd_help(bot, update):
     "/pokemon 1 2 3 ... \n" + \
     "Mehrfache Nummern der Pokémon können so eingegeben werden \n\n" + \
     "/seltenheit 1 \n" + \
-    "Fügt eine Gruppe von Pokémon hinzu. Dabei steht die 1 für gewöhnliche Pokémon und die 5 für ultra-seltene Pokémon. 6 für Gen1, 7 für Gen2, 8 für alle Pokémon \n\n" + \
+    "Fügt eine Gruppe von Pokémon hinzu. Dabei steht die 1 für gewöhnliche Pokémon und die 5 für ultra-seltene Pokémon." + \
+    "6 für Gen1, 7 für Gen2, 8 für alle Pokémon \n\n" + \
     "/iv 50 \n" + \
     "Setze die Minimum IV für die Pokémon, über die du benachrichtigt werden willst \n" + \
     "/iv 0 100 \n" + \
@@ -119,16 +132,20 @@ def cmd_help(bot, update):
     "/lvl 0 30 \n" + \
     "Setze die Minimum Level und Maximum Level für die Pokémon, über die du benachrichtigt werden willst \n\n" + \
     "/modus 0 \n" + \
-    "Stellt den Modus um: /modus 0 = Du erhälst nur Benachrichtigungen für Pokemon mit IV und WP \n/modus 1 = Du erhälst auch Benachrichtigungen für Pokémon ohne IV und WP (zum Beispiel, wenn die IV/WP nicht ermittelt werden konnte. Somit bekommst du z.B. auch ein Relaxo ohne IV/WP angezeigt) \n\n" +\
+    "Stellt den Modus um: /modus 0 = Du erhälst nur Benachrichtigungen für Pokemon mit IV und WP \n" + \
+    "/modus 1 = Du erhälst auch Benachrichtigungen für Pokémon ohne IV und WP (zum Beispiel, wenn die IV/WP" +\
+    "nicht ermittelt werden konnte. Somit bekommst du z.B. auch ein Relaxo ohne IV/WP angezeigt) \n\n" +\
     "/entferne 1 \n" + \
     "Nummer des Pokémon löschen, wenn du über dieses nicht mehr benachrichtigt werden willst \n" + \
     "/entferne 1 2 3 ... \n" + \
     "Mehrfache Nummern der Pokémon löschen, wenn du über diese nicht mehr benachrichtigt werden willst \n\n" + \
     "*Standort:*\n\n" + \
     "Sende deinen Standort über Telegram \n" + \
-    "Dies fügt einen Umkreis um deinen Standort hinzu und du erhälst Benachrichtigungen für deine Umgebung. Hinweis: Das senden des Standorts funktioniert nicht in Gruppen \n" +\
+    "Dies fügt einen Umkreis um deinen Standort hinzu und du erhälst Benachrichtigungen für deine Umgebung. " + \
+    "Hinweis: Das senden des Standorts funktioniert nicht in Gruppen \n" +\
     "/standort xx.xx, yy.yy \n" + \
-    "Sende Koordinaten als Text in der Angezeigten Form um in dem Umkreis benachrichtigt zu werden. Es kann auch eine Adresse eingegeben werden zum Beispiel: /standort Holstenstraße 1, 24103 Kiel oder auch /standort Kiel, DE \n" + \
+    "Sende Koordinaten als Text in der Angezeigten Form um in dem Umkreis benachrichtigt zu werden. Es kann auch" + \
+    "eine Adresse eingegeben werden zum Beispiel: /standort Holstenstraße 1, 24103 Kiel oder auch /standort Kiel, DE \n" + \
     "/radius 1000 \n" + \
     "Stellt deinen Such-Radius in m (Metern) um deinen Standort herum ein \n" + \
     "/entfernestandort \n" + \
@@ -143,7 +160,8 @@ def cmd_help(bot, update):
     "/status \n" + \
     "Liste deine aktuellen Einstellungen auf \n" + \
     "/ende \n" + \
-    "Damit kannst du alle deine Einstellungen löschen und den Bot ausschalten. Du kannst ihn danach mit /laden wieder einschalten und deine Einstellungen werden geladen \n"
+    "Damit kannst du alle deine Einstellungen löschen und den Bot ausschalten. Du kannst ihn danach mit /laden " + \
+    "wieder einschalten und deine Einstellungen werden geladen \n"
     bot.sendMessage(chat_id, text, parse_mode='Markdown')
 
     # Old language selection
@@ -158,12 +176,21 @@ def cmd_start(bot, update):
     userName = update.message.from_user.username
 
     logger.info('[%s@%s] Starting.' % (userName, chat_id))
-    bot.sendMessage(chat_id, text='Hallo *%s*\nDein Bot ist nun im Einstellungsmodus. *Weitere Schritte:* \n\nFalls du den Bot schon genutzt hast wähle /laden um deine *gespeicherten Einstellungen* zu laden.\n\nBenutzt du diesen Bot zum *ersten Mal*, dann füge bitte deine gewünschten *Pokémon* hinzu z.B. mit: \n*/pokemon 1* für Bisasam oder */pokemon 1 2 3 ...* für mehrere Pokemon über die du informiert werden willst.\n\n*Sende* anschließend deinen *Standort* einfach über Telegram oder nutze */standort xx.xx, yy.yy*, */standort Kiel, DE* oder */standort Holstenstraße 1, 24103 Kiel* um deine Koordinaten zu senden und den Bot somit zu starten. (In Gruppen funktioniert das Senden des Standortes leider nicht)\n\nEs gibt noch weitere Einstellungen zu *IV*, *WP* und *Level*.\nBitte denk daran deine Einstellungen immer zu *speichern* mit /speichern\n*Fahre fort mit* /hilfe *um die möglichen Befehle aufzulisten*\n' % (userName), parse_mode='Markdown')
+    message = "Hallo *%s*\nDein Bot ist nun im Einstellungsmodus. *Weitere Schritte:* \n\nFalls du den Bot " + \
+    "schon genutzt hast wähle /laden um deine *gespeicherten Einstellungen* zu laden.\n\nBenutzt du diesen Bot " + \
+    "zum *ersten Mal*, dann füge bitte deine gewünschten *Pokémon* hinzu z.B. mit: \n*/pokemon 1* für Bisasam " + \
+    "oder */pokemon 1 2 3 ...* für mehrere Pokemon über die du informiert werden willst.\n\n*Sende* anschließend " + \
+    "deinen *Standort* einfach über Telegram oder nutze */standort xx.xx, yy.yy*, */standort Kiel, DE* oder " + \
+    "*/standort Holstenstraße 1, 24103 Kiel* um deine Koordinaten zu senden und den Bot somit zu starten. " + \
+    "(In Gruppen funktioniert das Senden des Standortes leider nicht)\n\nEs gibt noch weitere Einstellungen " + \
+    "zu *IV*, *WP* und *Level*.\nBitte denk daran deine Einstellungen immer zu *speichern* mit /speichern\n" + \
+    "*Fahre fort mit* /hilfe *um die möglichen Befehle aufzulisten*\n"
+    bot.sendMessage(chat_id, message % (userName), parse_mode='Markdown')
     #cmd_help(bot, update)
 
     # Setze default Werte und den Standort auf Kiel
     pref = prefs.get(chat_id)
-    setUserDefaults(pref)
+    checkAndSetUserDefaults(pref)
 
 def cmd_add(bot, update, args, job_queue):
     chat_id = update.message.chat_id
@@ -188,7 +215,7 @@ def cmd_add(bot, update, args, job_queue):
     if loc[0] is None or loc[1] is None:
         bot.sendMessage(chat_id, text='*Du hast keinen Standort gewählt! Du wirst nun nach Kiel gesetzt!*', parse_mode='Markdown')
 
-    setUserDefaults(pref)
+    checkAndSetUserDefaults(pref)
 
     try:
         search = pref.get('search_ids')
@@ -360,7 +387,7 @@ def cmd_ivFilter(bot, update, args, job_queue):
     if loc[0] is None or loc[1] is None:
         bot.sendMessage(chat_id, text='*Du hast keinen Standort gewählt! Du wirst nun nach Kiel gesetzt!*', parse_mode='Markdown')
 
-    setUserDefaults(pref)
+    checkAndSetUserDefaults(pref)
 
     try:
         for x in args:
@@ -425,7 +452,7 @@ def cmd_lvlFilter(bot, update, args, job_queue):
     if loc[0] is None or loc[1] is None:
         bot.sendMessage(chat_id, text='*Du hast keinen Standort gewählt! Du wirst nun nach Kiel gesetzt!*', parse_mode='Markdown')
 
-    setUserDefaults(pref)
+    checkAndSetUserDefaults(pref)
     
     try:
         for x in args:
@@ -484,16 +511,18 @@ def cmd_status(bot, update):
     lat = loc[0]
     lon = loc[1]
 
-    prefmessage = "*Einstellungen:*\nMinimum IV: *%s*, Maximum IV: *%s*\nMinimum WP: *%s*, Maximum WP: *%s*\nMinimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\nStandort nicht gesetzt" % (miniv,maxiv,mincp,maxcp,minlvl,maxlvl,mode)
-    commandmessage = "*Die Einstellungen entsprechen folgenden Befehlen:*\n\n/iv %s %s\n/wp %s %s\n/lvl %s %s\n/modus %s" % (miniv,maxiv,mincp,maxcp,minlvl,maxlvl,mode)
+    prefmessage = "*Einstellungen:*\nMinimum IV: *%s*, Maximum IV: *%s*\nMinimum WP: *%s*, " % (miniv, maxiv, mincp) + \
+    "Maximum WP: *%s*\nMinimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\nStandort nicht gesetzt" % (maxcp, minlvl, maxlvl, mode)
+    commandmessage = "*Die Einstellungen entsprechen folgenden Befehlen:*\n\n" + \
+    "/iv %s %s\n/wp %s %s\n/lvl %s %s\n/modus %s" % (miniv, maxiv, mincp, maxcp, minlvl, maxlvl, mode)
+
     if lat is not None and loc[2] is not None:
         radius = float(loc[2])*1000
-        prefmessage = "*Einstellungen:*\n\nMinimum IV: *%s*, Maximum IV: *%s*\nMinimum WP: *%s*, Maximum WP: *%s*\nMinimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\nStandort: %s,%s\nRadius: %s m" % (miniv,maxiv,mincp,maxcp,minlvl,maxlvl,mode,lat,lon,radius)
-        commandmessage = "*Die Einstellungen entsprechen folgenden Befehlen:*\n\n/iv %s %s\n/wp %s %s\n/lvl %s %s\n/modus %s\n/standort %s,%s\n/radius %s" % (miniv,maxiv,mincp,maxcp,minlvl,maxlvl,mode,lat,lon,radius)
-    
-    
-   
-   
+        prefmessage = "*Einstellungen:*\n\nMinimum IV: *%s*, Maximum IV: *%s*\nMinimum WP: *%s*, " % (miniv, maxiv, mincp) + \
+        "Maximum WP: *%s*\nMinimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\n" % (maxcp, minlvl, maxlvl, mode) + \
+        "Standort: %s,%s\nRadius: %s m" % (lat, lon, radius)
+        commandmessage = "*Die Einstellungen entsprechen folgenden Befehlen:*\n\n" 
+
     try:
         lan = pref.get('language')
         tmppref = '\n\n*Pokémon:*\n'
@@ -528,6 +557,8 @@ def cmd_status(bot, update):
 
     prefmessage += tmppref
     commandmessage += tmpcmdPoke #+ tmpcmdIV + tmpcmdLVL
+    commandmessage += "\n/iv %s %s\n/wp %s %s\n/lvl %s %s\n/modus %s\n" % (miniv, maxiv, mincp, maxcp, minlvl, maxlvl, mode)+ \
+    "/standort %s,%s\n/radius %s" % (lat, lon, radius)
 
     bot.sendMessage(chat_id, text='%s' % (prefmessage), parse_mode='Markdown')
     bot.sendMessage(chat_id, text='%s' % (commandmessage), parse_mode='Markdown')
@@ -701,7 +732,7 @@ def cmd_load(bot, update, job_queue):
         if lat is None or lon is None:
             bot.sendMessage(chat_id, text='*Du hast keinen Standort gewählt! Du wirst nun nach Kiel gesetzt!*', parse_mode='Markdown')
 
-        setUserDefaults(pref)
+        checkAndSetUserDefaults(pref)
 
         if type(miniv) is str:
             pref.set('user_miniv', float(miniv))
@@ -720,10 +751,14 @@ def cmd_load(bot, update, job_queue):
 			
         cmd_saveSilent(bot, update)
 		
-        prefmessage = "*Einstellungen:*\nMinimum IV: *%s*, Maximum IV: *%s*\nMinimum WP: *%s*, Maximum WP: *%s*\nMinimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\nStandort nicht gesetzt" % (miniv,maxiv,mincp,maxcp,minlvl,maxlvl,mode)
+        prefmessage = "*Einstellungen:*\nMinimum IV: *%s*, Maximum IV: *%s*\nMinimum WP: *%s*, " % (miniv, maxiv, mincp) + \
+        "Maximum WP: *%s*\nMinimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\nStandort nicht gesetzt" % (maxcp, minlvl ,maxlvl, mode)
         if lat is not None:
             radius = float(loc[2])*1000
-            prefmessage = "*Einstellungen:*\nMinimum IV: *%s*, Maximum IV: *%s*\nMinimum WP: *%s*, Maximum WP: *%s*\nMinimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\nStandort: %s,%s\nRadius: %s m" % (miniv,maxiv,mincp,maxcp,minlvl,maxlvl,mode,lat,lon,radius)
+            prefmessage = "*Einstellungen:*\nMinimum IV: *%s*, Maximum IV: *%s*\nMinimum WP: *%s*, " % (miniv, maxiv, mincp) + \
+            "Maximum WP: *%s*\nMinimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\n" % (maxcp, minlvl, maxlvl, mode)+ \
+            "Standort: %s,%s\nRadius: %s m" % (lat, lon, radius)
+
         bot.sendMessage(chat_id, text='%s' % (prefmessage), parse_mode='Markdown')
     else:
         if chat_id not in jobs:
@@ -847,7 +882,7 @@ def cmd_clearlocation(bot, update):
 def error(bot, update, error):
     logger.warn('Update "%s" caused error "%s"' % (update, error))
 
-def setUserDefaults(pref):
+def checkAndSetUserDefaults(pref):
     if pref.get('user_miniv') is None:
         pref.set('user_miniv', 0)
     if pref.get('user_maxiv') is None:
@@ -1070,7 +1105,8 @@ def checkAndSend(bot, chat_id, pokemons):
             #
             #
             # Mehrere location: /loc1 = location 1 ... /locn = location n + /useloc 1 2 3 4 zum aktivieren von loc1, loc2, loc3, loc4 ?
-            # /listloc ? DSpokemon.py = Radius Berechnung. if not pokemon.filterbylocation(location_data): Abfrage ob pokemon im Bereich liegt.
+            # /listloc ? DSpokemon.py = Radius Berechnung. if not pokemon.filterbylocation(location_data):
+            # Abfrage ob pokemon im Bereich liegt.
             # Ist das quatsch? Wieviele SQL abfragen macht der Bot? Für jeden Chat eine oder eine für alle?
             # (1. Fall -> location schon in mysql als Rechteck filtern und dann als Kreis? + Er macht diese Schleife für alle 1000 pokemon
             # (die pro Minute spawnen) -> Falls SQL Abfrage pro Person, dann aufjedenfall schon dort filtern)		
@@ -1085,7 +1121,7 @@ def checkAndSend(bot, chat_id, pokemons):
                 #ivHigherEqualFilter = (iv is not None) and (pokeMinIV is not None) and (float(iv) >= float(pokeMinIV))
 
                 if counter > 20:
-                    bot.sendMessage(chat_id, text = 'Zu viele Pokemon eingestellt! Erhöhe die Minimum IV oder Entferne Pokemon.\nDanke dass du den Bot nicht kaputt machst')
+                    bot.sendMessage(chat_id, text = 'Zu viele Pokemon eingestellt! Erhöhe die Minimum IV oder Entferne Pokemon.')
                     logger.info('Too many sent')
                     break
                 if notDisappeared and counter <= 20:
