@@ -716,7 +716,7 @@ def cmd_saveSilent(bot, update):
 def cmd_load(bot, update, job_queue):
     chat_id = update.message.chat_id
     userName = update.message.from_user.username
-    bot.sendMessage(chat_id, text='%s' % update)
+
     pref = prefs.get(chat_id)
 
     logger.info('[%s@%s] Attempting to load.' % (userName, chat_id))
