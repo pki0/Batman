@@ -25,7 +25,16 @@ class UserPreferencesModel(object):
         preferences = dict(
             location = [None, None, None],
             language = self.loadedconfig.get('DEFAULT_LANG', 'en'),
-            search_ids = []
+            search_ids = [],
+            user_miniv = 0,
+            user_maxiv = 100,
+            user_mincp = 0,
+            user_maxcp = 5000,
+            user_minlvl = 0,
+            user_maxlvl = 30,
+            user_mode = 1
+            #user_ivfilter = [-1] * 251,
+            #user_lvlfilter = [-1] * 251,
         )
         return preferences
 
