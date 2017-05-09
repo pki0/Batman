@@ -1221,7 +1221,7 @@ def report_config():
 
 def read_pokemon_names(loc):
     logger.info('Reading pokemon names. <%s>' % loc)
-    config_path = "/home/martin/pokemon/bots/developbot/locales/pokemon." + loc + ".json"
+    config_path = "locales/pokemon." + loc + ".json"
 
     try:
         with open(config_path, 'r', encoding='utf-8') as f:
@@ -1233,7 +1233,7 @@ def read_pokemon_names(loc):
 
 def read_move_names(loc):
     logger.info('Reading move names. <%s>' % loc)
-    config_path = "/home/martin/pokemon/bots/developbot/locales/moves." + loc + ".json"
+    config_path = "locales/moves." + loc + ".json"
 
     try:
         with open(config_path, 'r', encoding='utf-8') as f:
@@ -1248,7 +1248,7 @@ def main():
     read_config()
 
     # Read lang files
-    path_to_local = "/home/martin/pokemon/bots/developbot/locales/"
+    path_to_local = "locales/"
     for file in os.listdir(path_to_local):
         if fnmatch.fnmatch(file, 'pokemon.*.json'):
             read_pokemon_names(file.split('.')[1])
@@ -1355,7 +1355,7 @@ def main():
     # Start the Bot
     bot = b;
     updater.start_polling()
-    allids = os.listdir("/home/martin/pokemon/bots/developbot/userdata/")
+    allids = os.listdir("userdata/")
     newids = []
     for x in allids:
         newids = x.replace(".json", "")
