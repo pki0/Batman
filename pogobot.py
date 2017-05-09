@@ -32,7 +32,6 @@ from time import sleep
 from geopy.geocoders import Nominatim
 import geopy
 from geopy.distance import VincentyDistance
-import Whitelist
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s:%(lineno)d - %(levelname)s - %(message)s',
@@ -590,9 +589,6 @@ def cmd_status(bot, update):
 def cmd_addByRarity(bot, update, args, job_queue):
     chat_id = update.message.chat_id
     userName = update.message.from_user.username
-    if not whitelist.isWhitelisted(userName):
-        logger.info('[%s@%s] User blocked (addByRarity).' % (userName, chat_id))
-        return
 
     pref = prefs.get(chat_id)
 
@@ -720,7 +716,7 @@ def cmd_saveSilent(bot, update):
 def cmd_load(bot, update, job_queue):
     chat_id = update.message.chat_id
     userName = update.message.from_user.username
-
+    bot.sendMessage(chat_id, text='%s' % update)
     pref = prefs.get(chat_id)
 
     logger.info('[%s@%s] Attempting to load.' % (userName, chat_id))
@@ -1273,8 +1269,6 @@ def main():
     if not dataSource:
         raise Exception("The combination SCANNER_NAME, DB_TYPE is not available: %s,%s" % (scannerName, dbType))
 
-    global whitelist
-    whitelist = Whitelist.Whitelist(config)
 
     #ask it to the bot father in telegram
     token = config.get('TELEGRAM_TOKEN', None)
@@ -1289,33 +1283,42 @@ def main():
     dp.add_handler(CommandHandler("start", cmd_start))
     dp.add_handler(CommandHandler("Start", cmd_start))
     dp.add_handler(CommandHandler("help", cmd_help))
+    dp.add_handler(CommandHandler("Help", cmd_help))
     dp.add_handler(CommandHandler("hilfe", cmd_help))
     dp.add_handler(CommandHandler("Hilfe", cmd_help))
     dp.add_handler(CommandHandler("add", cmd_add, pass_args = True, pass_job_queue=True))
+    dp.add_handler(CommandHandler("Add", cmd_add, pass_args = True, pass_job_queue=True))
     dp.add_handler(CommandHandler("pokemon", cmd_add, pass_args = True, pass_job_queue=True))
     dp.add_handler(CommandHandler("Pokemon", cmd_add, pass_args = True, pass_job_queue=True))
     dp.add_handler(CommandHandler("addbyrarity", cmd_addByRarity, pass_args = True, pass_job_queue=True))
+    dp.add_handler(CommandHandler("Addbyrarity", cmd_addByRarity, pass_args = True, pass_job_queue=True))
     dp.add_handler(CommandHandler("seltenheit", cmd_addByRarity, pass_args = True, pass_job_queue=True))
     dp.add_handler(CommandHandler("Seltenheit", cmd_addByRarity, pass_args = True, pass_job_queue=True))
     dp.add_handler(CommandHandler("clear", cmd_clear))
+    dp.add_handler(CommandHandler("Clear", cmd_clear))
     dp.add_handler(CommandHandler("ende", cmd_clear))
     dp.add_handler(CommandHandler("Ende", cmd_clear))
     dp.add_handler(CommandHandler("rem", cmd_remove, pass_args = True, pass_job_queue=True))
+    dp.add_handler(CommandHandler("Rem", cmd_remove, pass_args = True, pass_job_queue=True))
     dp.add_handler(CommandHandler("entferne", cmd_remove, pass_args = True, pass_job_queue=True))
     dp.add_handler(CommandHandler("Entferne", cmd_remove, pass_args = True, pass_job_queue=True))
     dp.add_handler(CommandHandler("save", cmd_save))
+    dp.add_handler(CommandHandler("Save", cmd_save))
     dp.add_handler(CommandHandler("speichern", cmd_save))
     dp.add_handler(CommandHandler("Speichern", cmd_save))
     dp.add_handler(CommandHandler("load", cmd_load, pass_job_queue=True))
+    dp.add_handler(CommandHandler("Load", cmd_load, pass_job_queue=True))
     dp.add_handler(CommandHandler("laden", cmd_load, pass_job_queue=True))
     dp.add_handler(CommandHandler("Laden", cmd_load, pass_job_queue=True))
     dp.add_handler(CommandHandler("list", cmd_list))
+    dp.add_handler(CommandHandler("List", cmd_list))
     dp.add_handler(CommandHandler("liste", cmd_list))
     dp.add_handler(CommandHandler("Liste", cmd_list))
     #dp.add_handler(CommandHandler("lang", cmd_lang, pass_args = True))
     dp.add_handler(CommandHandler("radius", cmd_radius, pass_args=True))
     dp.add_handler(CommandHandler("Radius", cmd_radius, pass_args=True))
     dp.add_handler(CommandHandler("location", cmd_location_str, pass_args=True, pass_job_queue=True))
+    dp.add_handler(CommandHandler("Location", cmd_location_str, pass_args=True, pass_job_queue=True))
     dp.add_handler(CommandHandler("standort", cmd_location_str, pass_args=True, pass_job_queue=True))
     dp.add_handler(CommandHandler("Standort", cmd_location_str, pass_args=True, pass_job_queue=True))
     #dp.add_handler(CommandHandler("remloc", cmd_clearlocation))
@@ -1325,10 +1328,13 @@ def main():
     #dp.add_handler(CommandHandler("wladd", cmd_addToWhitelist, pass_args=True))
     #dp.add_handler(CommandHandler("wlrem", cmd_remFromWhitelist, pass_args=True))
     dp.add_handler(CommandHandler("iv", cmd_IV, pass_args = True))
+    dp.add_handler(CommandHandler("Iv", cmd_IV, pass_args = True))
     dp.add_handler(CommandHandler("IV", cmd_IV, pass_args = True))
     dp.add_handler(CommandHandler("wp", cmd_CP, pass_args = True))
+    dp.add_handler(CommandHandler("Wp", cmd_CP, pass_args = True))
     dp.add_handler(CommandHandler("WP", cmd_CP, pass_args = True))
     dp.add_handler(CommandHandler("lvl", cmd_LVL, pass_args = True))
+    dp.add_handler(CommandHandler("Lvl", cmd_LVL, pass_args = True))
     dp.add_handler(CommandHandler("LVL", cmd_LVL, pass_args = True))
     dp.add_handler(CommandHandler("modus", cmd_Mode, pass_args = True))
     dp.add_handler(CommandHandler("Modus", cmd_Mode, pass_args = True))
@@ -1351,8 +1357,8 @@ def main():
     updater.start_polling()
     allids = os.listdir("/home/martin/pokemon/bots/developbot/userdata/")
     newids = []
-    for i in range(0,len(allids)):
-        newids = allids[i].replace(".json", "")
+    for x in allids:
+        newids = x.replace(".json", "")
         chat_id = int(newids)
         logger.info('%s' % (chat_id))
         try:
