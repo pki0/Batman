@@ -163,14 +163,7 @@ def cmd_start(bot, update):
 
     # Setze default Werte und den Standort auf Kiel
     pref = prefs.get(chat_id)
-    pref.set('location', [54.321362, 10.134511, 0.1])
-    pref.set('user_miniv', 0)
-    pref.set('user_maxiv', 100)
-    pref.set('user_mincp', 0)
-    pref.set('user_maxcp', 5000)
-    pref.set('user_minlvl', 1)
-    pref.set('user_maxlvl', 30)
-    pref.set('user_mode', 1)
+    setUserDefaults(pref)
 
 def cmd_add(bot, update, args, job_queue):
     chat_id = update.message.chat_id
@@ -194,22 +187,8 @@ def cmd_add(bot, update, args, job_queue):
     loc = pref.get('location')
     if loc[0] is None or loc[1] is None:
         bot.sendMessage(chat_id, text='*Du hast keinen Standort gewählt! Du wirst nun nach Kiel gesetzt!*', parse_mode='Markdown')
-        pref.set('location', [54.321362, 10.134511, 0.1])
 
-    if pref.get('user_miniv') is None:
-        pref.set('user_miniv', 0)
-    if pref.get('user_maxiv') is None:
-        pref.set('user_maxiv', 100)
-    if pref.get('user_mincp') is None:
-        pref.set('user_mincp', 0)
-    if pref.get('user_maxcp') is None:
-        pref.set('user_maxcp', 5000)
-    if pref.get('user_minlvl') is None:
-        pref.set('user_minlvl', 1)
-    if pref.get('user_maxlvl') is None:
-        pref.set('user_maxlvl', 30)
-    if pref.get('user_mode') is None:
-        pref.set('user_mode', 1)
+    setUserDefaults(pref)
 
     try:
         search = pref.get('search_ids')
@@ -380,22 +359,8 @@ def cmd_ivFilter(bot, update, args, job_queue):
     loc = pref.get('location')
     if loc[0] is None or loc[1] is None:
         bot.sendMessage(chat_id, text='*Du hast keinen Standort gewählt! Du wirst nun nach Kiel gesetzt!*', parse_mode='Markdown')
-        pref.set('location', [54.321362, 10.134511, 0.1])
 
-    if pref.get('user_miniv') is None:
-        pref.set('user_miniv', 0)
-    if pref.get('user_maxiv') is None:
-        pref.set('user_maxiv', 100)
-    if pref.get('user_mincp') is None:
-        pref.set('user_mincp', 0)
-    if pref.get('user_maxcp') is None:
-        pref.set('user_maxcp', 5000)
-    if pref.get('user_minlvl') is None:
-        pref.set('user_minlvl', 1)
-    if pref.get('user_maxlvl') is None:
-        pref.set('user_maxlvl', 30)
-    if pref.get('user_mode') is None:
-        pref.set('user_mode', 1)
+    setUserDefaults(pref)
 
     try:
         for x in args:
@@ -459,22 +424,8 @@ def cmd_lvlFilter(bot, update, args, job_queue):
     loc = pref.get('location')
     if loc[0] is None or loc[1] is None:
         bot.sendMessage(chat_id, text='*Du hast keinen Standort gewählt! Du wirst nun nach Kiel gesetzt!*', parse_mode='Markdown')
-        pref.set('location', [54.321362, 10.134511, 0.1])
 
-    if pref.get('user_miniv') is None:
-        pref.set('user_miniv', 0)
-    if pref.get('user_maxiv') is None:
-        pref.set('user_maxiv', 100)
-    if pref.get('user_mincp') is None:
-        pref.set('user_mincp', 0)
-    if pref.get('user_maxcp') is None:
-        pref.set('user_maxcp', 5000)
-    if pref.get('user_minlvl') is None:
-        pref.set('user_minlvl', 1)
-    if pref.get('user_maxlvl') is None:
-        pref.set('user_maxlvl', 30)
-    if pref.get('user_mode') is None:
-        pref.set('user_mode', 1)
+    setUserDefaults(pref)
     
     try:
         for x in args:
@@ -531,14 +482,14 @@ def cmd_status(bot, update):
     #lvlfilterCMD = copy.deepcopy(lvlfilter)
     loc = pref.get('location')
     lat = loc[0]
-    long = loc[1]
+    lon = loc[1]
 
     prefmessage = "*Einstellungen:*\nMinimum IV: *%s*, Maximum IV: *%s*\nMinimum WP: *%s*, Maximum WP: *%s*\nMinimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\nStandort nicht gesetzt" % (miniv,maxiv,mincp,maxcp,minlvl,maxlvl,mode)
     commandmessage = "*Die Einstellungen entsprechen folgenden Befehlen:*\n\n/iv %s %s\n/wp %s %s\n/lvl %s %s\n/modus %s" % (miniv,maxiv,mincp,maxcp,minlvl,maxlvl,mode)
     if lat is not None and loc[2] is not None:
         radius = float(loc[2])*1000
-        prefmessage = "*Einstellungen:*\n\nMinimum IV: *%s*, Maximum IV: *%s*\nMinimum WP: *%s*, Maximum WP: *%s*\nMinimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\nStandort: %s,%s\nRadius: %s m" % (miniv,maxiv,mincp,maxcp,minlvl,maxlvl,mode,lat,long,radius)
-        commandmessage = "*Die Einstellungen entsprechen folgenden Befehlen:*\n\n/iv %s %s\n/wp %s %s\n/lvl %s %s\n/modus %s\n/standort %s,%s\n/radius %s" % (miniv,maxiv,mincp,maxcp,minlvl,maxlvl,mode,lat,long,radius)
+        prefmessage = "*Einstellungen:*\n\nMinimum IV: *%s*, Maximum IV: *%s*\nMinimum WP: *%s*, Maximum WP: *%s*\nMinimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\nStandort: %s,%s\nRadius: %s m" % (miniv,maxiv,mincp,maxcp,minlvl,maxlvl,mode,lat,lon,radius)
+        commandmessage = "*Die Einstellungen entsprechen folgenden Befehlen:*\n\n/iv %s %s\n/wp %s %s\n/lvl %s %s\n/modus %s\n/standort %s,%s\n/radius %s" % (miniv,maxiv,mincp,maxcp,minlvl,maxlvl,mode,lat,lon,radius)
     
     
    
@@ -744,27 +695,13 @@ def cmd_load(bot, update, job_queue):
         mode = pref.get('user_mode')
         loc = pref.get('location')
         lat = loc[0]
-        long = loc[1]
+        lon = loc[1]
 
         # Korrigiere Einstellungen, wenn jemand "null" oder "strings" hat
-        if lat is None or long is None:
+        if lat is None or lon is None:
             bot.sendMessage(chat_id, text='*Du hast keinen Standort gewählt! Du wirst nun nach Kiel gesetzt!*', parse_mode='Markdown')
-            pref.set('location', [54.321362, 10.134511, 0.1])
 
-        if miniv is None:
-            pref.set('user_miniv', 0)
-        if maxiv is None:
-            pref.set('user_maxiv', 100)
-        if mincp is None:
-            pref.set('user_mincp', 0)
-        if maxcp is None:
-            pref.set('user_maxcp', 5000)
-        if minlvl is None:
-            pref.set('user_minlvl', 1)
-        if maxlvl is None:
-            pref.set('user_maxlvl', 30)
-        if mode is None:
-            pref.set('user_mode', 1)
+        setUserDefaults(pref)
 
         if type(miniv) is str:
             pref.set('user_miniv', float(miniv))
@@ -786,7 +723,7 @@ def cmd_load(bot, update, job_queue):
         prefmessage = "*Einstellungen:*\nMinimum IV: *%s*, Maximum IV: *%s*\nMinimum WP: *%s*, Maximum WP: *%s*\nMinimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\nStandort nicht gesetzt" % (miniv,maxiv,mincp,maxcp,minlvl,maxlvl,mode)
         if lat is not None:
             radius = float(loc[2])*1000
-            prefmessage = "*Einstellungen:*\nMinimum IV: *%s*, Maximum IV: *%s*\nMinimum WP: *%s*, Maximum WP: *%s*\nMinimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\nStandort: %s,%s\nRadius: %s m" % (miniv,maxiv,mincp,maxcp,minlvl,maxlvl,mode,lat,long,radius)
+            prefmessage = "*Einstellungen:*\nMinimum IV: *%s*, Maximum IV: *%s*\nMinimum WP: *%s*, Maximum WP: *%s*\nMinimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\nStandort: %s,%s\nRadius: %s m" % (miniv,maxiv,mincp,maxcp,minlvl,maxlvl,mode,lat,lon,radius)
         bot.sendMessage(chat_id, text='%s' % (prefmessage), parse_mode='Markdown')
     else:
         if chat_id not in jobs:
@@ -794,28 +731,6 @@ def cmd_load(bot, update, job_queue):
             job.schedule_removal()
             del jobs[chat_id]
 
-def cmd_lang(bot, update, args):
-    chat_id = update.message.chat_id
-    userName = update.message.from_user.username
-
-    pref = prefs.get(chat_id)
-
-    try:
-        lan = args[0]
-        logger.info('[%s@%s] Setting lang.' % (userName, chat_id))
-
-        if lan in pokemon_name:
-            pref.set('language',args[0])
-            bot.sendMessage(chat_id, text='Sprache geändert zu [%s].' % (lan))
-        else:
-            tmp = ''
-            for key in pokemon_name:
-                tmp += "%s, " % (key)
-            tmp = tmp[:-2]
-            bot.sendMessage(chat_id, text='Diese Sprache ist nicht verfügbar! [%s]' % (tmp))
-    except Exception as e:
-        logger.error('[%s@%s] %s' % (userName, chat_id, repr(e)))
-        bot.sendMessage(chat_id, text='Nutzung: /lang Sprache')
 
 def cmd_location(bot, update):
     chat_id = update.message.chat_id
@@ -931,6 +846,26 @@ def cmd_clearlocation(bot, update):
 ## Functions
 def error(bot, update, error):
     logger.warn('Update "%s" caused error "%s"' % (update, error))
+
+def setUserDefaults(pref):
+    if pref.get('user_miniv') is None:
+        pref.set('user_miniv', 0)
+    if pref.get('user_maxiv') is None:
+        pref.set('user_maxiv', 100)
+    if pref.get('user_mincp') is None:
+        pref.set('user_mincp', 0)
+    if pref.get('user_maxcp') is None:
+        pref.set('user_maxcp', 5000)
+    if pref.get('user_minlvl') is None:
+        pref.set('user_minlvl', 1)
+    if pref.get('user_maxlvl') is None:
+        pref.set('user_maxlvl', 30)
+    if pref.get('user_mode') is None:
+        pref.set('user_mode', 1)
+		
+    loc = pref.get('location')
+    if loc[0] is None or loc[1] is None:
+        pref.set('location', [54.321362, 10.134511, 0.1])
 
 def alarm(bot, job):
     chat_id = job.context[0]
