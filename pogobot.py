@@ -990,7 +990,7 @@ def cmd_clearlocation(bot, update):
 
 def cmd_unknown(bot, update):
     chat_id = update.message.chat_id
-    bot.send_message(chat_id, text="Falsche Eingabe. Ich habe dich nicht verstanden")
+    bot.send_message(chat_id, text="Falsche Eingabe. Ich habe dich nicht verstanden!")
 	
 
 ## Functions
