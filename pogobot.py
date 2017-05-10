@@ -339,6 +339,10 @@ def cmd_Mode(bot, update, args):
     if len(args) < 1 or len(args) > 1:
         bot.sendMessage(chat_id, text='Nutzung: "/modus #modus" (Ohne # und einen Wert!)')
         return
+    else:
+        if len(args[0]) > 1:
+            bot.sendMessage(chat_id, text='Nutzung: "/modus #modus" (Ohne # und einen Wert! 0 oder 1)')
+            return
 
     if int(args[0]) == 1 or int(args[0]) == 0:
         # Setze Modus
@@ -365,6 +369,10 @@ def cmd_SendInWater(bot, update, args):
     if len(args) < 1 or len(args) > 1:
         bot.sendMessage(chat_id, text='Nutzung: "/wasser 0 oder /wasser 1" (Einen Wert!)')
         return
+    else:
+        if len(args[0]) > 1:
+            bot.sendMessage(chat_id, text='Nutzung: "/wasser 0 oder /wasser 1" (Einen Wert! 0 oder 1)')
+            return
 
     if int(args[0]) == 1 or int(args[0]) == 0:
         # Setze Modus
