@@ -906,6 +906,12 @@ def cmd_clearlocation(bot, update):
     bot.sendMessage(chat_id, text='Dein Standort wurde entfernt!')
     logger.info('[%s@%s] Location has been unset' % (userName, chat_id))
 
+
+def cmd_unknown(bot, update):
+    chat_id = update.message.chat_id
+    bot.send_message(chat_id, text="Falsche Eingabe. Ich habe dich nicht verstanden")
+	
+
 ## Functions
 def error(bot, update, error):
     logger.warn('Update "%s" caused error "%s"' % (update, error))
@@ -1359,7 +1365,7 @@ def main():
     #dp.add_handler(CommandHandler("Pokemoniv", cmd_ivFilter, pass_args = True, pass_job_queue=True))
     #dp.add_handler(CommandHandler("pokemonlvl", cmd_lvlFilter, pass_args = True, pass_job_queue=True))
     #dp.add_handler(CommandHandler("Pokemonlvl", cmd_lvlFilter, pass_args = True, pass_job_queue=True))
-
+    dp.add_handler(MessageHandler([Filters.command], cmd_unknown))
 
     # log all errors
     dp.add_error_handler(error)
