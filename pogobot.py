@@ -193,10 +193,18 @@ def cmd_add(bot, update, args, job_queue):
 
     pref = prefs.get(chat_id)
 
-    if len(args) <= 0:
-        bot.sendMessage(chat_id, text='Nutzung: "/pokemon #Nummer" oder "/pokemon #Nummer1 #Nummer2 ... (Ohne #)')
+    if args != []:
+        if args[0].isdigit():
+            if len(args) <= 0:
+                bot.sendMessage(chat_id, text='Nutzung: "/pokemon #Nummer" oder "/pokemon #Nummer1 #Nummer2 ... (Ohne #)')
+                return
+        else:
+            bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
+            return
+    else:
+        bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
         return
-    
+		
     for x in args:
         if int(x) > 251 or int(x) <= 0:
             bot.sendMessage(chat_id, text='Bitte keine Pokemonnummer über 251 eingeben!')
@@ -225,6 +233,42 @@ def cmd_add(bot, update, args, job_queue):
         bot.sendMessage(chat_id, text='Nutzung: "/pokemon #Nummer" oder "/pokemon #Nummer1 #Nummer2 ... (Ohne #)')
 
 
+def cmd_addByRarity(bot, update, args, job_queue):
+    chat_id = update.message.chat_id
+    userName = update.message.from_user.username
+
+    pref = prefs.get(chat_id)
+
+    if args != []:
+        if args[0].isdigit():
+            if len(args) <= 0:
+                bot.sendMessage(chat_id, text='Nutzung: "/seltenheit #Nummer" mit 1 gewöhnlich bis 5 ultra-selten, 6 Gen1, 7 Gen2, 8 Alle')
+                return
+        else:
+            bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
+            return
+    else:
+        bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
+        return
+
+    addJob(bot, update, job_queue)
+    logger.info('[%s@%s] Add pokemon by rarity.' % (userName, chat_id))
+
+    try:
+        rarity = int(args[0])
+
+        search = pref.get('search_ids')
+        for x in pokemon_rarity[rarity]:
+            if int(x) not in search:
+                search.append(int(x))
+        search.sort()
+        pref.set('search_ids', search)
+        cmd_list(bot, update)
+    except Exception as e:
+        logger.error('[%s@%s] %s' % (userName, chat_id, repr(e)))
+        bot.sendMessage(chat_id, text='usage: "/addbyrarity X" mit 1 gewöhnlich bis 5 ultra selten, 6 Gen1, 8 Alle')
+
+
 def cmd_IV(bot, update, args):
     chat_id = update.message.chat_id
     userName = update.message.from_user.username
@@ -233,8 +277,16 @@ def cmd_IV(bot, update, args):
     pref = prefs.get(chat_id)
 
     # Fange keine Eingabe oder mehr als 2 Eingaben ab
-    if len(args) < 1 or len(args) > 2:
-        bot.sendMessage(chat_id, text='Nutzung: "/iv #minimum oder /iv #minimum #maximum" (Ohne #!)')
+    if args != []:
+        if args[0].isdigit():
+            if len(args) < 1 or len(args) > 2:
+                bot.sendMessage(chat_id, text='Nutzung: "/iv #minimum oder /iv #minimum #maximum" (Ohne #!)')
+                return
+        else:
+            bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
+            return
+    else:
+        bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
         return
 
     # Wenn nur ein Wert eingegeben wird -> minIV = Eingabe, maxIV = 100.
@@ -267,8 +319,16 @@ def cmd_CP(bot, update, args):
     pref = prefs.get(chat_id)
  
     # Fange keine Eingabe oder mehr als 2 Eingaben ab
-    if len(args) < 1 or len(args) > 2:
-        bot.sendMessage(chat_id, text='Nutzung: "/cp #minimum oder /cp #minimum #maximum" (Ohne #!)')
+    if args != []:
+        if args[0].isdigit():
+            if len(args) < 1 or len(args) > 2:
+                bot.sendMessage(chat_id, text='Nutzung: "/cp #minimum oder /cp #minimum #maximum" (Ohne #!)')
+                return
+        else:
+            bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
+            return
+    else:
+        bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
         return
 
     # Wenn nur ein Wert eingegeben wird -> minCP = Eingabe, maxCP = 5000.
@@ -301,8 +361,16 @@ def cmd_LVL(bot, update, args):
     pref = prefs.get(chat_id)
     
     # Fange keine Eingabe oder mehr als 2 Eingaben ab
-    if len(args) < 1 or len(args) > 2:
-        bot.sendMessage(chat_id, text='Nutzung: "/lvl #minimum oder /lvl #minimum #maximum" (Ohne #!)')
+    if args != []:
+        if args[0].isdigit():
+            if len(args) < 1 or len(args) > 2:
+                bot.sendMessage(chat_id, text='Nutzung: "/lvl #minimum oder /lvl #minimum #maximum" (Ohne #!)')
+                return
+        else:
+            bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
+            return
+    else:
+        bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
         return
 
     # Wenn nur ein Wert eingegeben wird -> minLVL = Eingabe, maxLVL = 30.
@@ -336,13 +404,21 @@ def cmd_Mode(bot, update, args):
     pref = prefs.get(chat_id)
 
     # Fange keine Eingabe ab
-    if len(args) < 1 or len(args) > 1:
-        bot.sendMessage(chat_id, text='Nutzung: "/modus 0" oder "/modus 1" (Einen Wert!)')
-        return
-    else:
-        if len(args[0]) > 1:
-            bot.sendMessage(chat_id, text='Nutzung: "/modus 0" oder "/modus 1" (Einen Wert: 0 oder 1!)')
+    if args != []:
+        if args[0].isdigit():
+            if len(args) < 1 or len(args) > 1:
+                bot.sendMessage(chat_id, text='Nutzung: "/modus 0" oder "/modus 1" (Einen Wert!)')
+                return
+            else:
+                if len(args[0]) > 1:
+                    bot.sendMessage(chat_id, text='Nutzung: "/modus 0" oder "/modus 1" (Einen Wert: 0 oder 1!)')
+                    return
+        else:
+            bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
             return
+    else:
+        bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
+        return
 
     if int(args[0]) == 1 or int(args[0]) == 0:
         # Setze Modus
@@ -366,13 +442,21 @@ def cmd_SendInWater(bot, update, args):
     pref = prefs.get(chat_id)
 
     # Fange keine Eingabe ab
-    if len(args) < 1 or len(args) > 1:
-        bot.sendMessage(chat_id, text='Nutzung: "/wasser 0" oder "/wasser 1" (Einen Wert!)')
-        return
-    else:
-        if len(args[0]) > 1:
-            bot.sendMessage(chat_id, text='Nutzung: "/wasser 0" oder "/wasser 1" (Einen Wert: 0 oder 1)')
+    if args != []:
+        if args[0].isdigit():
+            if len(args) < 1 or len(args) > 1:
+                bot.sendMessage(chat_id, text='Nutzung: "/wasser 0" oder "/wasser 1" (Einen Wert!)')
+                return
+            else:
+                if len(args[0]) > 1:
+                    bot.sendMessage(chat_id, text='Nutzung: "/wasser 0" oder "/wasser 1" (Einen Wert: 0 oder 1)')
+                    return
+        else:
+            bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
             return
+    else:
+        bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
+        return
 
     if int(args[0]) == 1 or int(args[0]) == 0:
         # Setze Modus
@@ -597,37 +681,6 @@ def cmd_status(bot, update):
     bot.sendMessage(chat_id, text='%s' % (commandmessage), parse_mode='Markdown')
 
 
-    # Show commands to correct entries
-
-
-
-def cmd_addByRarity(bot, update, args, job_queue):
-    chat_id = update.message.chat_id
-    userName = update.message.from_user.username
-
-    pref = prefs.get(chat_id)
-
-    if len(args) <= 0:
-        bot.sendMessage(chat_id, text='Nutzung: "/seltenheit #Nummer" mit 1 gewöhnlich bis 5 ultra-selten, 6 Gen1, 7 Gen2, 8 Alle')
-        return
-
-    addJob(bot, update, job_queue)
-    logger.info('[%s@%s] Add pokemon by rarity.' % (userName, chat_id))
-
-    try:
-        rarity = int(args[0])
-
-        search = pref.get('search_ids')
-        for x in pokemon_rarity[rarity]:
-            if int(x) not in search:
-                search.append(int(x))
-        search.sort()
-        pref.set('search_ids', search)
-        cmd_list(bot, update)
-    except Exception as e:
-        logger.error('[%s@%s] %s' % (userName, chat_id, repr(e)))
-        bot.sendMessage(chat_id, text='usage: "/addbyrarity X" mit 1 gewöhnlich bis 5 ultra selten, 6 Gen1, 8 Alle')
-
 def cmd_clear(bot, update):
     chat_id = update.message.chat_id
     userName = update.message.from_user.username
@@ -665,6 +718,18 @@ def cmd_remove(bot, update, args, job_queue):
 
     if chat_id not in jobs:
         bot.sendMessage(chat_id, text='Du hast keinen aktiven Scanner! Bitte füge erst Pokémon zu deiner Liste hinzu mit /pokemon 1 2 3 ...')
+        return
+
+    if args != []:
+        if args[0].isdigit():
+            if len(args) < 1 or len(args) > 2:
+                bot.sendMessage(chat_id, text='Nutzung: "/lvl #minimum oder /lvl #minimum #maximum" (Ohne #!)')
+                return
+        else:
+            bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
+            return
+    else:
+        bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
         return
 
     try:
@@ -882,9 +947,17 @@ def cmd_radius(bot, update, args):
     logger.info('[%s@%s] Retrieved Location as Lat %s, Lon %s, R %s (Km)' % (
     userName, chat_id, user_location[0], user_location[1], user_location[2]))
 
-    if len(args) < 1:
-        bot.sendMessage(chat_id, text="Aktueller Standort ist: %f / %f mit Radius %.2f m"
-                                      % (user_location[0], user_location[1], user_location[2]))
+    if args != []:
+        if args[0].isdigit():
+            if len(args) < 1:
+                bot.sendMessage(chat_id, text="Aktueller Standort ist: %f / %f mit Radius %.2f m"
+                                              % (user_location[0], user_location[1], user_location[2]))
+            return
+        else:
+            bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
+            return
+    else:
+        bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
         return
 
     # Change the radius
