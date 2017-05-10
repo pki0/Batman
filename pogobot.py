@@ -337,11 +337,11 @@ def cmd_Mode(bot, update, args):
 
     # Fange keine Eingabe ab
     if len(args) < 1 or len(args) > 1:
-        bot.sendMessage(chat_id, text='Nutzung: "/modus #modus" (Ohne # und einen Wert!)')
+        bot.sendMessage(chat_id, text='Nutzung: "/modus 0" oder "/modus 1" (Einen Wert!)')
         return
     else:
         if len(args[0]) > 1:
-            bot.sendMessage(chat_id, text='Nutzung: "/modus #modus" (Ohne # und einen Wert! 0 oder 1)')
+            bot.sendMessage(chat_id, text='Nutzung: "/modus 0" oder "/modus 1" (Einen Wert: 0 oder 1!)')
             return
 
     if int(args[0]) == 1 or int(args[0]) == 0:
@@ -356,7 +356,7 @@ def cmd_Mode(bot, update, args):
         else:
             bot.sendMessage(chat_id, text='Modus ist 1: Auch Pokémon ohne IV werden gesendet!')
     else:
-        bot.sendMessage(chat_id, text='Nutzung: "/modus #modus" (Ohne # und einen Wert: 0 oder 1!)')
+        bot.sendMessage(chat_id, text='Nutzung: "/modus 0" oder "/modus 1" (Einen Wert: 0 oder 1!)')
 
 def cmd_SendInWater(bot, update, args):
     chat_id = update.message.chat_id
@@ -367,11 +367,11 @@ def cmd_SendInWater(bot, update, args):
 
     # Fange keine Eingabe ab
     if len(args) < 1 or len(args) > 1:
-        bot.sendMessage(chat_id, text='Nutzung: "/wasser 0 oder /wasser 1" (Einen Wert!)')
+        bot.sendMessage(chat_id, text='Nutzung: "/wasser 0" oder "/wasser 1" (Einen Wert!)')
         return
     else:
         if len(args[0]) > 1:
-            bot.sendMessage(chat_id, text='Nutzung: "/wasser 0 oder /wasser 1" (Einen Wert! 0 oder 1)')
+            bot.sendMessage(chat_id, text='Nutzung: "/wasser 0" oder "/wasser 1" (Einen Wert: 0 oder 1)')
             return
 
     if int(args[0]) == 1 or int(args[0]) == 0:
@@ -386,7 +386,7 @@ def cmd_SendInWater(bot, update, args):
         else:
             bot.sendMessage(chat_id, text='Modus ist 1: Auch Pokémon im Wasser werden gesendet!')
     else:
-        bot.sendMessage(chat_id, text='Nutzung: "/wasser 0 oder /wasser 1" (Einen Wert! 0 oder 1!)')
+        bot.sendMessage(chat_id, text='Nutzung: "/wasser 0" oder "/wasser 1" (Einen Wert: 0 oder 1!)')
 
 
 def cmd_ivFilter(bot, update, args, job_queue):
