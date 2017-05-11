@@ -868,6 +868,60 @@ def cmd_load(bot, update, job_queue):
             del jobs[chat_id]
 
 
+def cmd_load_silent(bot, chat_id, job_queue):
+    userName = ''
+
+    pref = prefs.get(chat_id)
+
+    logger.info('[%s@%s] Automatic load.' % (userName, chat_id))
+    r = pref.load()
+    if r is None:
+        return
+
+    if not r:
+        return
+
+    # We might be the first user and above failed....
+    if len(pref.get('search_ids')) > 0:
+        addJob_silent(bot, chat_id, job_queue)
+        miniv = pref.get('user_miniv')
+        maxiv = pref.get('user_maxiv')
+        mincp = pref.get('user_mincp')
+        maxcp = pref.get('user_maxcp')
+        minlvl = pref.get('user_minlvl')
+        maxlvl = pref.get('user_maxlvl')
+        mode = pref.get('user_mode')
+        water = pref.get('user_scanwater')
+        loc = pref.get('location')
+        lat = loc[0]
+        lon = loc[1]
+
+        checkAndSetUserDefaults(pref)
+
+        if type(miniv) is str:
+            pref.set('user_miniv', float(miniv))
+        if type(maxiv) is str:
+            pref.set('user_maxiv', float(maxiv))
+        if type(mincp) is str:
+            pref.set('user_mincp', int(mincp))
+        if type(maxcp) is str:
+            pref.set('user_maxcp', int(maxcp))
+        if type(minlvl) is str:
+            pref.set('user_minlvl', int(minlvl))
+        if type(maxlvl) is str:
+            pref.set('user_maxlvl', int(maxlvl))
+        if type(mode) is str:
+            pref.set('user_mode', int(mode))
+        if type(water) is str:
+            pref.set('user_scanwater', int(water))
+			
+    else:
+        if chat_id not in jobs:
+            job = jobs[chat_id]
+            job.schedule_removal()
+            del jobs[chat_id]
+
+
 def cmd_location(bot, update):
     chat_id = update.message.chat_id
     userName = update.message.from_user.username
@@ -1045,6 +1099,29 @@ def addJob(bot, update, job_queue):
             bot.sendMessage(chat_id, text)
     except Exception as e:
         logger.error('[%s@%s] %s' % (userName, chat_id, repr(e)))
+		
+		
+def addJob_silent(bot, chat_id, job_queue):
+    userName = ''
+    logger.info('[%s@%s] Adding job.' % (userName, chat_id))
+
+    try:
+        if chat_id not in jobs:
+            job = Job(alarm, 30, repeat=True, context=(chat_id, "Other"))
+            # Add to jobs
+            jobs[chat_id] = job
+            job_queue.put(job)
+
+            # User dependant
+            if chat_id not in sent:
+                sent[chat_id] = dict()
+            if chat_id not in locks:
+                locks[chat_id] = threading.Lock()
+            #text = "Scanner gestartet."
+            #bot.sendMessage(chat_id, text)
+    except Exception as e:
+        logger.error('[%s@%s] %s' % (userName, chat_id, repr(e)))
+
 
 def checkAndSend(bot, chat_id, pokemons):
     pref = prefs.get(chat_id)
@@ -1462,10 +1539,11 @@ def main():
     for x in allids:
         newids = x.replace(".json", "")
         chat_id = int(newids)
+        j = updater.job_queue
         logger.info('%s' % (chat_id))
         try:
-            
-            bot.sendMessage(chat_id, text = 'Hinweis: Der Bot wurde neugestartet! Bitte /laden zum laden deiner Einstellungen!')
+            cmd_load_silent(b, chat_id, j)
+            #bot.sendMessage(chat_id, text = 'Hinweis: Der Bot wurde neugestartet! Bitte /laden zum laden deiner Einstellungen!')
 
         except Exception as e:
             logger.error('%s' % (chat_id))
