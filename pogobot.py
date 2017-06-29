@@ -1006,7 +1006,6 @@ def cmd_radius(bot, update, args):
             if len(args) < 1:
                 bot.sendMessage(chat_id, text="Aktueller Standort ist: %f / %f mit Radius %.2f m"
                                               % (user_location[0], user_location[1], user_location[2]))
-            return
         else:
             bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
             return
