@@ -134,10 +134,8 @@ def cmd_help(bot, update):
     "/modus 0 \n" + \
     "Stellt den Modus um: /modus 0 = Du erhälst nur Benachrichtigungen für Pokemon mit IV und WP \n" + \
     "/modus 1 = Du erhälst auch Benachrichtigungen für Pokémon ohne IV und WP (zum Beispiel, wenn die IV/WP" +\
-    "nicht ermittelt werden konnte. Somit bekommst du z.B. auch ein Relaxo ohne IV/WP angezeigt) \n\n" +\
-    "/wasser 0 \n" + \
-    "Scannt auch Pokémon auf dem Wasser: 0 = Nein, 1 = Ja"
-    "/entferne 1 \n" + \
+    "nicht ermittelt werden konnte. Somit bekommst du z.B. auch ein Relaxo ohne IV/WP angezeigt) \n\n"
+    text2 = "/entferne 1 \n" + \
     "Nummer des Pokémon löschen, wenn du über dieses nicht mehr benachrichtigt werden willst \n" + \
     "/entferne 1 2 3 ... \n" + \
     "Mehrfache Nummern der Pokémon löschen, wenn du über diese nicht mehr benachrichtigt werden willst \n\n" + \
@@ -165,7 +163,7 @@ def cmd_help(bot, update):
     "Damit kannst du alle deine Einstellungen löschen und den Bot ausschalten. Du kannst ihn danach mit /laden " + \
     "wieder einschalten und deine Einstellungen werden geladen \n"
     bot.sendMessage(chat_id, text, parse_mode='Markdown')
-
+    bot.sendMessage(chat_id, text2, parse_mode='Markdown')
 
 def cmd_start(bot, update):
     chat_id = update.message.chat_id
@@ -206,8 +204,8 @@ def cmd_add(bot, update, args, job_queue):
         return
 		
     for x in args:
-        if int(x) > 251 or int(x) <= 0:
-            bot.sendMessage(chat_id, text='Bitte keine Pokemonnummer über 251 eingeben!')
+        if int(x) > 721 or int(x) <= 0:
+            bot.sendMessage(chat_id, text='Bitte keine Pokemonnummer über 721 eingeben!')
             return
     
     addJob(bot, update, job_queue)
@@ -628,15 +626,15 @@ def cmd_status(bot, update):
     lon = loc[1]
 
     prefmessage = "*Einstellungen:*\nMinimum IV: *%s*, Maximum IV: *%s*\nMinimum WP: *%s*, " % (miniv, maxiv, mincp) + \
-    "Maximum WP: *%s*\nMinimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\nPokémon im Wasser: %s\n" % (maxcp, minlvl, maxlvl, mode, water)
+    "Maximum WP: *%s*\nMinimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\n" % (maxcp, minlvl, maxlvl, mode)
     "Standort nicht gesetzt"
     commandmessage = "*Die Einstellungen entsprechen folgenden Befehlen:*\n\n" + \
-    "/iv %s %s\n/wp %s %s\n/lvl %s %s\n/modus %s\n/wasser %s" % (miniv, maxiv, mincp, maxcp, minlvl, maxlvl, mode, water)
+    "/iv %s %s\n/wp %s %s\n/lvl %s %s\n/modus %s\n" % (miniv, maxiv, mincp, maxcp, minlvl, maxlvl, mode)
 
     if lat is not None and loc[2] is not None:
         radius = float(loc[2])*1000
         prefmessage = "*Einstellungen:*\n\nMinimum IV: *%s*, Maximum IV: *%s*\nMinimum WP: *%s*, " % (miniv, maxiv, mincp) + \
-        "Maximum WP: *%s*\nMinimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\nWasser: *%s*" % (maxcp, minlvl, maxlvl, mode, water) + \
+        "Maximum WP: *%s*\nMinimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\n" % (maxcp, minlvl, maxlvl, mode) + \
         "Standort: %s,%s\nRadius: %s m" % (lat, lon, radius)
         commandmessage = "*Die Einstellungen entsprechen folgenden Befehlen:*\n\n" 
 
@@ -674,7 +672,7 @@ def cmd_status(bot, update):
 
     prefmessage += tmppref
     commandmessage += tmpcmdPoke #+ tmpcmdIV + tmpcmdLVL
-    commandmessage += "\n/iv %s %s\n/wp %s %s\n/lvl %s %s\n/modus %s\n/wasser %s" % (miniv, maxiv, mincp, maxcp, minlvl, maxlvl, mode, water)+ \
+    commandmessage += "\n/iv %s %s\n/wp %s %s\n/lvl %s %s\n/modus %s\n" % (miniv, maxiv, mincp, maxcp, minlvl, maxlvl, mode)+ \
     "/standort %s,%s\n/radius %s" % (lat, lon, radius)
 
     bot.sendMessage(chat_id, text='%s' % (prefmessage), parse_mode='Markdown')
@@ -722,8 +720,8 @@ def cmd_remove(bot, update, args, job_queue):
 
     if args != []:
         if args[0].isdigit():
-            if len(args) < 1 or len(args) > 2:
-                bot.sendMessage(chat_id, text='Nutzung: "/lvl #minimum oder /lvl #minimum #maximum" (Ohne #!)')
+            if len(args) < 1:
+                bot.sendMessage(chat_id, text='Nutzung: "/entferne #Nummer oder /entferne #Nummer #Nummer" (Ohne #!)')
                 return
         else:
             bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
@@ -1283,21 +1281,21 @@ def checkAndSend(bot, chat_id, pokemons):
                         #if int(pkmnlvl) >= int(pokeMinLVL) and int(pkmnlvl) <= int(pokeMaxLVL):
 					
                 pkmname =  pokemon_name[lan][pok_id]
-                address = "%s (%s)." % (disappear_time_str, deltaStr)
-                title = "*IV*:%s (%s/%s/%s) - *WP*:%s - *Level*:%s\n" % (iv, iv_attack, iv_defense, iv_stamina, cp, pkmnlvl)
+                address = "%s - %sWP/%s%%." % (disappear_time_str, cp, iv)
+                #title = "*IV*:%s (%s/%s/%s) - *WP*:%s - *Level*:%s\n" % (iv, iv_attack, iv_defense, iv_stamina, cp, pkmnlvl)
 
-                move1Name = moveNames[move1]
-                move2Name = moveNames[move2]
-                title += "*Moves*: %s/%s" % (move1Name, move2Name)
+                #move1Name = moveNames[move1]
+                #move2Name = moveNames[move2]
+                #title += "*Moves*: %s/%s" % (move1Name, move2Name)
 							
                 #filter2 = 1
-
+                
             # Pokemon ohne IV
             else:
                 if int(mode) == 1:		
                     pkmname =  pokemon_name[lan][pok_id]
-                    address = "%s (%s)." % (disappear_time_str, deltaStr)
-                    title = "Leider keine IV/WP"
+                    address = "%s" % (disappear_time_str)
+                    title = ""
 
                     #filter2 = 1	
 					
@@ -1328,8 +1326,9 @@ def checkAndSend(bot, chat_id, pokemons):
                     break
                 if notDisappeared and counter <= 20:
                     try:
-                        bot.sendLocation(chat_id, latitude, longitude)
-                        bot.sendMessage(chat_id, text = '*%s* Bis %s \n%s' % (pkmname, address, title), parse_mode='Markdown')
+                        #bot.sendLocation(chat_id, latitude, longitude)
+                        #bot.sendMessage(chat_id, text = '*%s* Bis %s \n%s' % (pkmname, address, title), parse_mode='Markdown')
+                        bot.sendVenue(chat_id, latitude, longitude, pkmname, address)
                         counter += 1
                     except Exception as e:
                         logger.error('[%s] %s' % (chat_id, repr(e)))
