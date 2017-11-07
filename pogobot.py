@@ -202,12 +202,12 @@ def cmd_add(bot, update, args, job_queue):
     else:
         bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
         return
-		
+
     for x in args:
         if int(x) > 721 or int(x) <= 0:
             bot.sendMessage(chat_id, text='Bitte keine Pokemonnummer über 721 eingeben!')
             return
-    
+
     addJob(bot, update, job_queue)
     logger.info('[%s@%s] Add pokemon.' % (userName, chat_id))
 
@@ -294,7 +294,7 @@ def cmd_IV(bot, update, args):
     else:
         IVmin = float(args[0])
         IVmax = float(args[1])
-    
+
     # Fange Werte unter 0 und über 100 ab
     if IVmin > 100 or IVmax > 100 or IVmin < 0 or IVmax < 0:
         bot.sendMessage(chat_id, text='Nutzung: "/iv #minimum #maximum oder /iv #minimum" (Ohne # und nicht über 100 / unter 0!)')
@@ -315,7 +315,7 @@ def cmd_CP(bot, update, args):
 
     # Lade User Einstellungen
     pref = prefs.get(chat_id)
- 
+
     # Fange keine Eingabe oder mehr als 2 Eingaben ab
     if args != []:
         if args[0].isdigit():
@@ -336,7 +336,7 @@ def cmd_CP(bot, update, args):
     else:
         CPmin = int(args[0])
         CPmax = int(args[1])
-    
+
     # Fange Werte unter 0 ab
     if CPmin < 0 or CPmax < 0:
         bot.sendMessage(chat_id, text='Nutzung: "/cp #minimum oder /cp #minimum #maximum" (Ohne # und nicht unter 0!)')
@@ -357,7 +357,7 @@ def cmd_LVL(bot, update, args):
 
     # Lade User Einstellungen
     pref = prefs.get(chat_id)
-    
+
     # Fange keine Eingabe oder mehr als 2 Eingaben ab
     if args != []:
         if args[0].isdigit():
@@ -470,19 +470,35 @@ def cmd_SendInWater(bot, update, args):
     else:
         bot.sendMessage(chat_id, text='Nutzung: "/wasser 0" oder "/wasser 1" (Einen Wert: 0 oder 1!)')
 
+def cmd_SwitchVenue(bot, update):
+
+    chat_id = update.message.chat_id
+    userName = update.message.from_user.username
+
+    # Lade User Einstellungen
+    pref = prefs.get(chat_id)
+
+    if pref['user_send_venue'] == 0:
+        pref.set('user_send_venue', 1)
+        bot.sendMessage(chat_id, text='Pokémon werden nun in einer Nachricht gesendet')
+    else:
+        pref.set('user_send_venue', 0)
+        bot.sendMessage(chat_id, text='Pokémon werden nun in zwei Nachrichten gesendet')
+
+    logger.info('[%s@%s] Switched message style' % (userName, chat_id))
 
 def cmd_ivFilter(bot, update, args, job_queue):
     chat_id = update.message.chat_id
     userName = update.message.from_user.username
-    
-    
+
+
     # Lade User Einstellungen
     pref = prefs.get(chat_id)
-    
+
     if len(args) <= 0:
         bot.sendMessage(chat_id, text='Nutzung: "/pokemoniv #Nummer,IV" oder "/pokemoniv #Nummer1,IV1 #Nummer2,IV2 ... (Ohne #)')
         return
-    
+
     for x in args:
         tmp = x.split(",")
         if int(tmp[0]) > 251:
@@ -491,7 +507,7 @@ def cmd_ivFilter(bot, update, args, job_queue):
         if int(tmp[1]) > 100 or int(tmp[1]) < -1:
             bot.sendMessage(chat_id, text='Bitte keine IV über 100 oder unter -1 eingeben!')
             return
-    
+
     addJob(bot, update, job_queue)
     logger.info('[%s@%s] Add pokemon.' % (userName, chat_id))
 
@@ -524,7 +540,7 @@ def cmd_ivFilter(bot, update, args, job_queue):
     if chat_id not in jobs:
         bot.sendMessage(chat_id, text='Du hast keinen aktiven Scanner! Bitte füge erst Pokémon zu deiner Liste hinzu mit /pokemon 1 2 3 ...')
         return
-    
+
     try:
         lan = pref.get('language')
         ivfilter = pref.get('user_ivfilter')
@@ -540,14 +556,14 @@ def cmd_ivFilter(bot, update, args, job_queue):
 def cmd_lvlFilter(bot, update, args, job_queue):
     chat_id = update.message.chat_id
     userName = update.message.from_user.username
-    
+
     # Lade User Einstellungen
     pref = prefs.get(chat_id)
-    
+
     if len(args) <= 0:
         bot.sendMessage(chat_id, text='Nutzung: "/pokemonlvl #Nummer,LVL" oder "/pokemonlvl #Nummer1,LVL1 #Nummer2,LVL2 ... (Ohne #)')
         return
-    
+
     for x in args:
         tmp = x.split(",")
         if int(tmp[0]) > 251:
@@ -566,7 +582,7 @@ def cmd_lvlFilter(bot, update, args, job_queue):
         bot.sendMessage(chat_id, text='*Du hast keinen Standort gewählt! Du wirst nun nach Kiel gesetzt!*', parse_mode='Markdown')
 
     checkAndSetUserDefaults(pref)
-    
+
     try:
         for x in args:
             search = pref.get('search_ids')
@@ -583,8 +599,8 @@ def cmd_lvlFilter(bot, update, args, job_queue):
     except Exception as e:
         logger.error('[%s@%s] %s' % (userName, chat_id, repr(e)))
         bot.sendMessage(chat_id, text='Nutzung: "/pokemoniv #Nummer,IV" oder "/pokemon #Nummer1,IV1 #Nummer2,IV2 ... (Ohne #)')
-    
-    
+
+
     if chat_id not in jobs:
         bot.sendMessage(chat_id, text='Du hast keinen aktiven Scanner! Bitte füge erst Pokémon zu deiner Liste hinzu mit /pokemon 1 2 3 ...')
         return
@@ -605,7 +621,7 @@ def cmd_lvlFilter(bot, update, args, job_queue):
 def cmd_status(bot, update):
     chat_id = update.message.chat_id
     userName = update.message.from_user.username
-    
+
     # Lade User Einstellungen
     pref = prefs.get(chat_id)
 
@@ -616,7 +632,6 @@ def cmd_status(bot, update):
     minlvl = pref.get('user_minlvl')
     maxlvl = pref.get('user_maxlvl')
     mode = pref.get('user_mode')
-    water = pref.get('user_scanwater')
     #ivfilter = pref.get('user_ivfilter')
     #lvlfilter = pref.get('user_lvlfilter')
     #ivfilterCMD = copy.deepcopy(ivfilter)
@@ -636,7 +651,7 @@ def cmd_status(bot, update):
         prefmessage = "*Einstellungen:*\n\nMinimum IV: *%s*, Maximum IV: *%s*\nMinimum WP: *%s*, " % (miniv, maxiv, mincp) + \
         "Maximum WP: *%s*\nMinimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\n" % (maxcp, minlvl, maxlvl, mode) + \
         "Standort: %s,%s\nRadius: %s m" % (lat, lon, radius)
-        commandmessage = "*Die Einstellungen entsprechen folgenden Befehlen:*\n\n" 
+        commandmessage = "*Die Einstellungen entsprechen folgenden Befehlen:*\n\n"
 
     try:
         lan = pref.get('language')
@@ -656,7 +671,7 @@ def cmd_status(bot, update):
                 #lvlfilterCMD[x-1] = -1
                 #ivfilter[x-1] = 0
                 #lvlfilter[x-1] = 1
-            
+
                 #logger.info('%i %i' % (ivfilterCMD[x-1], ivfilter[x-1]))
 
 
@@ -790,7 +805,7 @@ def cmd_saveSilent(bot, update):
         return
     pref.set_preferences()
     #bot.sendMessage(chat_id, text='Speichern erfolgreich!')
-	
+
 def cmd_load(bot, update, job_queue):
     chat_id = update.message.chat_id
     userName = update.message.from_user.username
@@ -820,7 +835,7 @@ def cmd_load(bot, update, job_queue):
         minlvl = pref.get('user_minlvl')
         maxlvl = pref.get('user_maxlvl')
         mode = pref.get('user_mode')
-        water = pref.get('user_scanwater')
+        send_venue = pref.get('user_send_venue')
         loc = pref.get('location')
         lat = loc[0]
         lon = loc[1]
@@ -845,17 +860,15 @@ def cmd_load(bot, update, job_queue):
             pref.set('user_maxlvl', int(maxlvl))
         if type(mode) is str:
             pref.set('user_mode', int(mode))
-        if type(water) is str:
-            pref.set('user_scanwater', int(water))
-			
+
         cmd_saveSilent(bot, update)
-		
+
         prefmessage = "*Einstellungen:*\nMinimum IV: *%s*, Maximum IV: *%s*\nMinimum WP: *%s*, " % (miniv, maxiv, mincp) + \
-        "Maximum WP: *%s*\nMinimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\nWasser: *%s*\nStandort nicht gesetzt" % (maxcp, minlvl ,maxlvl, mode, water)
+        "Maximum WP: *%s*\nMinimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\nStandort nicht gesetzt" % (maxcp, minlvl ,maxlvl, mode)
         if lat is not None:
             radius = float(loc[2])*1000
             prefmessage = "*Einstellungen:*\nMinimum IV: *%s*, Maximum IV: *%s*\nMinimum WP: *%s*, " % (miniv, maxiv, mincp) + \
-            "Maximum WP: *%s*\nMinimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\nWasser: *%s*\n" % (maxcp, minlvl, maxlvl, mode, water)+ \
+            "Maximum WP: *%s*\nMinimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\n" % (maxcp, minlvl, maxlvl, mode)+ \
             "Standort: %s,%s\nRadius: %s m" % (lat, lon, radius)
 
         bot.sendMessage(chat_id, text='%s' % (prefmessage), parse_mode='Markdown')
@@ -889,7 +902,7 @@ def cmd_load_silent(bot, chat_id, job_queue):
         minlvl = pref.get('user_minlvl')
         maxlvl = pref.get('user_maxlvl')
         mode = pref.get('user_mode')
-        water = pref.get('user_scanwater')
+        send_venue = pref.get('user_send_venue')
         loc = pref.get('location')
         lat = loc[0]
         lon = loc[1]
@@ -910,9 +923,7 @@ def cmd_load_silent(bot, chat_id, job_queue):
             pref.set('user_maxlvl', int(maxlvl))
         if type(mode) is str:
             pref.set('user_mode', int(mode))
-        if type(water) is str:
-            pref.set('user_scanwater', int(water))
-			
+
     else:
         if chat_id not in jobs:
             job = jobs[chat_id]
@@ -940,9 +951,13 @@ def cmd_location(bot, update):
         pref['location'][0], pref['location'][1], pref['location'][2]))
 
     # Send confirmation nessage
+    location_url = ('https://www.freemaptools.com/radius-around-point.htm?clat=%f&clng=%f&r=%f&lc=FFFFFF&lw=1&fc=00FF00&mt=r&fs=true&nomoreradius=true'
+        % (pref['location'][0], pref['location'][1], pref['location'][2]))
     bot.sendMessage(chat_id, text="Setze Standort auf: %f / %f mit Radius %.2f m" %
         (pref['location'][0], pref['location'][1], 1000*pref['location'][2]))
-    addJob(bot, update, job_queue)
+    bot.sendMessage(chat_id, text="Deinen Radius kannst du hier sehen:\n\n" + location_url, disable_web_page_preview="True")
+
+    #addJob(bot, update, job_queue)
 
 def cmd_location_str(bot, update, args, job_queue):
     chat_id = update.message.chat_id
@@ -974,9 +989,11 @@ def cmd_location_str(bot, update, args, job_queue):
         pref['location'][0], pref.preferences['location'][1], pref.preferences['location'][2]))
 
     # Send confirmation nessage
+    location_url = ('https://www.freemaptools.com/radius-around-point.htm?clat=%f&clng=%f&r=%f&lc=FFFFFF&lw=1&fc=00FF00&mt=r&fs=true&nomoreradius=true'
+        % (pref['location'][0], pref['location'][1], pref['location'][2]))
     bot.sendMessage(chat_id, text="Setze Standort auf: %f / %f mit Radius %.2f m" %
         (pref['location'][0], pref['location'][1], 1000*pref['location'][2]))
-
+    bot.sendMessage(chat_id, text="Deinen Radius kannst du hier sehen:\n\n" + location_url, disable_web_page_preview="True")
 
 def cmd_radius(bot, update, args):
     chat_id = update.message.chat_id
@@ -1020,8 +1037,10 @@ def cmd_radius(bot, update, args):
             pref['location'][1], pref['location'][2]))
 
         # Send confirmation
+        location_url = ('https://www.freemaptools.com/radius-around-point.htm?clat=%f&clng=%f&r=%f&lc=FFFFFF&lw=1&fc=00FF00&mt=r&fs=true&nomoreradius=true' % (pref['location'][0], pref['location'][1], pref['location'][2]))
         bot.sendMessage(chat_id, text="Setze Standort auf: %f / %f mit Radius %.2f m" % (pref['location'][0],
             pref['location'][1], 1000*pref['location'][2]))
+        bot.sendMessage(chat_id, text="Deinen Radius kannst du hier sehen:\n\n" + location_url, disable_web_page_preview="True")
 
     except Exception as e:
         logger.error('[%s@%s] %s' % (userName, chat_id, repr(e)))
@@ -1042,7 +1061,7 @@ def cmd_clearlocation(bot, update):
 def cmd_unknown(bot, update):
     chat_id = update.message.chat_id
     bot.send_message(chat_id, text="Falsche Eingabe. Ich habe dich nicht verstanden!")
-	
+
 
 ## Functions
 def error(bot, update, error):
@@ -1063,9 +1082,7 @@ def checkAndSetUserDefaults(pref):
         pref.set('user_maxlvl', 30)
     if pref.get('user_mode') is None:
         pref.set('user_mode', 1)
-    if pref.get('user_scanwater') is None:
-        pref.set('user_scanwater', 0)
-		
+
     loc = pref.get('location')
     if loc[0] is None or loc[1] is None:
         pref.set('location', [54.321362, 10.134511, 0.1])
@@ -1096,8 +1113,8 @@ def addJob(bot, update, job_queue):
             bot.sendMessage(chat_id, text)
     except Exception as e:
         logger.error('[%s@%s] %s' % (userName, chat_id, repr(e)))
-		
-		
+
+
 def addJob_silent(bot, chat_id, job_queue):
     userName = ''
     logger.info('[%s@%s] Adding job.' % (userName, chat_id))
@@ -1139,7 +1156,7 @@ def checkAndSend(bot, chat_id, pokemons):
         user_minlvl = pref['user_minlvl']
         user_maxlvl = pref['user_maxlvl']
         user_mode = pref['user_mode']
-        user_water = pref['user_scanwater']
+        user_send_venue = pref['user_send_venue']
         #user_ivfilter = pref['user_ivfilter']
         #user_lvlfilter = pref['user_lvlfilter']
 
@@ -1150,12 +1167,12 @@ def checkAndSend(bot, chat_id, pokemons):
         pokeMinLVL = user_minlvl
         pokeMaxLVL = user_maxlvl
         mode = user_mode
-        water = user_water
+        send_venue = user_send_venue
 
         counter = 0
 
         #logger.info('%s' % max(user_ivfilter))
-		
+
         # Setze default Werte, falls keine vorhanden sind
         if pokeMinIV is None:
             pokeMinIV = 0
@@ -1171,8 +1188,6 @@ def checkAndSend(bot, chat_id, pokemons):
             pokeMaxLVL = 30
         if mode is None:
             mode = 1
-        if water is None:
-            water = 0
 
         # Standort setzen wenn keiner eingegeben wurde:
         if location_data[0] is not None and location_data[2] is None:
@@ -1183,12 +1198,12 @@ def checkAndSend(bot, chat_id, pokemons):
             location_data[2] = 0.1
         if float(location_data[2]) > 30:
             location_data[2] = 30
-			
+
         # Vorfilter 1.0
         pokeMinIV = float(pokeMinIV)
         # Radius + 500m für Ungenauigkeit
         radius = location_data[2] + 0.5
-		
+
         # Berechne Koordinaten vorher
         origin = geopy.Point(location_data[0], location_data[1])
         destination_north = VincentyDistance(radius).destination(origin, 0)
@@ -1217,8 +1232,8 @@ def checkAndSend(bot, chat_id, pokemons):
                 continue
 
             #logger.info('%s' % len(allpokes))
-		
-			
+
+
             encounter_id = pokemon.getEncounterID()
             spaw_point = pokemon.getSpawnpointID()
             pok_id = pokemon.getPokemonID()
@@ -1238,20 +1253,17 @@ def checkAndSend(bot, chat_id, pokemons):
             deltaStr = '%02dm:%02ds' % (int(delta.seconds / 60), int(delta.seconds % 60))
             disappear_time_str = disappear_time.replace(tzinfo=timezone.utc).astimezone(tz=None).strftime("%H:%M:%S")
 
-            # Überspringe Pokemon auf dem Wasser (True = Wasser)
-            if water == 0:
-                if pokemon.filterbywater(latitude, longitude):
-                    continue
-			
+
+
             # Wenn IV vorhanden
             if iv_attack is not None:
 
-			
+
                 # Level berechnen
                 if cpm is not None:
-                    cpm_levels = [0.094, 0.166398, 0.215732, 0.25572, 0.29025, 0.321088, 0.349213, 0.375236, 0.399567, 0.4225, 0.443108, 
-                        0.462798, 0.481685, 0.499858, 0.517394, 0.534354, 0.550793, 0.566755, 0.582279, 0.5974, 0.612157, 0.626567, 
-                        0.640653, 0.654436, 0.667934, 0.681165, 0.694144, 0.706884, 0.719399, 0.7317]				
+                    cpm_levels = [0.094, 0.166398, 0.215732, 0.25572, 0.29025, 0.321088, 0.349213, 0.375236, 0.399567, 0.4225, 0.443108,
+                        0.462798, 0.481685, 0.499858, 0.517394, 0.534354, 0.550793, 0.566755, 0.582279, 0.5974, 0.612157, 0.626567,
+                        0.640653, 0.654436, 0.667934, 0.681165, 0.694144, 0.706884, 0.719399, 0.7317]
 
                     pkmnlvl = (i for i,x in enumerate(cpm_levels) if x == cpm)
                     for i in pkmnlvl: pkmnlvl = i + 1
@@ -1279,28 +1291,35 @@ def checkAndSend(bot, chat_id, pokemons):
                 #if float(iv) >= float(pokeMinIV) and float(iv) <= float(pokeMaxIV):
                     #if int(cp) >= int(pokeMinCP) and int(cp) <= int(pokeMaxCP):
                         #if int(pkmnlvl) >= int(pokeMinLVL) and int(pkmnlvl) <= int(pokeMaxLVL):
-					
-                pkmname =  pokemon_name[lan][pok_id]
-                address = "%s - %sWP/%s%%." % (disappear_time_str, cp, iv)
-                #title = "*IV*:%s (%s/%s/%s) - *WP*:%s - *Level*:%s\n" % (iv, iv_attack, iv_defense, iv_stamina, cp, pkmnlvl)
 
-                #move1Name = moveNames[move1]
-                #move2Name = moveNames[move2]
-                #title += "*Moves*: %s/%s" % (move1Name, move2Name)
-							
-                #filter2 = 1
-                
+                #Build message
+                pkmname =  pokemon_name[lan][pok_id]
+                if send_venue == 1:
+                    address = "%s - %sWP/%s%%." % (disappear_time_str, cp, iv)
+                else:
+                    address = "%s (%s)." % (disappear_time_str, deltaStr)
+                    title = "*IV*:%s (%s/%s/%s) - *WP*:%s - *Level*:%s\n" % (iv, iv_attack, iv_defense, iv_stamina, cp, pkmnlvl)
+                    move1Name = moveNames[move1]
+                    move2Name = moveNames[move2]
+                    title += "*Moves*: %s/%s" % (move1Name, move2Name)
+
+
+
             # Pokemon ohne IV
             else:
-                if int(mode) == 1:		
-                    pkmname =  pokemon_name[lan][pok_id]
-                    address = "%s" % (disappear_time_str)
-                    title = ""
+                if int(mode) == 1:
+                    if send_venue == 1:
+                        pkmname =  pokemon_name[lan][pok_id]
+                        address = "%s" % (disappear_time_str)
+                        title = ""
+                    else:
+                        pkmname =  pokemon_name[lan][pok_id]
+                        address = "%s (%s)." % (disappear_time_str, deltaStr)
+                        title = "Leider keine IV/WP"
 
-                    #filter2 = 1	
-					
-					
-					
+
+
+
             # TO-DO:
             #
             #
@@ -1309,8 +1328,8 @@ def checkAndSend(bot, chat_id, pokemons):
             # Abfrage ob pokemon im Bereich liegt.
             # Ist das quatsch? Wieviele SQL abfragen macht der Bot? Für jeden Chat eine oder eine für alle?
             # (1. Fall -> location schon in mysql als Rechteck filtern und dann als Kreis? + Er macht diese Schleife für alle 1000 pokemon
-            # (die pro Minute spawnen) -> Falls SQL Abfrage pro Person, dann aufjedenfall schon dort filtern)		
-			
+            # (die pro Minute spawnen) -> Falls SQL Abfrage pro Person, dann aufjedenfall schon dort filtern)
+
 
             if encounter_id not in mySent:
                 mySent[encounter_id] = disappear_time
@@ -1326,9 +1345,11 @@ def checkAndSend(bot, chat_id, pokemons):
                     break
                 if notDisappeared and counter <= 20:
                     try:
-                        #bot.sendLocation(chat_id, latitude, longitude)
-                        #bot.sendMessage(chat_id, text = '*%s* Bis %s \n%s' % (pkmname, address, title), parse_mode='Markdown')
-                        bot.sendVenue(chat_id, latitude, longitude, pkmname, address)
+                        if send_venue == 0:
+                            bot.sendLocation(chat_id, latitude, longitude)
+                            bot.sendMessage(chat_id, text = '*%s* Bis %s \n%s' % (pkmname, address, title), parse_mode='Markdown')
+                        else:
+                            bot.sendVenue(chat_id, latitude, longitude, pkmname, address)
                         counter += 1
                     except Exception as e:
                         logger.error('[%s] %s' % (chat_id, repr(e)))
@@ -1515,8 +1536,8 @@ def main():
     dp.add_handler(CommandHandler("Modus", cmd_Mode, pass_args = True))
     dp.add_handler(CommandHandler("status", cmd_status))
     dp.add_handler(CommandHandler("Status", cmd_status))
-    dp.add_handler(CommandHandler("wasser", cmd_SendInWater, pass_args = True))
-    dp.add_handler(CommandHandler("Wasser", cmd_SendInWater, pass_args = True))
+    dp.add_handler(CommandHandler("nachricht", cmd_SwitchVenue))
+    dp.add_handler(CommandHandler("Nachricht", cmd_SwitchVenue))
     #dp.add_handler(CommandHandler("pokemoniv", cmd_ivFilter, pass_args = True, pass_job_queue=True))
     #dp.add_handler(CommandHandler("Pokemoniv", cmd_ivFilter, pass_args = True, pass_job_queue=True))
     #dp.add_handler(CommandHandler("pokemonlvl", cmd_lvlFilter, pass_args = True, pass_job_queue=True))
@@ -1548,7 +1569,7 @@ def main():
 
     logger.info('Started!')
 
-    
+
     # Block until the you presses Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
     # start_polling() is non-blocking and will stop the bot gracefully.
