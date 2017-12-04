@@ -22,10 +22,10 @@ class DSPokemonGoMapIVMysql():
 		logger.info('Connecting to remote database')
 		self.__connect()
 
-	def getPokemonByIdsAll(self, ids, ivmin, lat_n, lat_s, lon_e, lon_w):
+	def getPokemonByIdsAll(self, ids, ivmin, atkmin, defmin, stamin, lat_n, lat_s, lon_e, lon_w):
 		pokelist = []
 		ivmin = float(ivmin)/100*45
-		
+
 		sqlquery = ("SELECT encounter_id, spawnpoint_id, pokemon_id, latitude, longitude, disappear_time, "
 			"individual_attack, individual_defense, individual_stamina, move_1, move_2, cp, cp_multiplier "
 			"FROM pokemon WHERE last_modified > UTC_TIMESTAMP() - INTERVAL 10 MINUTE AND ")
@@ -37,8 +37,11 @@ class DSPokemonGoMapIVMysql():
 		sqlquery += ')'
 		sqlquery += ' AND pokemon_id NOT IN (10,11,13,14,16,17,19,21,41,46,48,60,72,90,98,118,161,163,165,167,177,183,194,198,220)'
 		sqlquery += ' AND latitude BETWEEN "' + str(lat_s) + '" AND "' + str(lat_n) + '" AND longitude BETWEEN "' + str(lon_w) + '" AND "' + str(lon_e) +'"'
-		sqlquery += ' GROUP BY encounter_id HAVING SUM(individual_attack + individual_defense + individual_stamina) >= "' + str(ivmin) + '"'
+		sqlquery += ' AND (individual_attack + individual_defense + individual_stamina) >= "' + str(ivmin) + '"'
 		sqlquery += ' OR individual_attack is NULL'
+		sqlquery += ' AND individual_attack >= "' + str(atkmin)'"'
+		sqlquery += ' AND individual_defense >= "' + str(defmin)'"'
+		sqlquery += ' AND individual_stamina >= "' + str(stamin)'"'
 		sqlquery += ' ORDER BY pokemon_id ASC'
 
 		try:
@@ -62,7 +65,7 @@ class DSPokemonGoMapIVMysql():
 					individual_stamina = row[8]
 					cp = row[11]
 					cp_multiplier = row[12]
-					
+
 					if row[9] is not None:
 						move1 = str(row[9])
 						move2 = str(row[10])
@@ -87,10 +90,10 @@ class DSPokemonGoMapIVMysql():
 
 		return pokelist
 
-	def getPokemonByIdsIV(self, ids, ivmin, lat_n, lat_s, lon_e, lon_w):
+	def getPokemonByIdsIV(self, ids, ivmin, atkmin, defmin, stamin,  lat_n, lat_s, lon_e, lon_w):
 		pokelist = []
 		ivmin = float(ivmin)/100*45
-		
+
 		sqlquery = ("SELECT encounter_id, spawnpoint_id, pokemon_id, latitude, longitude, disappear_time, "
 			"individual_attack, individual_defense, individual_stamina, move_1, move_2, cp, cp_multiplier "
 			"FROM pokemon WHERE last_modified > UTC_TIMESTAMP() - INTERVAL 10 MINUTE AND ")
@@ -102,7 +105,10 @@ class DSPokemonGoMapIVMysql():
 		sqlquery += ')'
 		sqlquery += ' AND pokemon_id NOT IN (10,11,13,14,16,17,19,21,41,46,48,60,72,90,98,118,161,163,165,167,177,183,194,198,220)'
 		sqlquery += ' AND latitude BETWEEN "' + str(lat_s) + '" AND "' + str(lat_n) + '" AND longitude BETWEEN "' + str(lon_w) + '" AND "' + str(lon_e) +'"'
-		sqlquery += ' GROUP BY encounter_id HAVING SUM(individual_attack + individual_defense + individual_stamina) >= "' + str(ivmin) + '"'
+		sqlquery += ' AND (individual_attack + individual_defense + individual_stamina) >= "' + str(ivmin) + '"'
+		sqlquery += ' AND individual_attack >= "' + str(atkmin)'"'
+		sqlquery += ' AND individual_defense >= "' + str(defmin)'"'
+		sqlquery += ' AND individual_stamina >= "' + str(stamin)'"'
 		sqlquery += ' ORDER BY pokemon_id ASC'
 
 		try:
@@ -126,69 +132,7 @@ class DSPokemonGoMapIVMysql():
 					individual_stamina = row[8]
 					cp = row[11]
 					cp_multiplier = row[12]
-					
-					if row[9] is not None:
-						move1 = str(row[9])
-						move2 = str(row[10])
-					else:
-						move1 = None
-						move2 = None
 
-					iv = None
-					if individual_attack is not None:
-						iv = str((int(individual_attack) +  int(individual_defense) + int(individual_stamina)) / 45 * 100)
-						iv = iv[0:4]
-
-					poke = DSPokemon(encounter_id, spaw_point, pok_id, latitude, longitude, disappear_time, iv, individual_attack, individual_defense, individual_stamina, move1, move2, cp, cp_multiplier)
-					pokelist.append(poke)
-		except pymysql.err.OperationalError as e:
-			if e.args[0] == 2006:
-				self.__reconnect()
-			else:
-				logger.error(e)
-		except Exception as e:
-			logger.error(e)
-
-		return pokelist
-		
-	def getPokemonByIdsIV90(self, ids):
-		pokelist = []
-
-		sqlquery = ("SELECT encounter_id, spawnpoint_id, pokemon_id, latitude, longitude, disappear_time, "
-			"individual_attack, individual_defense, individual_stamina, move_1, move_2, cp, cp_multiplier "
-			"FROM pokemon WHERE ")
-		sqlquery += ' disappear_time > "' + str(datetime.utcnow()) + '"'
-		sqlquery += ' AND pokemon_id in ('
-		for pokemon in ids:
-			sqlquery += str(pokemon) + ','
-		sqlquery = sqlquery[:-1]
-		sqlquery += ')'
-		sqlquery += ' AND pokemon_id NOT IN (10,11,13,14,16,17,19,21,41,46,48,60,72,90,98,118,161,163,165,167,177,183,194,198,220) AND cp IS NOT NULL'
-		sqlquery += ' GROUP BY encounter_id HAVING SUM(individual_attack + individual_defense + individual_stamina) > 40'
-		sqlquery += ' ORDER BY pokemon_id ASC'
-
-		try:
-			with self.con:
-				cur = self.con.cursor()
-
-				cur.execute(sqlquery)
-				rows = cur.fetchall()
-				for row in rows:
-					encounter_id = str(row[0])
-					spaw_point = str(row[1])
-					pok_id = str(row[2])
-					latitude = str(row[3])
-					longitude = str(row[4])
-
-					disappear = str(row[5])
-					disappear_time = datetime.strptime(disappear[0:19], "%Y-%m-%d %H:%M:%S")
-
-					individual_attack = row[6]
-					individual_defense = row[7]
-					individual_stamina = row[8]
-					cp = row[11]
-					cp_multiplier = row[12]
-					
 					if row[9] is not None:
 						move1 = str(row[9])
 						move2 = str(row[10])
@@ -213,193 +157,7 @@ class DSPokemonGoMapIVMysql():
 
 		return pokelist
 
-	def getPokemonByIdsIV70(self, ids):
-		pokelist = []
 
-		sqlquery = ("SELECT encounter_id, spawnpoint_id, pokemon_id, latitude, longitude, disappear_time, "
-			"individual_attack, individual_defense, individual_stamina, move_1, move_2, cp, cp_multiplier "
-			"FROM pokemon WHERE ")
-		sqlquery += ' disappear_time > "' + str(datetime.utcnow()) + '"'
-		sqlquery += ' AND pokemon_id in ('
-		for pokemon in ids:
-			sqlquery += str(pokemon) + ','
-		sqlquery = sqlquery[:-1]
-		sqlquery += ')'
-		sqlquery += ' AND pokemon_id NOT IN (10,11,13,14,16,17,19,21,41,46,48,60,72,90,98,118,161,163,165,167,177,183,194,198,220) AND cp IS NOT NULL'
-		sqlquery += ' GROUP BY encounter_id HAVING SUM(individual_attack + individual_defense + individual_stamina) > 31'
-		sqlquery += ' ORDER BY pokemon_id ASC'
-
-		try:
-			with self.con:
-				cur = self.con.cursor()
-
-				cur.execute(sqlquery)
-				rows = cur.fetchall()
-				for row in rows:
-					encounter_id = str(row[0])
-					spaw_point = str(row[1])
-					pok_id = str(row[2])
-					latitude = str(row[3])
-					longitude = str(row[4])
-
-					disappear = str(row[5])
-					disappear_time = datetime.strptime(disappear[0:19], "%Y-%m-%d %H:%M:%S")
-
-					individual_attack = row[6]
-					individual_defense = row[7]
-					individual_stamina = row[8]
-					cp = row[11]
-					cp_multiplier = row[12]
-					
-					if row[9] is not None:
-						move1 = str(row[9])
-						move2 = str(row[10])
-					else:
-						move1 = None
-						move2 = None
-
-					iv = None
-					if individual_attack is not None:
-						iv = str((int(individual_attack) +  int(individual_defense) + int(individual_stamina)) / 45 * 100)
-						iv = iv[0:4]
-
-					poke = DSPokemon(encounter_id, spaw_point, pok_id, latitude, longitude, disappear_time, iv, individual_attack, individual_defense, individual_stamina, move1, move2, cp, cp_multiplier)
-					pokelist.append(poke)
-		except pymysql.err.OperationalError as e:
-			if e.args[0] == 2006:
-				self.__reconnect()
-			else:
-				logger.error(e)
-		except Exception as e:
-			logger.error(e)
-
-		return pokelist
-		
-		
-	def getPokemonByIdsIV50(self, ids):
-		pokelist = []
-
-		sqlquery = ("SELECT encounter_id, spawnpoint_id, pokemon_id, latitude, longitude, disappear_time, "
-			"individual_attack, individual_defense, individual_stamina, move_1, move_2, cp, cp_multiplier "
-			"FROM pokemon WHERE ")
-		sqlquery += ' disappear_time > "' + str(datetime.utcnow()) + '"'
-		sqlquery += ' AND pokemon_id in ('
-		for pokemon in ids:
-			sqlquery += str(pokemon) + ','
-		sqlquery = sqlquery[:-1]
-		sqlquery += ')'
-		sqlquery += ' AND pokemon_id NOT IN (10,11,13,14,16,17,19,21,41,46,48,60,72,90,98,118,161,163,165,167,177,183,194,198,220) AND cp IS NOT NULL'
-		sqlquery += ' GROUP BY encounter_id HAVING SUM(individual_attack + individual_defense + individual_stamina) > 22'
-		sqlquery += ' ORDER BY pokemon_id ASC'
-
-		try:
-			with self.con:
-				cur = self.con.cursor()
-
-				cur.execute(sqlquery)
-				rows = cur.fetchall()
-				for row in rows:
-					encounter_id = str(row[0])
-					spaw_point = str(row[1])
-					pok_id = str(row[2])
-					latitude = str(row[3])
-					longitude = str(row[4])
-
-					disappear = str(row[5])
-					disappear_time = datetime.strptime(disappear[0:19], "%Y-%m-%d %H:%M:%S")
-
-					individual_attack = row[6]
-					individual_defense = row[7]
-					individual_stamina = row[8]
-					cp = row[11]
-					cp_multiplier = row[12]
-					
-					if row[9] is not None:
-						move1 = str(row[9])
-						move2 = str(row[10])
-					else:
-						move1 = None
-						move2 = None
-
-					iv = None
-					if individual_attack is not None:
-						iv = str((int(individual_attack) +  int(individual_defense) + int(individual_stamina)) / 45 * 100)
-						iv = iv[0:4]
-
-					poke = DSPokemon(encounter_id, spaw_point, pok_id, latitude, longitude, disappear_time, iv, individual_attack, individual_defense, individual_stamina, move1, move2, cp, cp_multiplier)
-					pokelist.append(poke)
-		except pymysql.err.OperationalError as e:
-			if e.args[0] == 2006:
-				self.__reconnect()
-			else:
-				logger.error(e)
-		except Exception as e:
-			logger.error(e)
-
-		return pokelist
-		
-	def getPokemonByIdsNoIV(self, ids):
-		pokelist = []
-
-		sqlquery = ("SELECT encounter_id, spawnpoint_id, pokemon_id, latitude, longitude, disappear_time, "
-			"individual_attack, individual_defense, individual_stamina, move_1, move_2, cp, cp_multiplier "
-			"FROM pokemon WHERE ")
-		sqlquery += ' disappear_time > "' + str(datetime.utcnow()) + '"'
-		sqlquery += ' AND pokemon_id in ('
-		for pokemon in ids:
-			sqlquery += str(pokemon) + ','
-		sqlquery = sqlquery[:-1]
-		sqlquery += ')'
-		sqlquery += ' AND pokemon_id NOT IN (10,11,13,14,16,17,19,21,41,46,48,60,72,90,98,118,161,163,165,167,177,183,194,198,220) AND cp IS NULL'
-		sqlquery += ' ORDER BY pokemon_id ASC'
-
-		try:
-			with self.con:
-				cur = self.con.cursor()
-
-				cur.execute(sqlquery)
-				rows = cur.fetchall()
-				for row in rows:
-					encounter_id = str(row[0])
-					spaw_point = str(row[1])
-					pok_id = str(row[2])
-					latitude = str(row[3])
-					longitude = str(row[4])
-
-					disappear = str(row[5])
-					disappear_time = datetime.strptime(disappear[0:19], "%Y-%m-%d %H:%M:%S")
-
-					individual_attack = row[6]
-					individual_defense = row[7]
-					individual_stamina = row[8]
-					cp = row[11]
-					cp_multiplier = row[12]
-					
-					if row[9] is not None:
-						move1 = str(row[9])
-						move2 = str(row[10])
-					else:
-						move1 = None
-						move2 = None
-
-					iv = None
-					if individual_attack is not None:
-						iv = str((int(individual_attack) +  int(individual_defense) + int(individual_stamina)) / 45 * 100)
-						iv = iv[0:4]
-
-					poke = DSPokemon(encounter_id, spaw_point, pok_id, latitude, longitude, disappear_time, iv, individual_attack, individual_defense, individual_stamina, move1, move2, cp, cp_multiplier)
-					pokelist.append(poke)
-		except pymysql.err.OperationalError as e:
-			if e.args[0] == 2006:
-				self.__reconnect()
-			else:
-				logger.error(e)
-		except Exception as e:
-			logger.error(e)
-
-		return pokelist
-
-		
 	def __connect(self):
 		self.con = pymysql.connect(user=self.__user,password=self.__passw,host=self.__host,port=self.__port,database=self.__db)
 

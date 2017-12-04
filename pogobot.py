@@ -7,6 +7,10 @@
 # based on timerbot made inside python-telegram-bot example folder
 
 # better on python3.4
+# ------------------------------
+# last change: 04.12.2017
+# - Add Attack, Defense, Stamina Filters
+# ------------------------------
 
 '''please READ FIRST the README.md'''
 
@@ -167,10 +171,10 @@ def cmd_help(bot, update):
 
 def cmd_start(bot, update):
     chat_id = update.message.chat_id
-    userName = update.message.from_user.username
+    userName = update.message.from_user.first_name
 
     logger.info('[%s@%s] Starting.' % (userName, chat_id))
-    message = "Hallo *%s*\nDein Bot ist nun im Einstellungsmodus. *Weitere Schritte:* \n\nFalls du den Bot " + \
+    message = "Hallo *%s*.\nDein Bot ist nun im Einstellungsmodus. *Weitere Schritte:* \n\nFalls du den Bot " + \
     "schon genutzt hast wähle /laden um deine *gespeicherten Einstellungen* zu laden.\n\nBenutzt du diesen Bot " + \
     "zum *ersten Mal*, dann füge bitte deine gewünschten *Pokémon* hinzu z.B. mit: \n*/pokemon 1* für Bisasam " + \
     "oder */pokemon 1 2 3 ...* für mehrere Pokemon über die du informiert werden willst.\n\n*Sende* anschließend " + \
@@ -391,6 +395,144 @@ def cmd_LVL(bot, update, args):
     # Sende Bestaetigung
     logger.info('[%s@%s] Set minLVL to %s and maxLVL to %s' % (userName, chat_id, LVLmin, LVLmax))
     bot.sendMessage(chat_id, text='Setze Minimum Level auf: %s und Maximum Level auf: %s' % (LVLmin, LVLmax))
+
+
+def cmd_attack_filter(bot, update, args):
+    chat_id = update.message.chat_id
+    userName = update.message.from_user.username
+
+    # Lade User Einstellungen
+    pref = prefs.get(chat_id)
+
+    # Fange keine Eingabe oder mehr als 2 Eingaben ab
+    if args != []:
+        if args[0].isdigit():
+            if len(args) < 1 or len(args) > 2:
+                bot.sendMessage(chat_id, text='Nutzung: "/angriff #minimum oder /agriff #minimum #maximum" (Ohne #!)')
+                return
+        else:
+            bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
+            return
+    else:
+        bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
+        return
+
+    # Wenn nur ein Wert eingegeben wird -> attack_min = Eingabe, attack_max = 15.
+    if len(args) == 1:
+        attack_min = int(args[0])
+        attack_max = int(15)
+    else:
+        attack_min = int(args[0])
+        attack_max = int(args[1])
+
+    # Fange Werte unter 0 ab
+    if attack_min < 0 or attack_max < 0:
+        bot.sendMessage(chat_id, text='Nutzung: "/angriff #minimum oder /angriff #minimum #maximum" (Ohne # und nicht unter 0!)')
+        return
+    # Und über 15
+    if attack_min > 15 or attack_max > 15:
+        bot.sendMessage(chat_id, text='Nutzung: "/angriff #minimum oder /angriff #minimum #maximum" (Ohne # und nicht über 15!)')
+        return
+
+    # Setze attack_min und attack_max
+    pref.set('user_attack_min', attack_min)
+    pref.set('user_attack_max', attack_max)
+
+    # Sende Bestaetigung
+    logger.info('[%s@%s] Set attack_min to %s and attack_max to %s' % (userName, chat_id, attack_min, attack_max))
+    bot.sendMessage(chat_id, text='Setze Minimum Anriffswert auf: %s und Maximum Angriffswert auf: %s' % (attack_min, attack_max))
+
+
+def cmd_defense_filter(bot, update, args):
+    chat_id = update.message.chat_id
+    userName = update.message.from_user.username
+
+    # Lade User Einstellungen
+    pref = prefs.get(chat_id)
+
+    # Fange keine Eingabe oder mehr als 2 Eingaben ab
+    if args != []:
+        if args[0].isdigit():
+            if len(args) < 1 or len(args) > 2:
+                bot.sendMessage(chat_id, text='Nutzung: "/verteidigung #minimum oder /verteidigung #minimum #maximum" (Ohne #!)')
+                return
+        else:
+            bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
+            return
+    else:
+        bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
+        return
+
+    # Wenn nur ein Wert eingegeben wird -> defense_min = Eingabe, defense_max = 15.
+    if len(args) == 1:
+        defense_min = int(args[0])
+        defense_max = int(15)
+    else:
+        defense_min = int(args[0])
+        defense_max = int(args[1])
+
+    # Fange Werte unter 0 ab
+    if defense_min < 0 or defense_max < 0:
+        bot.sendMessage(chat_id, text='Nutzung: "/verteidigung #minimum oder /verteidigung #minimum #maximum" (Ohne # und nicht unter 0!)')
+        return
+    # Und über 15
+    if defense_min > 15 or defense_max > 15:
+        bot.sendMessage(chat_id, text='Nutzung: "/verteidigung #minimum oder /verteidigung #minimum #maximum" (Ohne # und nicht über 15!)')
+        return
+
+    # Setze defense_min und defense_max
+    pref.set('user_defense_min', defense_min)
+    pref.set('user_defense_max', defense_max)
+
+    # Sende Bestaetigung
+    logger.info('[%s@%s] Set defense_min to %s and defense_max to %s' % (userName, chat_id, defense_min, defense_max))
+    bot.sendMessage(chat_id, text='Setze Minimum Anriffswert auf: %s und Maximum Angriffswert auf: %s' % (defense_min, defense_max))
+
+
+def cmd_stamina_filter(bot, update, args):
+    chat_id = update.message.chat_id
+    userName = update.message.from_user.username
+
+    # Lade User Einstellungen
+    pref = prefs.get(chat_id)
+
+    # Fange keine Eingabe oder mehr als 2 Eingaben ab
+    if args != []:
+        if args[0].isdigit():
+            if len(args) < 1 or len(args) > 2:
+                bot.sendMessage(chat_id, text='Nutzung: "/ausdauer #minimum oder /ausdauer #minimum #maximum" (Ohne #!)')
+                return
+        else:
+            bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
+            return
+    else:
+        bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
+        return
+
+    # Wenn nur ein Wert eingegeben wird -> stamina_min = Eingabe, stamina_max = 15.
+    if len(args) == 1:
+        stamina_min = int(args[0])
+        stamina_max = int(15)
+    else:
+        stamina_min = int(args[0])
+        stamina_max = int(args[1])
+
+    # Fange Werte unter 0 ab
+    if stamina_min < 0 or stamina_max < 0:
+        bot.sendMessage(chat_id, text='Nutzung: "/ausdauer #minimum oder /ausdauer #minimum #maximum" (Ohne # und nicht unter 0!)')
+        return
+    # Und über 15
+    if stamina_min > 15 or stamina_max > 15:
+        bot.sendMessage(chat_id, text='Nutzung: "/ausdauer #minimum oder /ausdauer #minimum #maximum" (Ohne # und nicht über 15!)')
+        return
+
+    # Setze stamina_min und stamina_max
+    pref.set('user_stamina_min', stamina_min)
+    pref.set('user_stamina_max', stamina_max)
+
+    # Sende Bestaetigung
+    logger.info('[%s@%s] Set stamina_min to %s and stamina_max to %s' % (userName, chat_id, stamina_min, stamina_max))
+    bot.sendMessage(chat_id, text='Setze Minimum Anriffswert auf: %s und Maximum Angriffswert auf: %s' % (stamina_min, stamina_max))
 
 
 # Funktion: Modus = 0 -> Nur Pokemon mit IV . Modus = 1 -> Auch Pokemon ohne IV
@@ -625,13 +767,19 @@ def cmd_status(bot, update):
     # Lade User Einstellungen
     pref = prefs.get(chat_id)
 
-    miniv = pref.get('user_miniv')
-    maxiv = pref.get('user_maxiv')
-    mincp = pref.get('user_mincp')
-    maxcp = pref.get('user_maxcp')
-    minlvl = pref.get('user_minlvl')
-    maxlvl = pref.get('user_maxlvl')
-    mode = pref.get('user_mode')
+    miniv = int(pref.get('user_miniv'))
+    maxiv = int(pref.get('user_maxiv'))
+    mincp = int(pref.get('user_mincp'))
+    maxcp = int(pref.get('user_maxcp'))
+    minlvl = int(pref.get('user_minlvl'))
+    maxlvl = int(pref.get('user_maxlvl'))
+    minatk = int(pref.get('user_attack_min'))
+    maxatk = int(pref.get('user_attack_max'))
+    mindef = int(pref.get('user_defense_min'))
+    maxdef = int(pref.get('user_defense_max'))
+    minsta = int(pref.get('user_stamina_min'))
+    maxsta = int(pref.get('user_stamina_max'))
+    mode = int(pref.get('user_mode'))
     #ivfilter = pref.get('user_ivfilter')
     #lvlfilter = pref.get('user_lvlfilter')
     #ivfilterCMD = copy.deepcopy(ivfilter)
@@ -639,19 +787,21 @@ def cmd_status(bot, update):
     loc = pref.get('location')
     lat = loc[0]
     lon = loc[1]
-
-    prefmessage = "*Einstellungen:*\nMinimum IV: *%s*, Maximum IV: *%s*\nMinimum WP: *%s*, " % (miniv, maxiv, mincp) + \
-    "Maximum WP: *%s*\nMinimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\n" % (maxcp, minlvl, maxlvl, mode)
-    "Standort nicht gesetzt"
-    commandmessage = "*Die Einstellungen entsprechen folgenden Befehlen:*\n\n" + \
-    "/iv %s %s\n/wp %s %s\n/lvl %s %s\n/modus %s\n" % (miniv, maxiv, mincp, maxcp, minlvl, maxlvl, mode)
+    radius = "Kein Radius"
 
     if lat is not None and loc[2] is not None:
         radius = float(loc[2])*1000
-        prefmessage = "*Einstellungen:*\n\nMinimum IV: *%s*, Maximum IV: *%s*\nMinimum WP: *%s*, " % (miniv, maxiv, mincp) + \
-        "Maximum WP: *%s*\nMinimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\n" % (maxcp, minlvl, maxlvl, mode) + \
-        "Standort: %s,%s\nRadius: %s m" % (lat, lon, radius)
-        commandmessage = "*Die Einstellungen entsprechen folgenden Befehlen:*\n\n"
+
+    prefmessage = "*Einstellungen:*\n" + \
+    "Minimum IV: *%s*, Maximum IV: *%s*\nMinimum Angriff: *%s*," % (miniv, maxiv, minatk) + \
+    "Maximum Angriff: *%s*\nMinimum Verteidigung: *%s*, Maximum Verteidigung: *%s*\n" % (maxatk, mindef, maxdef) + \
+    "Minimum Ausdauer: *%s*, Maximum Ausdauer: *%s*\nMinimum WP: *%s*, Maximum WP: *%s*\n" % (minsta, maxsta, mincp) + \
+    "Minimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\n" % (maxcp, minlvl, maxlvl, mode)
+    "Standort: %s,%s\nRadius: %s m" % (lat, lon, radius)
+
+    commandmessage = "*Die Einstellungen entsprechen folgenden Befehlen:*\n\n" + \
+    "/iv %s %s\n/angriff %s %s\n/verteidigung %s %s\n/ausdauer %s %s" % (miniv, maxiv, minatk, maxatk, minsta, maxsta) + \
+    "/wp %s %s\n/lvl %s %s\n/modus %s\n" % (mincp, maxcp, minlvl, maxlvl, mode)
 
     try:
         lan = pref.get('language')
@@ -681,6 +831,7 @@ def cmd_status(bot, update):
             tmpcmdPoke += "%i " % x
             #tmpcmdIV += "%i,%i " % (x, ivfilterCMD[x-1])
             #tmpcmdLVL += "%i,%i " % (x, lvlfilterCMD[x-1])
+
     except Exception as e:
         logger.error('[%s@%s] %s' % (userName, chat_id, repr(e)))
         bot.sendMessage(chat_id, text='Liste leider Fehlerhaft. Bitte /ende eingeben und erneut beginnen')
@@ -1157,6 +1308,12 @@ def checkAndSend(bot, chat_id, pokemons):
         user_maxlvl = pref['user_maxlvl']
         user_mode = pref['user_mode']
         user_send_venue = pref['user_send_venue']
+        user_attack_min = pref['user_attack_min']
+        user_attack_max = pref['user_attack_max']
+        user_defense_min = pref['user_defense_min']
+        user_defense_max = pref['user_defense_max']
+        user_stamina_min = pref['user_stamina_min']
+        user_stamina_max = pref['user_stamina_max']
         #user_ivfilter = pref['user_ivfilter']
         #user_lvlfilter = pref['user_lvlfilter']
 
@@ -1166,6 +1323,12 @@ def checkAndSend(bot, chat_id, pokemons):
         pokeMaxCP = user_maxcp
         pokeMinLVL = user_minlvl
         pokeMaxLVL = user_maxlvl
+        pokeMinATK = user_attack_min
+        pokeMaxATK = user_attack_max
+        pokeMinDEF = user_defense_min
+        pokeMaxDEF = user_defense_max
+        pokeMinSTA = user_stamina_min
+        pokeMaxSTA = user_stamina_max
         mode = user_mode
         send_venue = user_send_venue
 
@@ -1186,6 +1349,18 @@ def checkAndSend(bot, chat_id, pokemons):
             pokeMinLVL = 1
         if pokeMaxLVL is None:
             pokeMaxLVL = 30
+        if pokeMinATK is None:
+            pokeMinATK = 0
+        if pokeMaxATK is None:
+            pokeMaxATK = 15
+        if pokeMinDEF is None:
+            pokeMinDEF = 0
+        if pokeMaxDEF is None:
+            pokeMaxDEF = 15
+        if pokeMinSTA is None:
+            pokeMinSTA = 0
+        if pokeMaxSTA is None:
+            pokeMaxSTA = 15
         if mode is None:
             mode = 1
 
@@ -1218,9 +1393,9 @@ def checkAndSend(bot, chat_id, pokemons):
 
         # Hole nur noch die richtigen Pokemon aus der DB... ABER dann ist der IVFilter hinüber
         if int(mode) == 0:
-            allpokes = dataSource.getPokemonByIdsIV(pokemons, pokeMinIV, lat_n, lat_s, lon_e, lon_w)
+            allpokes = dataSource.getPokemonByIdsIV(pokemons, pokeMinIV, pokeMinATK, pokeMinDEF, pokeMinSTA, lat_n, lat_s, lon_e, lon_w)
         if int(mode) == 1:
-            allpokes = dataSource.getPokemonByIdsAll(pokemons, pokeMinIV, lat_n, lat_s, lon_e, lon_w)
+            allpokes = dataSource.getPokemonByIdsAll(pokemons, pokeMinIV, pokeMinATK, pokeMinDEF, pokeMinSTA, lat_n, lat_s, lon_e, lon_w)
 
         moveNames = move_name["de"]
 
@@ -1275,7 +1450,12 @@ def checkAndSend(bot, chat_id, pokemons):
                     continue
                 if int(pkmnlvl) < int(pokeMinLVL) or int(pkmnlvl) > int(pokeMaxLVL):
                     continue
-
+                if int(iv_attack) < int(pokeMinATK) or int(iv_attack) > int(pokeMaxATK):
+                    continue
+                if int(iv_defense) < int(pokeMinDEF) or int(iv_defense) > int(pokeMaxDEF):
+                    continue
+                if int(iv_stamina) < int(pokeMinSTA) or int(iv_stamina) > int(pokeMaxSTA):
+                    continue
 
                 # IV/Lvl Filter -> Setze Minimum-Werte Neu
                 #pokeMinfilter_index = int(pok_id) - 1
@@ -1475,73 +1655,124 @@ def main():
     # on different commands - answer in Telegram
     dp.add_handler(CommandHandler("start", cmd_start))
     dp.add_handler(CommandHandler("Start", cmd_start))
+
     dp.add_handler(CommandHandler("help", cmd_help))
     dp.add_handler(CommandHandler("Help", cmd_help))
     dp.add_handler(CommandHandler("hilfe", cmd_help))
     dp.add_handler(CommandHandler("Hilfe", cmd_help))
+
     dp.add_handler(CommandHandler("add", cmd_add, pass_args = True, pass_job_queue=True))
     dp.add_handler(CommandHandler("Add", cmd_add, pass_args = True, pass_job_queue=True))
     dp.add_handler(CommandHandler("pokemon", cmd_add, pass_args = True, pass_job_queue=True))
     dp.add_handler(CommandHandler("Pokemon", cmd_add, pass_args = True, pass_job_queue=True))
+
     dp.add_handler(CommandHandler("addbyrarity", cmd_addByRarity, pass_args = True, pass_job_queue=True))
     dp.add_handler(CommandHandler("Addbyrarity", cmd_addByRarity, pass_args = True, pass_job_queue=True))
     dp.add_handler(CommandHandler("seltenheit", cmd_addByRarity, pass_args = True, pass_job_queue=True))
     dp.add_handler(CommandHandler("Seltenheit", cmd_addByRarity, pass_args = True, pass_job_queue=True))
+    dp.add_handler(CommandHandler("rare", cmd_addByRarity, pass_args = True, pass_job_queue=True))
+    dp.add_handler(CommandHandler("Rare", cmd_addByRarity, pass_args = True, pass_job_queue=True))
+
+
     dp.add_handler(CommandHandler("clear", cmd_clear))
     dp.add_handler(CommandHandler("Clear", cmd_clear))
+
     dp.add_handler(CommandHandler("ende", cmd_clear))
     dp.add_handler(CommandHandler("Ende", cmd_clear))
+
     dp.add_handler(CommandHandler("rem", cmd_remove, pass_args = True, pass_job_queue=True))
     dp.add_handler(CommandHandler("Rem", cmd_remove, pass_args = True, pass_job_queue=True))
     dp.add_handler(CommandHandler("entferne", cmd_remove, pass_args = True, pass_job_queue=True))
     dp.add_handler(CommandHandler("Entferne", cmd_remove, pass_args = True, pass_job_queue=True))
+
     dp.add_handler(CommandHandler("save", cmd_save))
     dp.add_handler(CommandHandler("Save", cmd_save))
     dp.add_handler(CommandHandler("speichern", cmd_save))
     dp.add_handler(CommandHandler("Speichern", cmd_save))
+
     dp.add_handler(CommandHandler("load", cmd_load, pass_job_queue=True))
     dp.add_handler(CommandHandler("Load", cmd_load, pass_job_queue=True))
     dp.add_handler(CommandHandler("laden", cmd_load, pass_job_queue=True))
     dp.add_handler(CommandHandler("Laden", cmd_load, pass_job_queue=True))
+
     dp.add_handler(CommandHandler("list", cmd_list))
     dp.add_handler(CommandHandler("List", cmd_list))
     dp.add_handler(CommandHandler("liste", cmd_list))
     dp.add_handler(CommandHandler("Liste", cmd_list))
-    #dp.add_handler(CommandHandler("lang", cmd_lang, pass_args = True))
+
+
     dp.add_handler(CommandHandler("radius", cmd_radius, pass_args=True))
     dp.add_handler(CommandHandler("Radius", cmd_radius, pass_args=True))
+
     dp.add_handler(CommandHandler("location", cmd_location_str, pass_args=True, pass_job_queue=True))
     dp.add_handler(CommandHandler("Location", cmd_location_str, pass_args=True, pass_job_queue=True))
     dp.add_handler(CommandHandler("standort", cmd_location_str, pass_args=True, pass_job_queue=True))
     dp.add_handler(CommandHandler("Standort", cmd_location_str, pass_args=True, pass_job_queue=True))
-    #dp.add_handler(CommandHandler("remloc", cmd_clearlocation))
-    #dp.add_handler(CommandHandler("entfernestandort", cmd_clearlocation))
-    #dp.add_handler(CommandHandler("Enfernestandort", cmd_clearlocation))
+
     dp.add_handler(MessageHandler([Filters.location],cmd_location))
-    #dp.add_handler(CommandHandler("wladd", cmd_addToWhitelist, pass_args=True))
-    #dp.add_handler(CommandHandler("wlrem", cmd_remFromWhitelist, pass_args=True))
+
     dp.add_handler(CommandHandler("iv", cmd_IV, pass_args = True))
     dp.add_handler(CommandHandler("Iv", cmd_IV, pass_args = True))
     dp.add_handler(CommandHandler("IV", cmd_IV, pass_args = True))
+
     dp.add_handler(CommandHandler("wp", cmd_CP, pass_args = True))
     dp.add_handler(CommandHandler("Wp", cmd_CP, pass_args = True))
     dp.add_handler(CommandHandler("WP", cmd_CP, pass_args = True))
     dp.add_handler(CommandHandler("cp", cmd_CP, pass_args = True))
     dp.add_handler(CommandHandler("Cp", cmd_CP, pass_args = True))
     dp.add_handler(CommandHandler("CP", cmd_CP, pass_args = True))
+
     dp.add_handler(CommandHandler("lvl", cmd_LVL, pass_args = True))
     dp.add_handler(CommandHandler("Lvl", cmd_LVL, pass_args = True))
     dp.add_handler(CommandHandler("LVL", cmd_LVL, pass_args = True))
+
+    dp.add_handler(CommandHandler("angriff", cmd_attack_filter, pass_args = True))
+    dp.add_handler(CommandHandler("Angriff", cmd_attack_filter, pass_args = True))
+    dp.add_handler(CommandHandler("attack", cmd_attack_filter, pass_args = True))
+    dp.add_handler(CommandHandler("Attack", cmd_attack_filter, pass_args = True))
+    dp.add_handler(CommandHandler("atk", cmd_attack_filter, pass_args = True))
+    dp.add_handler(CommandHandler("Atk", cmd_attack_filter, pass_args = True))
+    dp.add_handler(CommandHandler("ATK", cmd_attack_filter, pass_args = True))
+
+    dp.add_handler(CommandHandler("verteidigung", cmd_defense_filter, pass_args = True))
+    dp.add_handler(CommandHandler("Verteidigung", cmd_defense_filter, pass_args = True))
+    dp.add_handler(CommandHandler("defense", cmd_defense_filter, pass_args = True))
+    dp.add_handler(CommandHandler("Defense", cmd_defense_filter, pass_args = True))
+    dp.add_handler(CommandHandler("def", cmd_defense_filter, pass_args = True))
+    dp.add_handler(CommandHandler("Def", cmd_defense_filter, pass_args = True))
+    dp.add_handler(CommandHandler("DEF", cmd_defense_filter, pass_args = True))
+
+    dp.add_handler(CommandHandler("ausdauer", cmd_stamina_filter, pass_args = True))
+    dp.add_handler(CommandHandler("Ausdauer", cmd_stamina_filter, pass_args = True))
+    dp.add_handler(CommandHandler("stamina", cmd_stamina_filter, pass_args = True))
+    dp.add_handler(CommandHandler("Stamina", cmd_stamina_filter, pass_args = True))
+    dp.add_handler(CommandHandler("sta", cmd_stamina_filter, pass_args = True))
+    dp.add_handler(CommandHandler("Sta", cmd_stamina_filter, pass_args = True))
+    dp.add_handler(CommandHandler("STA", cmd_stamina_filter, pass_args = True))
+    dp.add_handler(CommandHandler("kp", cmd_stamina_filter, pass_args = True))
+    dp.add_handler(CommandHandler("Kp", cmd_stamina_filter, pass_args = True))
+    dp.add_handler(CommandHandler("KP", cmd_stamina_filter, pass_args = True))
+
     dp.add_handler(CommandHandler("modus", cmd_Mode, pass_args = True))
     dp.add_handler(CommandHandler("Modus", cmd_Mode, pass_args = True))
+
     dp.add_handler(CommandHandler("status", cmd_status))
     dp.add_handler(CommandHandler("Status", cmd_status))
+
     dp.add_handler(CommandHandler("nachricht", cmd_SwitchVenue))
     dp.add_handler(CommandHandler("Nachricht", cmd_SwitchVenue))
+
+    #dp.add_handler(CommandHandler("lang", cmd_lang, pass_args = True))
     #dp.add_handler(CommandHandler("pokemoniv", cmd_ivFilter, pass_args = True, pass_job_queue=True))
     #dp.add_handler(CommandHandler("Pokemoniv", cmd_ivFilter, pass_args = True, pass_job_queue=True))
     #dp.add_handler(CommandHandler("pokemonlvl", cmd_lvlFilter, pass_args = True, pass_job_queue=True))
     #dp.add_handler(CommandHandler("Pokemonlvl", cmd_lvlFilter, pass_args = True, pass_job_queue=True))
+    #dp.add_handler(CommandHandler("wladd", cmd_addToWhitelist, pass_args=True))
+    #dp.add_handler(CommandHandler("wlrem", cmd_remFromWhitelist, pass_args=True))
+    #dp.add_handler(CommandHandler("remloc", cmd_clearlocation))
+    #dp.add_handler(CommandHandler("entfernestandort", cmd_clearlocation))
+    #dp.add_handler(CommandHandler("Enfernestandort", cmd_clearlocation))
+
     dp.add_handler(MessageHandler([Filters.command], cmd_unknown))
 
     # log all errors
