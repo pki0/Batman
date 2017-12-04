@@ -795,13 +795,14 @@ def cmd_status(bot, update):
     prefmessage = "*Einstellungen:*\n" + \
     "Minimum IV: *%s*, Maximum IV: *%s*\nMinimum Angriff: *%s*," % (miniv, maxiv, minatk) + \
     "Maximum Angriff: *%s*\nMinimum Verteidigung: *%s*, Maximum Verteidigung: *%s*\n" % (maxatk, mindef, maxdef) + \
-    "Minimum Ausdauer: *%s*, Maximum Ausdauer: *%s*\nMinimum WP: *%s*, Maximum WP: *%s*\n" % (minsta, maxsta, mincp) + \
-    "Minimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\n" % (maxcp, minlvl, maxlvl, mode)
+    "Minimum Ausdauer: *%s*, Maximum Ausdauer: *%s*\nMinimum WP: *%s*, Maximum WP: *%s*\n" % (minsta, maxsta, mincp, maxcp) + \
+    "Minimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\n" % (minlvl, maxlvl, mode)
     "Standort: %s,%s\nRadius: %s m" % (lat, lon, radius)
 
     commandmessage = "*Die Einstellungen entsprechen folgenden Befehlen:*\n\n" + \
-    "/iv %s %s\n/angriff %s %s\n/verteidigung %s %s\n/ausdauer %s %s" % (miniv, maxiv, minatk, maxatk, minsta, maxsta) + \
-    "/wp %s %s\n/lvl %s %s\n/modus %s\n" % (mincp, maxcp, minlvl, maxlvl, mode)
+    "/iv %s %s\n/angriff %s %s\n/verteidigung %s %s\n/ausdauer %s %s" % (miniv, maxiv, minatk, maxatk, mindef, maxdef, minsta, maxsta) + \
+    "/wp %s %s\n/lvl %s %s\n/modus %s\n" % (mincp, maxcp, minlvl, maxlvl, mode) + \
+    "/standort %s,%s\n/radius %s" % (lat, lon, radius)
 
     try:
         lan = pref.get('language')
@@ -838,8 +839,8 @@ def cmd_status(bot, update):
 
     prefmessage += tmppref
     commandmessage += tmpcmdPoke #+ tmpcmdIV + tmpcmdLVL
-    commandmessage += "\n/iv %s %s\n/wp %s %s\n/lvl %s %s\n/modus %s\n" % (miniv, maxiv, mincp, maxcp, minlvl, maxlvl, mode)+ \
-    "/standort %s,%s\n/radius %s" % (lat, lon, radius)
+    #commandmessage += "\n/iv %s %s\n/wp %s %s\n/lvl %s %s\n/modus %s\n" % (miniv, maxiv, mincp, maxcp, minlvl, maxlvl, mode)+ \
+    #"/standort %s,%s\n/radius %s" % (lat, lon, radius)
 
     bot.sendMessage(chat_id, text='%s' % (prefmessage), parse_mode='Markdown')
     bot.sendMessage(chat_id, text='%s' % (commandmessage), parse_mode='Markdown')

@@ -4,10 +4,10 @@ import os
 allids = os.listdir("userdata/")
 newids = []
 
-input = '    "user_send_venue":1,\n    "user_attack_min":0,\n' + \
+input = '    "user_attack_min":0,\n' + \
 '    "user_attack_max":15,\n    "user_defense_min":0,\n' + \
 '    "user_defense_max":15,\n    "user_stamina_min":0,\n' + \
-'    "user_stamina_max":15,\n' + '}'
+'    "user_stamina_max":15\n' + '}'
 
 
 for x in allids:

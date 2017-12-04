@@ -37,13 +37,9 @@ class DSPokemonGoMapIVMysql():
 		sqlquery += ')'
 		sqlquery += ' AND pokemon_id NOT IN (10,11,13,14,16,17,19,21,41,46,48,60,72,90,98,118,161,163,165,167,177,183,194,198,220)'
 		sqlquery += ' AND latitude BETWEEN "' + str(lat_s) + '" AND "' + str(lat_n) + '" AND longitude BETWEEN "' + str(lon_w) + '" AND "' + str(lon_e) +'"'
-		sqlquery += ' AND (individual_attack + individual_defense + individual_stamina) >= "' + str(ivmin) + '"'
+		sqlquery += ' GROUP BY encounter_id HAVING SUM(individual_attack + individual_defense + individual_stamina) >= "' + str(ivmin) + '"'
 		sqlquery += ' OR individual_attack is NULL'
-		sqlquery += ' AND individual_attack >= "' + str(atkmin)'"'
-		sqlquery += ' AND individual_defense >= "' + str(defmin)'"'
-		sqlquery += ' AND individual_stamina >= "' + str(stamin)'"'
 		sqlquery += ' ORDER BY pokemon_id ASC'
-
 		try:
 			with self.con:
 				cur = self.con.cursor()
@@ -105,12 +101,8 @@ class DSPokemonGoMapIVMysql():
 		sqlquery += ')'
 		sqlquery += ' AND pokemon_id NOT IN (10,11,13,14,16,17,19,21,41,46,48,60,72,90,98,118,161,163,165,167,177,183,194,198,220)'
 		sqlquery += ' AND latitude BETWEEN "' + str(lat_s) + '" AND "' + str(lat_n) + '" AND longitude BETWEEN "' + str(lon_w) + '" AND "' + str(lon_e) +'"'
-		sqlquery += ' AND (individual_attack + individual_defense + individual_stamina) >= "' + str(ivmin) + '"'
-		sqlquery += ' AND individual_attack >= "' + str(atkmin)'"'
-		sqlquery += ' AND individual_defense >= "' + str(defmin)'"'
-		sqlquery += ' AND individual_stamina >= "' + str(stamin)'"'
+		sqlquery += ' GROUP BY encounter_id HAVING SUM(individual_attack + individual_defense + individual_stamina) >= "' + str(ivmin) + '"'
 		sqlquery += ' ORDER BY pokemon_id ASC'
-
 		try:
 			with self.con:
 				cur = self.con.cursor()
