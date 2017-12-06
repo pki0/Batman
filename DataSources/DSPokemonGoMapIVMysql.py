@@ -9,6 +9,8 @@ import re
 
 logger = logging.getLogger(__name__)
 
+blacklisted_pokemon = "10,11,13,14,16,17,19,21,41,46,48,60,72,90,98,118,161,163,165,167,177,183,194,198,220"
+
 class DSPokemonGoMapIVMysql():
 	def __init__(self, connectString):
 		# open the database
@@ -27,18 +29,22 @@ class DSPokemonGoMapIVMysql():
 		ivmin = float(ivmin)/100*45
 
 		sqlquery = ("SELECT encounter_id, spawnpoint_id, pokemon_id, latitude, longitude, disappear_time, "
-			"individual_attack, individual_defense, individual_stamina, move_1, move_2, cp, cp_multiplier "
-			"FROM pokemon WHERE last_modified > UTC_TIMESTAMP() - INTERVAL 10 MINUTE AND ")
-		sqlquery += ' disappear_time > "' + str(datetime.utcnow()) + '"'
+			"individual_attack, individual_defense, individual_stamina, move_1, move_2, cp, cp_multiplier ")
+		sqlquery += ' FROM pokemon'
+		sqlquery += ' WHERE last_modified > UTC_TIMESTAMP() - INTERVAL 10 MINUTE'
+		sqlquery += ' AND disappear_time > "' + str(datetime.utcnow()) + '"'
 		sqlquery += ' AND pokemon_id in ('
 		for pokemon in ids:
 			sqlquery += str(pokemon) + ','
 		sqlquery = sqlquery[:-1]
 		sqlquery += ')'
-		sqlquery += ' AND pokemon_id NOT IN (10,11,13,14,16,17,19,21,41,46,48,60,72,90,98,118,161,163,165,167,177,183,194,198,220)'
-		sqlquery += ' AND latitude BETWEEN "' + str(lat_s) + '" AND "' + str(lat_n) + '" AND longitude BETWEEN "' + str(lon_w) + '" AND "' + str(lon_e) +'"'
-		sqlquery += ' GROUP BY encounter_id HAVING SUM(individual_attack + individual_defense + individual_stamina) >= "' + str(ivmin) + '"'
+		sqlquery += ' AND pokemon_id NOT IN (' + blacklisted_pokemon + ')'
+		sqlquery += ' AND latitude BETWEEN "' + str(lat_s) + '" AND "' + str(lat_n) + '" '
+		sqlquery += ' AND longitude BETWEEN "' + str(lon_w) + '" AND "' + str(lon_e) +'"'
+		sqlquery += ' AND ('
+		sqlquery += ' (individual_attack + individual_defense + individual_stamina) >= "' + str(ivmin) + '"'
 		sqlquery += ' OR individual_attack is NULL'
+		sqlquery += ' )'
 		sqlquery += ' ORDER BY pokemon_id ASC'
 		try:
 			with self.con:
@@ -91,17 +97,20 @@ class DSPokemonGoMapIVMysql():
 		ivmin = float(ivmin)/100*45
 
 		sqlquery = ("SELECT encounter_id, spawnpoint_id, pokemon_id, latitude, longitude, disappear_time, "
-			"individual_attack, individual_defense, individual_stamina, move_1, move_2, cp, cp_multiplier "
-			"FROM pokemon WHERE last_modified > UTC_TIMESTAMP() - INTERVAL 10 MINUTE AND ")
-		sqlquery += ' disappear_time > "' + str(datetime.utcnow()) + '"'
+			"individual_attack, individual_defense, individual_stamina, move_1, move_2, cp, cp_multiplier ")
+		sqlquery += ' FROM pokemon'
+		sqlquery += ' WHERE last_modified > UTC_TIMESTAMP() - INTERVAL 10 MINUTE'
+		sqlquery += ' AND disappear_time > "' + str(datetime.utcnow()) + '"'
 		sqlquery += ' AND pokemon_id in ('
 		for pokemon in ids:
 			sqlquery += str(pokemon) + ','
 		sqlquery = sqlquery[:-1]
 		sqlquery += ')'
-		sqlquery += ' AND pokemon_id NOT IN (10,11,13,14,16,17,19,21,41,46,48,60,72,90,98,118,161,163,165,167,177,183,194,198,220)'
-		sqlquery += ' AND latitude BETWEEN "' + str(lat_s) + '" AND "' + str(lat_n) + '" AND longitude BETWEEN "' + str(lon_w) + '" AND "' + str(lon_e) +'"'
-		sqlquery += ' GROUP BY encounter_id HAVING SUM(individual_attack + individual_defense + individual_stamina) >= "' + str(ivmin) + '"'
+		sqlquery += ' AND pokemon_id NOT IN (' + blacklisted_pokemon + ')'
+		sqlquery += ' AND latitude BETWEEN "' + str(lat_s) + '" AND "' + str(lat_n) + '" '
+		sqlquery += ' AND longitude BETWEEN "' + str(lon_w) + '" AND "' + str(lon_e) +'"'
+		sqlquery += ' AND'
+		sqlquery += ' (individual_attack + individual_defense + individual_stamina) >= "' + str(ivmin) + '"'
 		sqlquery += ' ORDER BY pokemon_id ASC'
 		try:
 			with self.con:
