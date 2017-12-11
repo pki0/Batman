@@ -823,7 +823,7 @@ def cmd_status(bot, update):
     "Standort: %s,%s\nRadius: %s m" % (lat, lon, radius)
 
     commandmessage = "*Die Einstellungen entsprechen folgenden Befehlen:*\n\n" + \
-    "/iv %s %s\n/angriff %s %s\n/verteidigung %s %s\n/ausdauer %s %s" % (miniv, maxiv, minatk, maxatk, mindef, maxdef, minsta, maxsta) + \
+    "/iv %s %s\n/angriff %s %s\n/verteidigung %s %s\n/ausdauer %s %s\n" % (miniv, maxiv, minatk, maxatk, mindef, maxdef, minsta, maxsta) + \
     "/wp %s %s\n/lvl %s %s\n/modus %s\n" % (mincp, maxcp, minlvl, maxlvl, mode) + \
     "/standort %s,%s\n/radius %s" % (lat, lon, radius)
 
