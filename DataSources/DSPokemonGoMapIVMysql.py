@@ -41,10 +41,8 @@ class DSPokemonGoMapIVMysql():
 		sqlquery += ' AND pokemon_id NOT IN (' + blacklisted_pokemon + ')'
 		sqlquery += ' AND latitude BETWEEN "' + str(lat_s) + '" AND "' + str(lat_n) + '" '
 		sqlquery += ' AND longitude BETWEEN "' + str(lon_w) + '" AND "' + str(lon_e) +'"'
-		sqlquery += ' AND ('
-		sqlquery += ' (individual_attack + individual_defense + individual_stamina) >= "' + str(ivmin) + '"'
-		sqlquery += ' OR individual_attack is NULL'
-		sqlquery += ' )'
+		sqlquery += ' AND ((individual_attack + individual_defense + individual_stamina) >= "' + str(ivmin) + '"'
+		sqlquery += ' OR individual_attack is NULL)'
 		sqlquery += ' ORDER BY pokemon_id ASC'
 		try:
 			with self.con:
@@ -109,8 +107,7 @@ class DSPokemonGoMapIVMysql():
 		sqlquery += ' AND pokemon_id NOT IN (' + blacklisted_pokemon + ')'
 		sqlquery += ' AND latitude BETWEEN "' + str(lat_s) + '" AND "' + str(lat_n) + '" '
 		sqlquery += ' AND longitude BETWEEN "' + str(lon_w) + '" AND "' + str(lon_e) +'"'
-		sqlquery += ' AND'
-		sqlquery += ' (individual_attack + individual_defense + individual_stamina) >= "' + str(ivmin) + '"'
+		sqlquery += ' AND (individual_attack + individual_defense + individual_stamina) >= "' + str(ivmin) + '"'
 		sqlquery += ' ORDER BY pokemon_id ASC'
 		try:
 			with self.con:
