@@ -224,15 +224,33 @@ def cmd_add(bot, update, args, job_queue):
 
     try:
         search = pref.get('search_ids')
+        lan = pref.get('language')
+        tmp = 'Du hast folgende Pokémon hinzugefügt:\n'
+
         for x in args:
             if int(x) not in search:
                 search.append(int(x))
+                tmp += "%s %s\n" % (x, pokemon_name[lan][str(x)])
+            else:
+                tmp += "Du willst *%s %s* hinzufügen. Es existiert aber bereits in deiner Liste.\n" % (x, pokemon_name[lan][str(x)])
+
         search.sort()
         pref.set('search_ids',search)
-        cmd_list(bot, update)
+
+        # Stringlänge berechnen und schneiden:
+        cut_position = 1
+        while cut_position > 0:
+            cut_position = tmp.rfind('\n', 3800, 4096)
+            if cut_position > 0:
+                bot.sendMessage(chat_id, text = tmp[:cut_position], parse_mode='Markdown')
+                tmp = tmp[cut_position+1:]
+            else:
+                bot.sendMessage(chat_id, text = tmp, parse_mode='Markdown')
+
     except Exception as e:
         logger.error('[%s@%s] %s' % (userName, chat_id, repr(e)))
         bot.sendMessage(chat_id, text='Nutzung: "/pokemon #Nummer" oder "/pokemon #Nummer1 #Nummer2 ... (Ohne #)')
+
 
 
 def cmd_addByRarity(bot, update, args, job_queue):
@@ -689,7 +707,12 @@ def cmd_ivFilter(bot, update, args, job_queue):
         tmp = 'Liste der Benachrichtigungen und IV:\n'
         for x in pref.get('search_ids'):
             tmp += "%i %s IV:%i\n" % (x, pokemon_name[lan][str(x)], ivfilter[x-1])
-        bot.sendMessage(chat_id, text = tmp)
+        if len(tmp) > 250:
+            bot.sendMessage(chat_id, text = tmp[:150])
+            bot.sendMessage(chat_id, text = tmp[151:250])
+            bot.sendMessage(chat_id, text = tmp[251:])
+        else:
+            bot.sendMessage(chat_id, text = tmp)
     except Exception as e:
         logger.error('[%s@%s] %s' % (userName, chat_id, repr(e)))
         bot.sendMessage(chat_id, text='Liste leider Fehlerhaft. Bitte /ende eingeben und erneut beginnen')
@@ -899,11 +922,27 @@ def cmd_remove(bot, update, args, job_queue):
 
     try:
         search = pref.get('search_ids')
+        lan = pref.get('language')
+        tmp = 'Du hast folgende Pokémon entfernt:\n'
+
         for x in args:
             if int(x) in search:
                 search.remove(int(x))
+                tmp += "%s %s\n" % (x, pokemon_name[lan][str(x)])
+            else:
+                tmp += "Du willst *%s %s* entfernen. Es existiert aber nicht in deiner Liste.\n" % (x, pokemon_name[lan][str(x)])
         pref.set('search_ids',search)
-        cmd_list(bot, update)
+
+        # Stringlänge berechnen und schneiden:
+        cut_position = 1
+        while cut_position > 0:
+            cut_position = tmp.rfind('\n', 3800, 4096)
+            if cut_position > 0:
+                bot.sendMessage(chat_id, text = tmp[:cut_position], parse_mode='Markdown')
+                tmp = tmp[cut_position+1:]
+            else:
+                bot.sendMessage(chat_id, text = tmp, parse_mode='Markdown')
+
     except Exception as e:
         logger.error('[%s@%s] %s' % (userName, chat_id, repr(e)))
         bot.sendMessage(chat_id, text='Nutzung: /entferne #Nummer (Ohne #)')
@@ -923,9 +962,20 @@ def cmd_list(bot, update):
     try:
         lan = pref.get('language')
         tmp = 'Liste der Benachrichtigungen:\n'
+
         for x in pref.get('search_ids'):
             tmp += "%i %s\n" % (x, pokemon_name[lan][str(x)])
-        bot.sendMessage(chat_id, text = tmp)
+
+        # Stringlänge berechnen und schneiden:
+        cut_position = 1
+        while cut_position > 0:
+            cut_position = tmp.rfind('\n', 3800, 4096)
+            if cut_position > 0:
+                bot.sendMessage(chat_id, text = tmp[:cut_position], parse_mode='Markdown')
+                tmp = tmp[cut_position+1:]
+            else:
+                bot.sendMessage(chat_id, text = tmp, parse_mode='Markdown')
+
     except Exception as e:
         logger.error('[%s@%s] %s' % (userName, chat_id, repr(e)))
         bot.sendMessage('Liste leider Fehlerhaft. Bitte /ende eingeben und erneut beginnen')
