@@ -206,6 +206,7 @@ def cmd_add(bot, update, args, job_queue):
         else:
             for x in args:
                 for poke_id, name in pokemon_name[lan].items():
+                    x = x.title()
                     if name == x:
                         names.append(str(poke_id))
             if len(names) != len(args):
