@@ -194,17 +194,26 @@ def cmd_add(bot, update, args, job_queue):
     userName = update.message.from_user.username
 
     pref = prefs.get(chat_id)
-
+    lan = pref.get('language')
+    names = list()
+    error_message = 'Nutzung:\n/pokemon #Nummer oder /pokemon #Nummer1 #Nummer2\n' + \
+    '/pokemon #Name oder /pokemon #Name1 #Name2 ... (Ohne #)'
     if args != []:
         if args[0].isdigit():
             if len(args) <= 0:
-                bot.sendMessage(chat_id, text='Nutzung: "/pokemon #Nummer" oder "/pokemon #Nummer1 #Nummer2 ... (Ohne #)')
+                bot.sendMessage(chat_id, text=error_message)
                 return
         else:
-            bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
-            return
+            for x in args:
+                for poke_id, name in pokemon_name[lan].items():
+                    if name == x:
+                        names.append(str(poke_id))
+            if len(names) != len(args):
+                bot.sendMessage(chat_id, text='Ich habe nicht alle Pokémon gefunden! Bitte versuche es erneut')
+
+            args = names
     else:
-        bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
+        bot.sendMessage(chat_id, text=error_message)
         return
 
     for x in args:
@@ -224,7 +233,6 @@ def cmd_add(bot, update, args, job_queue):
 
     try:
         search = pref.get('search_ids')
-        lan = pref.get('language')
         tmp = 'Du hast folgende Pokémon hinzugefügt:\n'
 
         for x in args:
@@ -249,7 +257,7 @@ def cmd_add(bot, update, args, job_queue):
 
     except Exception as e:
         logger.error('[%s@%s] %s' % (userName, chat_id, repr(e)))
-        bot.sendMessage(chat_id, text='Nutzung: "/pokemon #Nummer" oder "/pokemon #Nummer1 #Nummer2 ... (Ohne #)')
+        bot.sendMessage(chat_id, text=error_message)
 
 
 
