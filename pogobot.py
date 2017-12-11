@@ -206,10 +206,10 @@ def cmd_add(bot, update, args, job_queue):
         else:
             for x in args:
                 for poke_id, name in pokemon_name[lan].items():
-                    if name == x:
+                    if name.upper() == x.upper():
                         names.append(str(poke_id))
             if len(names) != len(args):
-                bot.sendMessage(chat_id, text='Ich habe nicht alle Pokémon gefunden! Bitte versuche es erneut')
+                bot.sendMessage(chat_id, text='*Ich habe nicht alle Pokémon gefunden! Bitte versuche es erneut.*', parse_mode='Markdown')
 
             args = names
     else:
