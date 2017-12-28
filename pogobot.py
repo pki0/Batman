@@ -206,11 +206,10 @@ def cmd_add(bot, update, args, job_queue):
         else:
             for x in args:
                 for poke_id, name in pokemon_name[lan].items():
-                    x = x.title()
-                    if name == x:
+                    if name.upper() == x.upper():
                         names.append(str(poke_id))
             if len(names) != len(args):
-                bot.sendMessage(chat_id, text='Ich habe nicht alle Pokémon gefunden! Bitte versuche es erneut')
+                bot.sendMessage(chat_id, text='*Ich habe nicht alle Pokémon gefunden! Bitte versuche es erneut.*', parse_mode='Markdown')
 
             args = names
     else:
@@ -905,33 +904,43 @@ def cmd_clear(bot, update):
 
     bot.sendMessage(chat_id, text='Benachrichtigungen erfolgreich entfernt!')
 
+
 def cmd_remove(bot, update, args, job_queue):
     chat_id = update.message.chat_id
     userName = update.message.from_user.username
 
     pref = prefs.get(chat_id)
-
+    lan = pref.get('language')
+    names = list()
+    error_message = 'Nutzung:\n/entferne #Nummer oder /entferne #Nummer1 #Nummer2\n' + \
+    '/entferne #Name oder /entferne #Name1 #Name2 ... (Ohne #)'
     logger.info('[%s@%s] Remove pokemon.' % (userName, chat_id))
 
     if chat_id not in jobs:
-        bot.sendMessage(chat_id, text='Du hast keinen aktiven Scanner! Bitte füge erst Pokémon zu deiner Liste hinzu mit /pokemon 1 2 3 ...')
+        bot.sendMessage(chat_id, text='Du willst Pokémon entfernen, aber du hast keinen aktiven Scanner!\n' + \
+        'Bitte füge erst Pokémon zu deiner Liste hinzu mit /pokemon 1 2 3 ...')
         return
 
     if args != []:
         if args[0].isdigit():
             if len(args) < 1:
-                bot.sendMessage(chat_id, text='Nutzung: "/entferne #Nummer oder /entferne #Nummer #Nummer" (Ohne #!)')
+                bot.sendMessage(chat_id, text=error_message)
                 return
         else:
-            bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
-            return
+            for x in args:
+                for poke_id, name in pokemon_name[lan].items():
+                    if name.upper() == x.upper():
+                        names.append(str(poke_id))
+            if len(names) != len(args):
+                bot.sendMessage(chat_id, text='*Ich habe nicht alle Pokémon gefunden! Bitte versuche es erneut.*', parse_mode='Markdown')
+
+            args = names
     else:
-        bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
+        bot.sendMessage(chat_id, text=error_message)
         return
 
     try:
         search = pref.get('search_ids')
-        lan = pref.get('language')
         tmp = 'Du hast folgende Pokémon entfernt:\n'
 
         for x in args:
@@ -954,7 +963,8 @@ def cmd_remove(bot, update, args, job_queue):
 
     except Exception as e:
         logger.error('[%s@%s] %s' % (userName, chat_id, repr(e)))
-        bot.sendMessage(chat_id, text='Nutzung: /entferne #Nummer (Ohne #)')
+        bot.sendMessage(chat_id, text=error_message)
+
 
 def cmd_list(bot, update):
     chat_id = update.message.chat_id
@@ -1535,7 +1545,8 @@ def checkAndSend(bot, chat_id, pokemons):
                 #Build message
                 pkmname =  pokemon_name[lan][pok_id]
                 if send_venue == 1:
-                    address = "%s - %sWP/%s%%." % (disappear_time_str, cp, iv)
+                    pkmname = "%s: %s WP" % (pokemon_name[lan][pok_id], cp)
+                    address = "%s - %s%%(%s/%s/%s)/L%s" % (disappear_time_str, iv, iv_attack, iv_defense, iv_stamina, pkmnlvl)
                 else:
                     address = "%s (%s)." % (disappear_time_str, deltaStr)
                     title = "*IV*:%s (%s/%s/%s) - *WP*:%s - *Level*:%s\n" % (iv, iv_attack, iv_defense, iv_stamina, cp, pkmnlvl)
