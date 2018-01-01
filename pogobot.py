@@ -8,7 +8,15 @@
 
 # better on python3.4
 # ------------------------------
-# last change: 04.12.2017
+# changelog:
+# 01.01.2017
+# - Use cmd_status for cmd_load message
+# - Change max_level to 40
+# - Remove old Functions
+# - Minor text fixes
+# 12.12.2017
+# - Add and remove Pokemon by their names
+# 04.12.2017
 # - Add Attack, Defense, Stamina Filters
 # ------------------------------
 
@@ -401,10 +409,10 @@ def cmd_LVL(bot, update, args):
         bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
         return
 
-    # Wenn nur ein Wert eingegeben wird -> minLVL = Eingabe, maxLVL = 30.
+    # Wenn nur ein Wert eingegeben wird -> minLVL = Eingabe, maxLVL = 40.
     if len(args) == 1:
         LVLmin = int(args[0])
-        LVLmax = int(30)
+        LVLmax = int(40)
     else:
         LVLmin = int(args[0])
         LVLmax = int(args[1])
@@ -654,141 +662,6 @@ def cmd_SwitchVenue(bot, update):
         bot.sendMessage(chat_id, text='Pokémon werden nun in zwei Nachrichten gesendet')
 
     logger.info('[%s@%s] Switched message style' % (userName, chat_id))
-
-def cmd_ivFilter(bot, update, args, job_queue):
-    chat_id = update.message.chat_id
-    userName = update.message.from_user.username
-
-
-    # Lade User Einstellungen
-    pref = prefs.get(chat_id)
-
-    if len(args) <= 0:
-        bot.sendMessage(chat_id, text='Nutzung: "/pokemoniv #Nummer,IV" oder "/pokemoniv #Nummer1,IV1 #Nummer2,IV2 ... (Ohne #)')
-        return
-
-    for x in args:
-        tmp = x.split(",")
-        if int(tmp[0]) > 251:
-            bot.sendMessage(chat_id, text='Bitte keine Pokemonnummer über 251 eingeben!')
-            return
-        if int(tmp[1]) > 100 or int(tmp[1]) < -1:
-            bot.sendMessage(chat_id, text='Bitte keine IV über 100 oder unter -1 eingeben!')
-            return
-
-    addJob(bot, update, job_queue)
-    logger.info('[%s@%s] Add pokemon.' % (userName, chat_id))
-
-    # Wenn nicht geladen oder mit /start gestartet wurde, dann setze ggf. auch default Werte und setze Standort auf Kiel
-    loc = pref.get('location')
-    if loc[0] is None or loc[1] is None:
-        bot.sendMessage(chat_id, text='*Du hast keinen Standort gewählt! Du wirst nun nach Kiel gesetzt!*', parse_mode='Markdown')
-
-    checkAndSetUserDefaults(pref)
-
-    try:
-        for x in args:
-            search = pref.get('search_ids')
-            ivfilter = pref.get('user_ivfilter')
-            tmp = x.split(",")
-            index = int(tmp[0]) - 1
-            ivfilter[index] = int(tmp[1])
-            if int(tmp[0]) not in search:
-                search.append(int(tmp[0]))
-        search.sort()
-        pref.set('search_ids',search)
-        pref.set('user_ivfilter', ivfilter)
-
-
-    except Exception as e:
-        logger.error('[%s@%s] %s' % (userName, chat_id, repr(e)))
-        bot.sendMessage(chat_id, text='Nutzung: "/pokemoniv #Nummer,IV" oder "/pokemoniv #Nummer1,IV1 #Nummer2,IV2 ... (Ohne #)')
-
-
-    if chat_id not in jobs:
-        bot.sendMessage(chat_id, text='Du hast keinen aktiven Scanner! Bitte füge erst Pokémon zu deiner Liste hinzu mit /pokemon 1 2 3 ...')
-        return
-
-    try:
-        lan = pref.get('language')
-        ivfilter = pref.get('user_ivfilter')
-        tmp = 'Liste der Benachrichtigungen und IV:\n'
-        for x in pref.get('search_ids'):
-            tmp += "%i %s IV:%i\n" % (x, pokemon_name[lan][str(x)], ivfilter[x-1])
-        if len(tmp) > 250:
-            bot.sendMessage(chat_id, text = tmp[:150])
-            bot.sendMessage(chat_id, text = tmp[151:250])
-            bot.sendMessage(chat_id, text = tmp[251:])
-        else:
-            bot.sendMessage(chat_id, text = tmp)
-    except Exception as e:
-        logger.error('[%s@%s] %s' % (userName, chat_id, repr(e)))
-        bot.sendMessage(chat_id, text='Liste leider Fehlerhaft. Bitte /ende eingeben und erneut beginnen')
-
-
-def cmd_lvlFilter(bot, update, args, job_queue):
-    chat_id = update.message.chat_id
-    userName = update.message.from_user.username
-
-    # Lade User Einstellungen
-    pref = prefs.get(chat_id)
-
-    if len(args) <= 0:
-        bot.sendMessage(chat_id, text='Nutzung: "/pokemonlvl #Nummer,LVL" oder "/pokemonlvl #Nummer1,LVL1 #Nummer2,LVL2 ... (Ohne #)')
-        return
-
-    for x in args:
-        tmp = x.split(",")
-        if int(tmp[0]) > 251:
-            bot.sendMessage(chat_id, text='Bitte keine Pokemonnummer über 251 eingeben!')
-            return
-        if int(tmp[1]) > 30 or int(tmp[1]) < -1:
-            bot.sendMessage(chat_id, text='Bitte keine LVL über 30 oder unter -1 eingeben!')
-            return
-
-    addJob(bot, update, job_queue)
-    logger.info('[%s@%s] Add pokemon.' % (userName, chat_id))
-
-    # Wenn nicht geladen oder mit /start gestartet wurde, dann setze ggf. auch default Werte und setze Standort auf Kiel
-    loc = pref.get('location')
-    if loc[0] is None or loc[1] is None:
-        bot.sendMessage(chat_id, text='*Du hast keinen Standort gewählt! Du wirst nun nach Kiel gesetzt!*', parse_mode='Markdown')
-
-    checkAndSetUserDefaults(pref)
-
-    try:
-        for x in args:
-            search = pref.get('search_ids')
-            lvlfilter = pref.get('user_lvlfilter')
-            tmp = x.split(",")
-            index = int(tmp[0]) - 1
-            lvlfilter[index] = int(tmp[1])
-            if int(tmp[0]) not in search:
-                search.append(int(tmp[0]))
-        search.sort()
-        pref.set('search_ids',search)
-        pref.set('user_lvlfilter', lvlfilter)
-
-    except Exception as e:
-        logger.error('[%s@%s] %s' % (userName, chat_id, repr(e)))
-        bot.sendMessage(chat_id, text='Nutzung: "/pokemoniv #Nummer,IV" oder "/pokemon #Nummer1,IV1 #Nummer2,IV2 ... (Ohne #)')
-
-
-    if chat_id not in jobs:
-        bot.sendMessage(chat_id, text='Du hast keinen aktiven Scanner! Bitte füge erst Pokémon zu deiner Liste hinzu mit /pokemon 1 2 3 ...')
-        return
-
-    try:
-        lan = pref.get('language')
-        lvlfilter = pref.get('user_lvlfilter')
-        tmp = 'Liste der Benachrichtigungen und Level:\n'
-        for x in pref.get('search_ids'):
-            tmp += "%i %s LVL:%i\n" % (x, pokemon_name[lan][str(x)], lvlfilter[x-1])
-        bot.sendMessage(chat_id, text = tmp)
-    except Exception as e:
-        logger.error('[%s@%s] %s' % (userName, chat_id, repr(e)))
-        bot.sendMessage('Liste leider Fehlerhaft. Bitte /ende eingeben und erneut beginnen')
-
 
 
 def cmd_status(bot, update):
@@ -1065,34 +938,11 @@ def cmd_load(bot, update, job_queue):
         if lat is None or lon is None:
             bot.sendMessage(chat_id, text='*Du hast keinen Standort gewählt! Du wirst nun nach Kiel gesetzt!*', parse_mode='Markdown')
 
+        # Send Settings to user and save to json file
         checkAndSetUserDefaults(pref)
-
-        if type(miniv) is str:
-            pref.set('user_miniv', float(miniv))
-        if type(maxiv) is str:
-            pref.set('user_maxiv', float(maxiv))
-        if type(mincp) is str:
-            pref.set('user_mincp', int(mincp))
-        if type(maxcp) is str:
-            pref.set('user_maxcp', int(maxcp))
-        if type(minlvl) is str:
-            pref.set('user_minlvl', int(minlvl))
-        if type(maxlvl) is str:
-            pref.set('user_maxlvl', int(maxlvl))
-        if type(mode) is str:
-            pref.set('user_mode', int(mode))
-
         cmd_saveSilent(bot, update)
+        cmd_status(bot, update)
 
-        prefmessage = "*Einstellungen:*\nMinimum IV: *%s*, Maximum IV: *%s*\nMinimum WP: *%s*, " % (miniv, maxiv, mincp) + \
-        "Maximum WP: *%s*\nMinimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\nStandort nicht gesetzt" % (maxcp, minlvl ,maxlvl, mode)
-        if lat is not None:
-            radius = float(loc[2])*1000
-            prefmessage = "*Einstellungen:*\nMinimum IV: *%s*, Maximum IV: *%s*\nMinimum WP: *%s*, " % (miniv, maxiv, mincp) + \
-            "Maximum WP: *%s*\nMinimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\n" % (maxcp, minlvl, maxlvl, mode)+ \
-            "Standort: %s,%s\nRadius: %s m" % (lat, lon, radius)
-
-        bot.sendMessage(chat_id, text='%s' % (prefmessage), parse_mode='Markdown')
     else:
         if chat_id not in jobs:
             job = jobs[chat_id]
@@ -1129,21 +979,6 @@ def cmd_load_silent(bot, chat_id, job_queue):
         lon = loc[1]
 
         checkAndSetUserDefaults(pref)
-
-        if type(miniv) is str:
-            pref.set('user_miniv', float(miniv))
-        if type(maxiv) is str:
-            pref.set('user_maxiv', float(maxiv))
-        if type(mincp) is str:
-            pref.set('user_mincp', int(mincp))
-        if type(maxcp) is str:
-            pref.set('user_maxcp', int(maxcp))
-        if type(minlvl) is str:
-            pref.set('user_minlvl', int(minlvl))
-        if type(maxlvl) is str:
-            pref.set('user_maxlvl', int(maxlvl))
-        if type(mode) is str:
-            pref.set('user_mode', int(mode))
 
     else:
         if chat_id not in jobs:
@@ -1300,7 +1135,7 @@ def checkAndSetUserDefaults(pref):
     if pref.get('user_minlvl') is None:
         pref.set('user_minlvl', 1)
     if pref.get('user_maxlvl') is None:
-        pref.set('user_maxlvl', 30)
+        pref.set('user_maxlvl', 40)
     if pref.get('user_mode') is None:
         pref.set('user_mode', 1)
 
@@ -1527,21 +1362,6 @@ def checkAndSend(bot, chat_id, pokemons):
                 if int(iv_stamina) < int(pokeMinSTA) or int(iv_stamina) > int(pokeMaxSTA):
                     continue
 
-                # IV/Lvl Filter -> Setze Minimum-Werte Neu
-                #pokeMinfilter_index = int(pok_id) - 1
-                #pokeMinIVfilter = user_ivfilter[pokeMinfilter_index]
-                #pokeMinLVLfilter = user_lvlfilter[pokeMinfilter_index]
-
-                #if int(pokeMinIVfilter) >= 0:
-                    #pokeMinIV = pokeMinIVfilter
-                #if int(pokeMinLVLfilter) >= 0:
-                    #pokeMinLVL = pokeMinLVLfilter
-
-				# Vorfiltern 2.0!
-                #if float(iv) >= float(pokeMinIV) and float(iv) <= float(pokeMaxIV):
-                    #if int(cp) >= int(pokeMinCP) and int(cp) <= int(pokeMaxCP):
-                        #if int(pkmnlvl) >= int(pokeMinLVL) and int(pkmnlvl) <= int(pokeMaxLVL):
-
                 #Build message
                 pkmname =  pokemon_name[lan][pok_id]
                 if send_venue == 1:
@@ -1556,7 +1376,7 @@ def checkAndSend(bot, chat_id, pokemons):
 
 
 
-            # Pokemon ohne IV
+            # Pokemon without IV
             else:
                 if int(mode) == 1:
                     if send_venue == 1:
@@ -1586,9 +1406,6 @@ def checkAndSend(bot, chat_id, pokemons):
                 mySent[encounter_id] = disappear_time
 
                 notDisappeared = delta.seconds > 0
-                #ivNoneAndSendWithout = (iv is None) and sendPokeWithoutIV
-                #ivNotNoneAndPokeMinIVNone = (iv is not None) and (pokeMinIV is None)
-                #ivHigherEqualFilter = (iv is not None) and (pokeMinIV is not None) and (float(iv) >= float(pokeMinIV))
 
                 if counter > 20:
                     bot.sendMessage(chat_id, text = 'Zu viele Pokemon eingestellt! Erhöhe die Minimum IV oder Entferne Pokemon.')
@@ -1834,10 +1651,6 @@ def main():
     dp.add_handler(CommandHandler("Nachricht", cmd_SwitchVenue))
 
     #dp.add_handler(CommandHandler("lang", cmd_lang, pass_args = True))
-    #dp.add_handler(CommandHandler("pokemoniv", cmd_ivFilter, pass_args = True, pass_job_queue=True))
-    #dp.add_handler(CommandHandler("Pokemoniv", cmd_ivFilter, pass_args = True, pass_job_queue=True))
-    #dp.add_handler(CommandHandler("pokemonlvl", cmd_lvlFilter, pass_args = True, pass_job_queue=True))
-    #dp.add_handler(CommandHandler("Pokemonlvl", cmd_lvlFilter, pass_args = True, pass_job_queue=True))
     #dp.add_handler(CommandHandler("wladd", cmd_addToWhitelist, pass_args=True))
     #dp.add_handler(CommandHandler("wlrem", cmd_remFromWhitelist, pass_args=True))
     #dp.add_handler(CommandHandler("remloc", cmd_clearlocation))
