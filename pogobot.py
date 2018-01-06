@@ -9,6 +9,9 @@
 # better on python3.4
 # ------------------------------
 # changelog:
+# 06.06.2017
+# - New function getPokemonLevel
+# - Fix forgotten L30 stuff
 # 01.01.2017
 # - Use cmd_status for cmd_load message
 # - Change max_level to 40
@@ -1253,7 +1256,7 @@ def checkAndSend(bot, chat_id, pokemons):
         if pokeMinLVL is None:
             pokeMinLVL = 1
         if pokeMaxLVL is None:
-            pokeMaxLVL = 30
+            pokeMaxLVL = 40
         if pokeMinATK is None:
             pokeMinATK = 0
         if pokeMaxATK is None:
@@ -1328,7 +1331,6 @@ def checkAndSend(bot, chat_id, pokemons):
             move2 = pokemon.getMove2()
             cp = pokemon.getCP()
             cpm = pokemon.getCPM()
-            pkmnlvl = 30
             delta = disappear_time - datetime.utcnow()
             deltaStr = '%02dm:%02ds' % (int(delta.seconds / 60), int(delta.seconds % 60))
             disappear_time_str = disappear_time.replace(tzinfo=timezone.utc).astimezone(tz=None).strftime("%H:%M:%S")
@@ -1337,17 +1339,8 @@ def checkAndSend(bot, chat_id, pokemons):
 
             # Wenn IV vorhanden
             if iv_attack is not None:
-
-
-                # Level berechnen
-                if cpm is not None:
-                    cpm_levels = [0.094, 0.166398, 0.215732, 0.25572, 0.29025, 0.321088, 0.349213, 0.375236, 0.399567, 0.4225, 0.443108,
-                        0.462798, 0.481685, 0.499858, 0.517394, 0.534354, 0.550793, 0.566755, 0.582279, 0.5974, 0.612157, 0.626567,
-                        0.640653, 0.654436, 0.667934, 0.681165, 0.694144, 0.706884, 0.719399, 0.7317]
-
-                    pkmnlvl = (i for i,x in enumerate(cpm_levels) if x == cpm)
-                    for i in pkmnlvl: pkmnlvl = i + 1
-
+                # Calculate Pokemon level
+                pkmnlvl = getPokemonLevel(cpm)
                 # Überspringe in for-Loop, wenn nicht in IV/WP/LVL Range
                 if float(iv) < float(pokeMinIV) or float(iv) > float(pokeMaxIV):
                     continue
@@ -1364,7 +1357,7 @@ def checkAndSend(bot, chat_id, pokemons):
 
                 #Build message
                 pkmname =  pokemon_name[lan][pok_id]
-                if send_venue == 1:
+                if int(send_venue) == 1:
                     pkmname = "%s: %s WP" % (pokemon_name[lan][pok_id], cp)
                     address = "%s - %s%%(%s/%s/%s)/L%s" % (disappear_time_str, iv, iv_attack, iv_defense, iv_stamina, pkmnlvl)
                 else:
@@ -1503,6 +1496,18 @@ def read_move_names(loc):
         logger.error('%s' % (repr(e)))
         # Pass to ignore if some files missing.
         pass
+
+
+def getPokemonLevel(cpMultiplier):
+    if (cpMultiplier < 0.734):
+        pokemonLevel = (58.35178527 * cpMultiplier * cpMultiplier - 2.838007664 * cpMultiplier + 0.8539209906)
+    else:
+        pokemonLevel = 171.0112688 * cpMultiplier - 95.20425243
+
+    pokemonLevel = (round(pokemonLevel) * 2) / 2
+
+    return int(pokemonLevel)
+
 
 def main():
     logger.info('Starting...')
