@@ -1076,16 +1076,6 @@ def cmd_radius(bot, update, args):
         return
 
 
-def cmd_clearlocation(bot, update):
-    chat_id = update.message.chat_id
-    userName = update.message.from_user.username
-
-    pref = prefs.get(chat_id)
-    pref.set('location', [None, None, None])
-    bot.sendMessage(chat_id, text='Dein Standort wurde entfernt!')
-    logger.info('[%s@%s] Location has been unset' % (userName, chat_id))
-
-
 def cmd_unknown(bot, update):
     chat_id = update.message.chat_id
     bot.send_message(chat_id, text="Falsche Eingabe. Ich habe dich nicht verstanden!\nSchaue am besten in der Hilfe nach: /help")
@@ -1283,9 +1273,6 @@ def checkAndSend(bot, chat_id, pokemons):
             if not pokemon.filterbylocation(location_data):
                 continue
 
-            #logger.info('%s' % len(allpokes))
-
-
             encounter_id = pokemon.getEncounterID()
             spaw_point = pokemon.getSpawnpointID()
             pok_id = pokemon.getPokemonID()
@@ -1349,20 +1336,6 @@ def checkAndSend(bot, chat_id, pokemons):
                         pkmname =  pokemon_name[lan][pok_id]
                         address = "%s (%s)." % (disappear_time_str, deltaStr)
                         title = "Leider keine IV/WP"
-
-
-
-
-            # TO-DO:
-            #
-            #
-            # Mehrere location: /loc1 = location 1 ... /locn = location n + /useloc 1 2 3 4 zum aktivieren von loc1, loc2, loc3, loc4 ?
-            # /listloc ? DSpokemon.py = Radius Berechnung. if not pokemon.filterbylocation(location_data):
-            # Abfrage ob pokemon im Bereich liegt.
-            # Ist das quatsch? Wieviele SQL abfragen macht der Bot? Für jeden Chat eine oder eine für alle?
-            # (1. Fall -> location schon in mysql als Rechteck filtern und dann als Kreis? + Er macht diese Schleife für alle 1000 pokemon
-            # (die pro Minute spawnen) -> Falls SQL Abfrage pro Person, dann aufjedenfall schon dort filtern)
-
 
             if encounter_id not in mySent:
                 mySent[encounter_id] = disappear_time
@@ -1623,13 +1596,6 @@ def main():
 
     dp.add_handler(CommandHandler("nachricht", cmd_SwitchVenue))
     dp.add_handler(CommandHandler("Nachricht", cmd_SwitchVenue))
-
-    #dp.add_handler(CommandHandler("lang", cmd_lang, pass_args = True))
-    #dp.add_handler(CommandHandler("wladd", cmd_addToWhitelist, pass_args=True))
-    #dp.add_handler(CommandHandler("wlrem", cmd_remFromWhitelist, pass_args=True))
-    #dp.add_handler(CommandHandler("remloc", cmd_clearlocation))
-    #dp.add_handler(CommandHandler("entfernestandort", cmd_clearlocation))
-    #dp.add_handler(CommandHandler("Enfernestandort", cmd_clearlocation))
 
     dp.add_handler(MessageHandler([Filters.command], cmd_unknown))
 
