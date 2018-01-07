@@ -333,12 +333,13 @@ def cmd_IV(bot, update, args):
 
     # Lade User Einstellungen
     pref = prefs.get(chat_id)
+    usage_message = 'Nutzung: "/iv #minimum oder /iv #minimum #maximum" (Ohne # und nicht über 100 / unter 0!)'
 
     # Fange keine Eingabe oder mehr als 2 Eingaben ab
     if args != []:
         if args[0].isdigit():
             if len(args) < 1 or len(args) > 2:
-                bot.sendMessage(chat_id, text='Nutzung: "/iv #minimum oder /iv #minimum #maximum" (Ohne #!)')
+                bot.sendMessage(chat_id, text=usage_message)
                 return
         else:
             bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
@@ -357,7 +358,7 @@ def cmd_IV(bot, update, args):
 
     # Fange Werte unter 0 und über 100 ab
     if IVmin > 100 or IVmax > 100 or IVmin < 0 or IVmax < 0:
-        bot.sendMessage(chat_id, text='Nutzung: "/iv #minimum #maximum oder /iv #minimum" (Ohne # und nicht über 100 / unter 0!)')
+        bot.sendMessage(chat_id, text=usage_message)
         return
 
     # Setze minIV und maxIV
@@ -375,12 +376,13 @@ def cmd_CP(bot, update, args):
 
     # Lade User Einstellungen
     pref = prefs.get(chat_id)
+    usage_message = 'Nutzung: "/cp #minimum oder /cp #minimum #maximum" (Ohne #!)'
 
     # Fange keine Eingabe oder mehr als 2 Eingaben ab
     if args != []:
         if args[0].isdigit():
             if len(args) < 1 or len(args) > 2:
-                bot.sendMessage(chat_id, text='Nutzung: "/cp #minimum oder /cp #minimum #maximum" (Ohne #!)')
+                bot.sendMessage(chat_id, text=usage_message)
                 return
         else:
             bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
@@ -399,7 +401,7 @@ def cmd_CP(bot, update, args):
 
     # Fange Werte unter 0 ab
     if CPmin < 0 or CPmax < 0:
-        bot.sendMessage(chat_id, text='Nutzung: "/cp #minimum oder /cp #minimum #maximum" (Ohne # und nicht unter 0!)')
+        bot.sendMessage(chat_id, text=usage_message)
         return
 
     # Setze minCP und maxCP
@@ -417,12 +419,13 @@ def cmd_LVL(bot, update, args):
 
     # Lade User Einstellungen
     pref = prefs.get(chat_id)
+    usage_message = 'Nutzung: "/lvl #minimum oder /lvl #minimum #maximum" (Ohne #! und nicht über 40 / unter 0!)'
 
     # Fange keine Eingabe oder mehr als 2 Eingaben ab
     if args != []:
         if args[0].isdigit():
             if len(args) < 1 or len(args) > 2:
-                bot.sendMessage(chat_id, text='Nutzung: "/lvl #minimum oder /lvl #minimum #maximum" (Ohne #!)')
+                bot.sendMessage(chat_id, text=usage_message)
                 return
         else:
             bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
@@ -441,7 +444,10 @@ def cmd_LVL(bot, update, args):
 
     # Fange Werte unter 0 ab
     if LVLmin < 0 or LVLmax < 0:
-        bot.sendMessage(chat_id, text='Nutzung: "/lvl #minimum oder /lvl #minimum #maximum" (Ohne # und nicht unter 0!)')
+        bot.sendMessage(chat_id, text=usage_message)
+        return
+    if LVLmin > 40 or LVLmax > 40:
+        bot.sendMessage(chat_id, text=usage_message)
         return
 
     # Setze minLVL und maxLVL
@@ -459,12 +465,13 @@ def cmd_attack_filter(bot, update, args):
 
     # Lade User Einstellungen
     pref = prefs.get(chat_id)
+    usage_message = 'Nutzung: "/angriff #minimum oder /agriff #minimum #maximum" (Ohne # und nicht über 15 / unter 0!)'
 
     # Fange keine Eingabe oder mehr als 2 Eingaben ab
     if args != []:
         if args[0].isdigit():
             if len(args) < 1 or len(args) > 2:
-                bot.sendMessage(chat_id, text='Nutzung: "/angriff #minimum oder /agriff #minimum #maximum" (Ohne #!)')
+                bot.sendMessage(chat_id, text=usage_message)
                 return
         else:
             bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
@@ -483,11 +490,11 @@ def cmd_attack_filter(bot, update, args):
 
     # Fange Werte unter 0 ab
     if attack_min < 0 or attack_max < 0:
-        bot.sendMessage(chat_id, text='Nutzung: "/angriff #minimum oder /angriff #minimum #maximum" (Ohne # und nicht unter 0!)')
+        bot.sendMessage(chat_id, text=usage_message)
         return
     # Und über 15
     if attack_min > 15 or attack_max > 15:
-        bot.sendMessage(chat_id, text='Nutzung: "/angriff #minimum oder /angriff #minimum #maximum" (Ohne # und nicht über 15!)')
+        bot.sendMessage(chat_id, text=usage_message)
         return
 
     # Setze attack_min und attack_max
@@ -505,12 +512,13 @@ def cmd_defense_filter(bot, update, args):
 
     # Lade User Einstellungen
     pref = prefs.get(chat_id)
+    usage_message = 'Nutzung: "/verteidigung #minimum oder /verteidigung #minimum #maximum" (Ohne # und nicht über 15 / unter 0!)'
 
     # Fange keine Eingabe oder mehr als 2 Eingaben ab
     if args != []:
         if args[0].isdigit():
             if len(args) < 1 or len(args) > 2:
-                bot.sendMessage(chat_id, text='Nutzung: "/verteidigung #minimum oder /verteidigung #minimum #maximum" (Ohne #!)')
+                bot.sendMessage(chat_id, text=usage_message)
                 return
         else:
             bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
@@ -529,11 +537,11 @@ def cmd_defense_filter(bot, update, args):
 
     # Fange Werte unter 0 ab
     if defense_min < 0 or defense_max < 0:
-        bot.sendMessage(chat_id, text='Nutzung: "/verteidigung #minimum oder /verteidigung #minimum #maximum" (Ohne # und nicht unter 0!)')
+        bot.sendMessage(chat_id, text=usage_message)
         return
     # Und über 15
     if defense_min > 15 or defense_max > 15:
-        bot.sendMessage(chat_id, text='Nutzung: "/verteidigung #minimum oder /verteidigung #minimum #maximum" (Ohne # und nicht über 15!)')
+        bot.sendMessage(chat_id, text=usage_message)
         return
 
     # Setze defense_min und defense_max
@@ -551,12 +559,13 @@ def cmd_stamina_filter(bot, update, args):
 
     # Lade User Einstellungen
     pref = prefs.get(chat_id)
+    usage_message = 'Nutzung: "/ausdauer #minimum oder /ausdauer #minimum #maximum" (Ohne # und nicht über 15 / unter 0!)'
 
     # Fange keine Eingabe oder mehr als 2 Eingaben ab
     if args != []:
         if args[0].isdigit():
             if len(args) < 1 or len(args) > 2:
-                bot.sendMessage(chat_id, text='Nutzung: "/ausdauer #minimum oder /ausdauer #minimum #maximum" (Ohne #!)')
+                bot.sendMessage(chat_id, text=usage_message)
                 return
         else:
             bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
@@ -575,11 +584,11 @@ def cmd_stamina_filter(bot, update, args):
 
     # Fange Werte unter 0 ab
     if stamina_min < 0 or stamina_max < 0:
-        bot.sendMessage(chat_id, text='Nutzung: "/ausdauer #minimum oder /ausdauer #minimum #maximum" (Ohne # und nicht unter 0!)')
+        bot.sendMessage(chat_id, text=usage_message)
         return
     # Und über 15
     if stamina_min > 15 or stamina_max > 15:
-        bot.sendMessage(chat_id, text='Nutzung: "/ausdauer #minimum oder /ausdauer #minimum #maximum" (Ohne # und nicht über 15!)')
+        bot.sendMessage(chat_id, text=usage_message)
         return
 
     # Setze stamina_min und stamina_max
@@ -598,16 +607,17 @@ def cmd_Mode(bot, update, args):
 
     # Lade User Einstellungen
     pref = prefs.get(chat_id)
+    usage_message = 'Nutzung: "/modus 0" oder "/modus 1" (Einen Wert: 0 oder 1!)'
 
     # Fange keine Eingabe ab
     if args != []:
         if args[0].isdigit():
             if len(args) < 1 or len(args) > 1:
-                bot.sendMessage(chat_id, text='Nutzung: "/modus 0" oder "/modus 1" (Einen Wert!)')
+                bot.sendMessage(chat_id, text=usage_message)
                 return
             else:
                 if len(args[0]) > 1:
-                    bot.sendMessage(chat_id, text='Nutzung: "/modus 0" oder "/modus 1" (Einen Wert: 0 oder 1!)')
+                    bot.sendMessage(chat_id, text=usage_message)
                     return
         else:
             bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
@@ -628,45 +638,8 @@ def cmd_Mode(bot, update, args):
         else:
             bot.sendMessage(chat_id, text='Modus ist 1: Auch Pokémon ohne IV werden gesendet!')
     else:
-        bot.sendMessage(chat_id, text='Nutzung: "/modus 0" oder "/modus 1" (Einen Wert: 0 oder 1!)')
+        bot.sendMessage(chat_id, text=usage_message)
 
-def cmd_SendInWater(bot, update, args):
-    chat_id = update.message.chat_id
-    userName = update.message.from_user.username
-
-    # Lade User Einstellungen
-    pref = prefs.get(chat_id)
-
-    # Fange keine Eingabe ab
-    if args != []:
-        if args[0].isdigit():
-            if len(args) < 1 or len(args) > 1:
-                bot.sendMessage(chat_id, text='Nutzung: "/wasser 0" oder "/wasser 1" (Einen Wert!)')
-                return
-            else:
-                if len(args[0]) > 1:
-                    bot.sendMessage(chat_id, text='Nutzung: "/wasser 0" oder "/wasser 1" (Einen Wert: 0 oder 1)')
-                    return
-        else:
-            bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
-            return
-    else:
-        bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
-        return
-
-    if int(args[0]) == 1 or int(args[0]) == 0:
-        # Setze Modus
-        pref.set('user_scanwater', int(args[0]))
-
-        # Sende Bestaetigung
-        logger.info('[%s@%s] Switch water_mode to %s' % (userName, chat_id, args[0]))
-
-        if int(args[0]) == 0:
-            bot.sendMessage(chat_id, text='Wasser ist 0: Nur Pokémon auf dem Festland werden gesendet!')
-        else:
-            bot.sendMessage(chat_id, text='Modus ist 1: Auch Pokémon im Wasser werden gesendet!')
-    else:
-        bot.sendMessage(chat_id, text='Nutzung: "/wasser 0" oder "/wasser 1" (Einen Wert: 0 oder 1!)')
 
 def cmd_SwitchVenue(bot, update):
 
@@ -706,10 +679,6 @@ def cmd_status(bot, update):
     minsta = int(pref.get('user_stamina_min'))
     maxsta = int(pref.get('user_stamina_max'))
     mode = int(pref.get('user_mode'))
-    #ivfilter = pref.get('user_ivfilter')
-    #lvlfilter = pref.get('user_lvlfilter')
-    #ivfilterCMD = copy.deepcopy(ivfilter)
-    #lvlfilterCMD = copy.deepcopy(lvlfilter)
     loc = pref.get('location')
     lat = loc[0]
     lon = loc[1]
@@ -734,39 +703,17 @@ def cmd_status(bot, update):
         lan = pref.get('language')
         tmppref = '\n\n*Pokémon:*\n'
         tmpcmdPoke = '\n/pokemon '
-        #tmpcmdIV = '\n/pokemoniv '
-        #tmpcmdLVL = '\n/pokemonlvl '
+
         for x in pref.get('search_ids'):
-            #if int(ivfilter[x-1]) == -1 and int(lvlfilter[x-1]) != -1:
-                #ivfilter[x-1] = 0
-                #ivfilterCMD[x-1] = -1
-            #if int(ivfilter[x-1]) != -1 and int(lvlfilter[x-1]) == -1:
-                #lvlfilter[x-1] = 1
-                #lvlfilterCMD[x-1] = -1
-            #if int(ivfilter[x-1]) == -1 and int(lvlfilter[x-1]) == -1:
-                #ivfilterCMD[x-1] = -1
-                #lvlfilterCMD[x-1] = -1
-                #ivfilter[x-1] = 0
-                #lvlfilter[x-1] = 1
-
-                #logger.info('%i %i' % (ivfilterCMD[x-1], ivfilter[x-1]))
-
-
-
-            #tmppref += "%i %s IV:%i LVL:%i\n" % (x, pokemon_name[lan][str(x)], ivfilter[x-1], lvlfilter[x-1])
             tmppref += "%i %s\n" % (x, pokemon_name[lan][str(x)])
             tmpcmdPoke += "%i " % x
-            #tmpcmdIV += "%i,%i " % (x, ivfilterCMD[x-1])
-            #tmpcmdLVL += "%i,%i " % (x, lvlfilterCMD[x-1])
 
     except Exception as e:
         logger.error('[%s@%s] %s' % (userName, chat_id, repr(e)))
         bot.sendMessage(chat_id, text='Liste leider Fehlerhaft. Bitte /ende eingeben und erneut beginnen')
 
     prefmessage += tmppref
-    commandmessage += tmpcmdPoke #+ tmpcmdIV + tmpcmdLVL
-    #commandmessage += "\n/iv %s %s\n/wp %s %s\n/lvl %s %s\n/modus %s\n" % (miniv, maxiv, mincp, maxcp, minlvl, maxlvl, mode)+ \
-    #"/standort %s,%s\n/radius %s" % (lat, lon, radius)
+    commandmessage += tmpcmdPoke
 
     bot.sendMessage(chat_id, text='%s' % (prefmessage), parse_mode='Markdown')
     bot.sendMessage(chat_id, text='%s' % (commandmessage), parse_mode='Markdown')
@@ -778,7 +725,7 @@ def cmd_clear(bot, update):
 
     pref = prefs.get(chat_id)
 
-    """Removes the job if the user changed their mind"""
+    #Removes the job if the user changed their mind
     logger.info('[%s@%s] Clear list.' % (userName, chat_id))
 
     if chat_id not in jobs:
@@ -899,11 +846,11 @@ def cmd_save(bot, update):
     userName = update.message.from_user.username
 
     pref = prefs.get(chat_id)
-
+    usage_message = 'Du hast keinen aktiven Scanner! Bitte füge erst Pokémon zu deiner Liste hinzu mit /pokemon 1 2 3 ...'
     logger.info('[%s@%s] Save.' % (userName, chat_id))
 
     if chat_id not in jobs:
-        bot.sendMessage(chat_id, text='Du hast keinen aktiven Scanner! Bitte füge erst Pokémon zu deiner Liste hinzu mit /pokemon 1 2 3 ...')
+        bot.sendMessage(chat_id, text=usage_message)
         return
     pref.set_preferences()
     bot.sendMessage(chat_id, text='Speichern erfolgreich!')
@@ -913,25 +860,25 @@ def cmd_saveSilent(bot, update):
     userName = update.message.from_user.username
 
     pref = prefs.get(chat_id)
-
+    usage_message = 'Du hast keinen aktiven Scanner! Bitte füge erst Pokémon zu deiner Liste hinzu mit /pokemon 1 2 3 ...'
     logger.info('[%s@%s] Save.' % (userName, chat_id))
 
     if chat_id not in jobs:
-        bot.sendMessage(chat_id, text='Du hast keinen aktiven Scanner! Bitte füge erst Pokémon zu deiner Liste hinzu mit /pokemon 1 2 3 ...')
+        bot.sendMessage(chat_id, text=usage_message)
         return
     pref.set_preferences()
-    #bot.sendMessage(chat_id, text='Speichern erfolgreich!')
 
 def cmd_load(bot, update, job_queue):
     chat_id = update.message.chat_id
     userName = update.message.from_user.username
 
     pref = prefs.get(chat_id)
-
+    usage_message = 'Du hast keine gespeicherten Einstellungen!'
     logger.info('[%s@%s] Attempting to load.' % (userName, chat_id))
+
     r = pref.load()
     if r is None:
-        bot.sendMessage(chat_id, text='Du hast keine gespeicherten Einstellungen!')
+        bot.sendMessage(chat_id, text=usage_message)
         return
 
     if not r:
@@ -1014,9 +961,10 @@ def cmd_location(bot, update):
     userName = update.message.from_user.username
 
     pref = prefs.get(chat_id)
+    usage_message = 'Du hast keinen aktiven Scanner! Bitte füge erst Pokémon zu deiner Liste hinzu mit /pokemon 1 2 3 ...'
 
     if chat_id not in jobs:
-        bot.sendMessage(chat_id, text='Du hast keinen aktiven Scanner! Bitte füge erst Pokémon zu deiner Liste hinzu mit /pokemon 1 2 3 ...')
+        bot.sendMessage(chat_id, text=usage_message)
         return
 
     user_location = update.message.location
@@ -1043,9 +991,10 @@ def cmd_location_str(bot, update, args, job_queue):
 
     pref = prefs.get(chat_id)
     location_radius = pref['location'][2]
+    usage_message = 'Du hast keinen aktiven Scanner! Bitte füge erst Pokémon zu deiner Liste hinzu mit /pokemon 1 2 3 ...'
 
     if chat_id not in jobs:
-        bot.sendMessage(chat_id, text='Du hast keinen aktiven Scanner! Bitte füge erst Pokémon zu deiner Liste hinzu mit /pokemon 1 2 3 ...')
+        bot.sendMessage(chat_id, text=usage_message)
         return
 
     if len(args) <= 0:
@@ -1078,9 +1027,10 @@ def cmd_radius(bot, update, args):
     userName = update.message.from_user.username
 
     pref = prefs.get(chat_id)
+    usage_message = 'Du hast keinen aktiven Scanner! Bitte füge erst Pokémon zu deiner Liste hinzu mit /pokemon 1 2 3 ...'
 
     if chat_id not in jobs:
-        bot.sendMessage(chat_id, text='Du hast keinen aktiven Scanner! Bitte füge erst Pokémon zu deiner Liste hinzu mit /pokemon 1 2 3 ...')
+        bot.sendMessage(chat_id, text=usage_message)
         return
 
     # Check if user has set a location
@@ -1138,7 +1088,7 @@ def cmd_clearlocation(bot, update):
 
 def cmd_unknown(bot, update):
     chat_id = update.message.chat_id
-    bot.send_message(chat_id, text="Falsche Eingabe. Ich habe dich nicht verstanden!")
+    bot.send_message(chat_id, text="Falsche Eingabe. Ich habe dich nicht verstanden!\nSchaue am besten in der Hilfe nach: /help")
 
 
 ## Functions
