@@ -198,6 +198,8 @@ def cmd_help(bot, update):
     "Lade deine gespeicherten Einstellungen. \n" + \
     "/status \n" + \
     "Liste deine aktuellen Einstellungen auf. \n" + \
+    "/nachricht \n" + \
+    "Stellt die Art der Nachrichten um zwischen: Nur Standort oder Standort und Pokémon-Details.\n" + \
     "/ende \n" + \
     "Damit kannst du alle deine Einstellungen löschen und den Bot ausschalten. Du kannst ihn danach mit /laden " + \
     "wieder einschalten und deine Einstellungen werden geladen. \n"
