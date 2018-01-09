@@ -9,6 +9,12 @@
 # better on python3.4
 # ------------------------------
 # changelog:
+# 08.01.2018
+# - Added job for MySQL query
+# - Only ask MySQL once in 30s
+# - Removed unused code
+# - Rewrite of checkAndSend
+# - Filter common Pokemon
 # 07.01.2018
 # - Add Gen3 to addbyrarity
 # 06.01.2018
@@ -37,6 +43,7 @@ from telegram import Bot
 import logging
 from datetime import datetime, timezone, timedelta
 import datetime as dt
+import time
 import os
 import errno
 import json
@@ -64,16 +71,15 @@ sent = dict()
 locks = dict()
 
 # User dependant - Add to clear, addJob, loadUserConfig, saveUserConfig
-#search_ids = dict()
-#language = dict()
-#location_ids = dict()
+search_ids = dict()
 location_radius = 1
-#pokemon:
+# Pokemon:
 pokemon_name = dict()
-#move:
+# Moves:
 move_name = dict()
-
-#pokemon rarity
+# Mysql data
+thismodule = sys.modules[__name__]
+# Pokemon rarity
 pokemon_rarity = [[],
 	["7","16","19","41","133","161","163","165","167","170","177","183","187","194","198","216","220"],
 	["1","7","10","17","21","23","25","29","32","35","43","46","48","58","60","69","84","92","96","98",\
@@ -143,58 +149,58 @@ def cmd_help(bot, update):
 
     logger.info('[%s@%s] Sending help text.' % (userName, chat_id))
     text = "*Folgende Befehle kennt der Bot:* \n\n" + \
-    "/hilfe Um Hilfe zu bekommen und dieses Menü anzuzeigen \n\n" + \
+    "/hilfe Um Hilfe zu bekommen und dieses Menü anzuzeigen. \n\n" + \
     "*Pokémon:*\n\n" + \
     "/pokemon 1 \n" + \
-    "Nummer des Pokémon eingeben um über dieses Benachrichtigungen zu erhalten \n" + \
+    "Nummer des Pokémon eingeben um über dieses Benachrichtigungen zu erhalten. \n" + \
     "/pokemon 1 2 3 ... \n" + \
-    "Mehrfache Nummern der Pokémon können so eingegeben werden \n\n" + \
+    "Mehrfache Nummern der Pokémon können so eingegeben werden. \n" + \
+    "/pokemon gen1 \nFügt alle Pokémon der 1. Generation hinzu. Mögliche Optionen " + \
+    "sind: gen1, gen2, gen3, alle\n\n" + \
     "/seltenheit 1 \n" + \
-    "Fügt eine Gruppe von Pokémon hinzu. Dabei steht die 1 für gewöhnliche Pokémon und die 5 für ultra-seltene Pokémon." + \
-    "6 für Gen1, 7 für Gen2, 8 für Gen3, 9 für alle Pokémon \n\n" + \
+    "Fügt eine Gruppe von Pokémon hinzu. Dabei steht die 1 für gewöhnliche Pokémon " + \
+    "und die 5 für ultra-seltene Pokémon.\n\n" + \
     "/iv 50 \n" + \
-    "Setze die Minimum IV für die Pokémon, über die du benachrichtigt werden willst \n" + \
+    "Setze die Minimum IV z.B. auf 50 für die Pokémon, über die du benachrichtigt werden willst. \n" + \
     "/iv 0 100 \n" + \
-    "Setze die Minimum IV und Maximum IV für die Pokémon, über die du benachrichtigt werden willst \n\n" + \
+    "Setze die Minimum IV z.B. auf 0 und Maximum IV z.B. auf 100 für die Pokémon, über die du benachrichtigt werden willst. \n\n" + \
     "/wp 1500 \n" + \
-    "Setze die Minimum WP für die Pokémon, über die du benachrichtigt werden willst \n" + \
+    "Setze die Minimum WP z.B. auf 1500 für die Pokémon, über die du benachrichtigt werden willst. \n" + \
     "/wp 0 5000 \n" + \
-    "Setze die Minimum WP und Maximum WP für die Pokémon, über die du benachrichtigt werden willst \n\n" + \
-    "/lvl 15 \n" + \
-    "Setze die Minimum Level für die Pokémon, über die du benachrichtigt werden willst \n" + \
-    "/lvl 0 30 \n" + \
-    "Setze die Minimum Level und Maximum Level für die Pokémon, über die du benachrichtigt werden willst \n\n" + \
-    "/modus 0 \n" + \
-    "Stellt den Modus um: /modus 0 = Du erhälst nur Benachrichtigungen für Pokemon mit IV und WP \n" + \
-    "/modus 1 = Du erhälst auch Benachrichtigungen für Pokémon ohne IV und WP (zum Beispiel, wenn die IV/WP" +\
-    "nicht ermittelt werden konnte. Somit bekommst du z.B. auch ein Relaxo ohne IV/WP angezeigt) \n\n"
+    "Setze die Minimum WP z.B. auf 0 und Maximum WP z.B. auf 5000 für die Pokémon, über die du benachrichtigt werden willst. \n\n" + \
+    "/lvl 20 \n" + \
+    "Setze die Minimum Level z.B. auf 20 für die Pokémon, über die du benachrichtigt werden willst. \n" + \
+    "/lvl 0 40 \n" + \
+    "Setze die Minimum Level z.B. auf 0 und Maximum Level z.B. auf 40 für die Pokémon, über die du benachrichtigt werden willst. \n\n" + \
+    "/modus \n" + \
+    "Stellt den Modus um:\n/modus 0 = Du erhälst nur Benachrichtigungen für Pokemon mit IV und WP. \n" + \
+    "/modus 1 = Du erhälst auch Benachrichtigungen für Pokémon ohne IV und WP (zum Beispiel, wenn die IV/WP " +\
+    "nicht ermittelt werden konnten. Somit bekommst du z.B. auch ein Relaxo ohne IV/WP angezeigt.) \n\n"
     text2 = "/entferne 1 \n" + \
-    "Nummer des Pokémon löschen, wenn du über dieses nicht mehr benachrichtigt werden willst \n" + \
+    "Nummer des Pokémon löschen, wenn du über dieses nicht mehr benachrichtigt werden willst. \n" + \
     "/entferne 1 2 3 ... \n" + \
-    "Mehrfache Nummern der Pokémon löschen, wenn du über diese nicht mehr benachrichtigt werden willst \n\n" + \
+    "Mehrfache Nummern der Pokémon löschen, wenn du über diese nicht mehr benachrichtigt werden willst. \n\n" + \
     "*Standort:*\n\n" + \
-    "Sende deinen Standort über Telegram \n" + \
+    "Sende deinen Standort über Telegram. \n" + \
     "Dies fügt einen Umkreis um deinen Standort hinzu und du erhälst Benachrichtigungen für deine Umgebung. " + \
-    "Hinweis: Das senden des Standorts funktioniert nicht in Gruppen \n" +\
+    "Hinweis: Das senden des Standorts funktioniert nicht in Gruppen. \n" +\
     "/standort xx.xx, yy.yy \n" + \
     "Sende Koordinaten als Text in der Angezeigten Form um in dem Umkreis benachrichtigt zu werden. Es kann auch" + \
-    "eine Adresse eingegeben werden zum Beispiel: /standort Holstenstraße 1, 24103 Kiel oder auch /standort Kiel, DE \n" + \
+    "eine Adresse eingegeben werden zum Beispiel: /standort Holstenstraße 1, 24103 Kiel oder auch /standort Kiel, DE. \n" + \
     "/radius 1000 \n" + \
-    "Stellt deinen Such-Radius in m (Metern) um deinen Standort herum ein \n" + \
-    "/entfernestandort \n" + \
-    "Lösche deinen Standort und deinen Radius. Vorsicht: Du bekommst nun Meldungen aus ganz Schleswig-Holstein! \n\n" + \
+    "Stellt deinen Such-Radius in m (Metern) um deinen Standort herum ein. Hierbei ist 5000m das Maximum. \n" + \
     "*Sonstiges:*\n\n" + \
     "/liste \n" + \
-    "Alle Pokemon auflisten, über die du aktuell benachrichtigt wirst \n" + \
+    "Alle Pokemon auflisten, über die du aktuell benachrichtigt wirst. \n" + \
     "/speichern \n" + \
     "Speichert deine Einstellungen. *Dies ist wichtig*, damit du nach einem Neustart des Bots deine Einstellungen behälst! \n" + \
     "/laden \n" + \
-    "Lade deine gespeicherten Einstellungen \n" + \
+    "Lade deine gespeicherten Einstellungen. \n" + \
     "/status \n" + \
-    "Liste deine aktuellen Einstellungen auf \n" + \
+    "Liste deine aktuellen Einstellungen auf. \n" + \
     "/ende \n" + \
     "Damit kannst du alle deine Einstellungen löschen und den Bot ausschalten. Du kannst ihn danach mit /laden " + \
-    "wieder einschalten und deine Einstellungen werden geladen \n"
+    "wieder einschalten und deine Einstellungen werden geladen. \n"
     bot.sendMessage(chat_id, text, parse_mode='Markdown')
     bot.sendMessage(chat_id, text2, parse_mode='Markdown')
 
@@ -209,9 +215,9 @@ def cmd_start(bot, update):
     "oder */pokemon 1 2 3 ...* für mehrere Pokemon über die du informiert werden willst.\n\n*Sende* anschließend " + \
     "deinen *Standort* einfach über Telegram oder nutze */standort xx.xx, yy.yy*, */standort Kiel, DE* oder " + \
     "*/standort Holstenstraße 1, 24103 Kiel* um deine Koordinaten zu senden und den Bot somit zu starten. " + \
-    "(In Gruppen funktioniert das Senden des Standortes leider nicht)\n\nEs gibt noch weitere Einstellungen " + \
-    "zu *IV*, *WP* und *Level*.\nBitte denk daran deine Einstellungen immer zu *speichern* mit /speichern\n" + \
-    "*Fahre fort mit* /hilfe *um die möglichen Befehle aufzulisten*\n"
+    "(In Gruppen funktioniert das Senden des Standortes leider nicht.)\n\nEs gibt noch weitere Einstellungen " + \
+    "zu *IV*, *WP* und *Level*.\nBitte denk daran deine Einstellungen immer zu *speichern* mit /speichern.\n\n" + \
+    "*Fahre fort mit* /hilfe *um die möglichen Befehle aufzulisten.*\n"
     bot.sendMessage(chat_id, message % (userName), parse_mode='Markdown')
 
     # Setze default Werte und den Standort auf Kiel
@@ -234,6 +240,23 @@ def cmd_add(bot, update, args, job_queue):
                 bot.sendMessage(chat_id, text=usage_message)
                 return
         else:
+            if len(args) == 1:
+                if args[0].upper() == 'GEN1':
+                    cmd_addByRarity(bot, update, str(6), job_queue)
+                    return
+                if args[0].upper() == 'GEN2':
+                    cmd_addByRarity(bot, update, str(7), job_queue)
+                    return
+                if args[0].upper() == 'GEN3':
+                    cmd_addByRarity(bot, update, str(8), job_queue)
+                    return
+                if args[0].upper() == 'ALL':
+                    cmd_addByRarity(bot, update, str(9), job_queue)
+                    return
+                if args[0].upper() == 'ALLE':
+                    cmd_addByRarity(bot, update, str(9), job_queue)
+                    return
+
             for x in args:
                 for poke_id, name in pokemon_name[lan].items():
                     if name.upper() == x.upper():
@@ -688,8 +711,8 @@ def cmd_status(bot, update):
         radius = float(loc[2])*1000
 
     prefmessage = "*Einstellungen:*\n" + \
-    "Minimum IV: *%s*, Maximum IV: *%s*\nMinimum Angriff: *%s*," % (miniv, maxiv, minatk) + \
-    "Maximum Angriff: *%s*\nMinimum Verteidigung: *%s*, Maximum Verteidigung: *%s*\n" % (maxatk, mindef, maxdef) + \
+    "Minimum IV: *%s*, Maximum IV: *%s*\nMinimum Angriff: *%s*, " % (miniv, maxiv, minatk) + \
+    "Maximum Angriff: *%s*\n Minimum Verteidigung: *%s*, Maximum Verteidigung: *%s*\n" % (maxatk, mindef, maxdef) + \
     "Minimum Ausdauer: *%s*, Maximum Ausdauer: *%s*\nMinimum WP: *%s*, Maximum WP: *%s*\n" % (minsta, maxsta, mincp, maxcp) + \
     "Minimum Level: *%s*, Maximum Level: *%s*\nModus: *%s*\n" % (minlvl, maxlvl, mode)
     "Standort: %s,%s\nRadius: %s m" % (lat, lon, radius)
@@ -701,20 +724,18 @@ def cmd_status(bot, update):
 
     try:
         lan = pref.get('language')
-        tmppref = '\n\n*Pokémon:*\n'
         tmpcmdPoke = '\n/pokemon '
 
         for x in pref.get('search_ids'):
-            tmppref += "%i %s\n" % (x, pokemon_name[lan][str(x)])
             tmpcmdPoke += "%i " % x
 
     except Exception as e:
         logger.error('[%s@%s] %s' % (userName, chat_id, repr(e)))
         bot.sendMessage(chat_id, text='Liste leider Fehlerhaft. Bitte /ende eingeben und erneut beginnen')
 
-    prefmessage += tmppref
     commandmessage += tmpcmdPoke
 
+    cmd_list(bot, update)
     bot.sendMessage(chat_id, text='%s' % (prefmessage), parse_mode='Markdown')
     bot.sendMessage(chat_id, text='%s' % (commandmessage), parse_mode='Markdown')
 
@@ -890,7 +911,6 @@ def cmd_load(bot, update, job_queue):
     # We might be the first user and above failed....
     if len(pref.get('search_ids')) > 0:
         addJob(bot, update, job_queue)
-        cmd_list(bot, update)
         miniv = pref.get('user_miniv')
         maxiv = pref.get('user_maxiv')
         mincp = pref.get('user_mincp')
@@ -983,7 +1003,6 @@ def cmd_location(bot, update):
         (pref['location'][0], pref['location'][1], 1000*pref['location'][2]))
     bot.sendMessage(chat_id, text="Deinen Radius kannst du hier sehen:\n\n" + location_url, disable_web_page_preview="True")
 
-    #addJob(bot, update, job_queue)
 
 def cmd_location_str(bot, update, args, job_queue):
     chat_id = update.message.chat_id
@@ -1003,7 +1022,6 @@ def cmd_location_str(bot, update, args, job_queue):
 
     try:
         user_location = geolocator.geocode(' '.join(args), timeout=10)
-        addJob(bot, update, job_queue)
     except Exception as e:
         logger.error('[%s@%s] %s' % (userName, chat_id, repr(e)))
         bot.sendMessage(chat_id, text='Standort nicht gefunden oder Openstreetmap ist down! Bitte versuche es erneut damit der Bot startet!')
@@ -1048,7 +1066,7 @@ def cmd_radius(bot, update, args):
         if args[0].isdigit():
             if len(args) < 1:
                 bot.sendMessage(chat_id, text="Aktueller Standort ist: %f / %f mit Radius %.2f m"
-                                              % (user_location[0], user_location[1], user_location[2]))
+                    % (user_location[0], user_location[1], user_location[2]))
         else:
             bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
             return
@@ -1057,6 +1075,9 @@ def cmd_radius(bot, update, args):
         return
 
     # Change the radius
+    if float(args[0]) > 5000:
+        args[0] = 5000
+        bot.sendMessage(chat_id, text='Dein Radius ist größer als 5000m! Er wird auf 5000m gestellt.')
     try:
         radius = float(args[0])
         pref.set('location', [user_location[0], user_location[1], radius/1000])
@@ -1081,9 +1102,10 @@ def cmd_unknown(bot, update):
     bot.send_message(chat_id, text="Falsche Eingabe. Ich habe dich nicht verstanden!\nSchaue am besten in der Hilfe nach: /help")
 
 
-## Functions
+
 def error(bot, update, error):
     logger.warn('Update "%s" caused error "%s"' % (update, error))
+
 
 def checkAndSetUserDefaults(pref):
     if pref.get('user_miniv') is None:
@@ -1104,11 +1126,38 @@ def checkAndSetUserDefaults(pref):
     loc = pref.get('location')
     if loc[0] is None or loc[1] is None:
         pref.set('location', [54.321362, 10.134511, 0.1])
+    if loc[2] is None:
+        pref.set('location', [loc[0], loc[1], 0.1])
+    if loc[2] is not None and float(loc[2]) > 5:
+        pref.set('location', [loc[0], loc[1], 5])
+
+
+def getMysqlData(bot, job):
+    logger.info('Getting MySQLdata...')
+    thismodule.pokemon_db_data = dataSource.getPokemonData()
+    return thismodule.pokemon_db_data
+
+
+def addJobMysql(bot, job_queue):
+    chat_id = ''
+    logger.info('MySQL job added.')
+    try:
+        if chat_id not in jobs:
+            job = Job(getMysqlData, 30, repeat=True, context=(chat_id, "Other"))
+            # Add to jobs
+            jobs[chat_id] = job
+            job_queue.put(job)
+
+    except Exception as e:
+        logger.error('MySQL job failed.')
+
 
 def alarm(bot, job):
     chat_id = job.context[0]
     logger.info('[%s] Checking alarm.' % (chat_id))
-    checkAndSend(bot, chat_id, prefs.get(chat_id).get('search_ids'))
+
+    checkAndSend(bot, chat_id, prefs.get(chat_id).get('search_ids'), thismodule.pokemon_db_data)
+
 
 def addJob(bot, update, job_queue):
     chat_id = update.message.chat_id
@@ -1149,133 +1198,61 @@ def addJob_silent(bot, chat_id, job_queue):
                 sent[chat_id] = dict()
             if chat_id not in locks:
                 locks[chat_id] = threading.Lock()
-            #text = "Scanner gestartet."
-            #bot.sendMessage(chat_id, text)
+
     except Exception as e:
         logger.error('[%s@%s] %s' % (userName, chat_id, repr(e)))
 
 
-def checkAndSend(bot, chat_id, pokemons):
+def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
     pref = prefs.get(chat_id)
     lock = locks[chat_id]
     logger.info('[%s] Checking pokemon and sending notifications.' % (chat_id))
+    message_counter = 0
+    blacklisted_pokemon_0_100 = [10,11,13,14,16,17,19,21,29,32,41,43,46,48,54,
+        60,69,72,90,96,98,116,118,161,163,165,167,170,177,183,187,190,194,209,
+        216,220,261,263,265,273,300,316]
+    blacklisted_pokemon_0_90 = [129,133,198,296,309,363]
+
     if len(pokemons) == 0:
         return
 
     try:
+        checkAndSetUserDefaults(pref)
+        moveNames = move_name["de"]
 
         lan = pref['language']
         mySent = sent[chat_id]
         location_data = pref['location']
-        user_miniv = pref['user_miniv']
-        user_maxiv = pref['user_maxiv']
-        user_mincp = pref['user_mincp']
-        user_maxcp = pref['user_maxcp']
-        user_minlvl = pref['user_minlvl']
-        user_maxlvl = pref['user_maxlvl']
-        user_mode = pref['user_mode']
-        user_send_venue = pref['user_send_venue']
-        user_attack_min = pref['user_attack_min']
-        user_attack_max = pref['user_attack_max']
-        user_defense_min = pref['user_defense_min']
-        user_defense_max = pref['user_defense_max']
-        user_stamina_min = pref['user_stamina_min']
-        user_stamina_max = pref['user_stamina_max']
-        #user_ivfilter = pref['user_ivfilter']
-        #user_lvlfilter = pref['user_lvlfilter']
-
-        pokeMinIV = user_miniv
-        pokeMaxIV = user_maxiv
-        pokeMinCP = user_mincp
-        pokeMaxCP = user_maxcp
-        pokeMinLVL = user_minlvl
-        pokeMaxLVL = user_maxlvl
-        pokeMinATK = user_attack_min
-        pokeMaxATK = user_attack_max
-        pokeMinDEF = user_defense_min
-        pokeMaxDEF = user_defense_max
-        pokeMinSTA = user_stamina_min
-        pokeMaxSTA = user_stamina_max
-        mode = user_mode
-        send_venue = user_send_venue
-
-        counter = 0
-
-        #logger.info('%s' % max(user_ivfilter))
-
-        # Setze default Werte, falls keine vorhanden sind
-        if pokeMinIV is None:
-            pokeMinIV = 0
-        if pokeMaxIV is None:
-            pokeMaxIV = 100
-        if pokeMinCP is None:
-            pokeMinCP = 0
-        if pokeMaxCP is None:
-            pokeMaxCP = 5000
-        if pokeMinLVL is None:
-            pokeMinLVL = 1
-        if pokeMaxLVL is None:
-            pokeMaxLVL = 40
-        if pokeMinATK is None:
-            pokeMinATK = 0
-        if pokeMaxATK is None:
-            pokeMaxATK = 15
-        if pokeMinDEF is None:
-            pokeMinDEF = 0
-        if pokeMaxDEF is None:
-            pokeMaxDEF = 15
-        if pokeMinSTA is None:
-            pokeMinSTA = 0
-        if pokeMaxSTA is None:
-            pokeMaxSTA = 15
-        if mode is None:
-            mode = 1
-
-        # Standort setzen wenn keiner eingegeben wurde:
-        if location_data[0] is not None and location_data[2] is None:
-            location_data[2] = 0.1
-        if location_data[0] is None:
-            location_data[0] = 54.321362
-            location_data[1] = 10.134511
-            location_data[2] = 0.1
-        if float(location_data[2]) > 30:
-            location_data[2] = 30
-
-        # Vorfilter 1.0
-        pokeMinIV = float(pokeMinIV)
-        # Radius + 500m für Ungenauigkeit
-        radius = location_data[2] + 0.5
-
-        # Berechne Koordinaten vorher
-        origin = geopy.Point(location_data[0], location_data[1])
-        destination_north = VincentyDistance(radius).destination(origin, 0)
-        destination_east = VincentyDistance(radius).destination(origin, 90)
-        destination_south = VincentyDistance(radius).destination(origin, 180)
-        destination_west = VincentyDistance(radius).destination(origin, 270)
-
-        lat_n = destination_north.latitude
-        lon_e = destination_east.longitude
-        lat_s = destination_south.latitude
-        lon_w = destination_west.longitude
-
-        # Hole nur noch die richtigen Pokemon aus der DB... ABER dann ist der IVFilter hinüber
-        if int(mode) == 0:
-            allpokes = dataSource.getPokemonByIdsIV(pokemons, pokeMinIV, pokeMinATK, pokeMinDEF, pokeMinSTA, lat_n, lat_s, lon_e, lon_w)
-        if int(mode) == 1:
-            allpokes = dataSource.getPokemonByIdsAll(pokemons, pokeMinIV, pokeMinATK, pokeMinDEF, pokeMinSTA, lat_n, lat_s, lon_e, lon_w)
-
-        moveNames = move_name["de"]
+        user_iv_min = int(pref['user_miniv'])
+        user_iv_max = int(pref['user_maxiv'])
+        user_cp_min = int(pref['user_mincp'])
+        user_cp_max = int(pref['user_maxcp'])
+        user_lvl_min = int(pref['user_minlvl'])
+        user_lvl_max = int(pref['user_maxlvl'])
+        user_attack_min = int(pref['user_attack_min'])
+        user_attack_max = int(pref['user_attack_max'])
+        user_defense_min = int(pref['user_defense_min'])
+        user_defense_max = int(pref['user_defense_max'])
+        user_stamina_min = int(pref['user_stamina_min'])
+        user_stamina_max = int(pref['user_stamina_max'])
+        user_mode = int(pref['user_mode'])
+        user_send_venue = int(pref['user_send_venue'])
 
         lock.acquire()
 
-        for pokemon in allpokes:
-            # Prüfe ob Pokemon im Radius
+        for pokemon in pokemon_db_data:
+            # Get pokemon_id
+            pok_id = pokemon.getPokemonID()
+            if int(pok_id) not in pokemons:
+                continue
+            # Get encounter_id
+            encounter_id = pokemon.getEncounterID()
+            if encounter_id in mySent:
+                continue
+            # Check if Pokemon inside radius
             if not pokemon.filterbylocation(location_data):
                 continue
 
-            encounter_id = pokemon.getEncounterID()
-            spaw_point = pokemon.getSpawnpointID()
-            pok_id = pokemon.getPokemonID()
             latitude = pokemon.getLatitude()
             longitude = pokemon.getLongitude()
             disappear_time = pokemon.getDisappearTime()
@@ -1291,29 +1268,39 @@ def checkAndSend(bot, chat_id, pokemons):
             deltaStr = '%02dm:%02ds' % (int(delta.seconds / 60), int(delta.seconds % 60))
             disappear_time_str = disappear_time.replace(tzinfo=timezone.utc).astimezone(tz=None).strftime("%H:%M:%S")
 
-
-
-            # Wenn IV vorhanden
+            # If IV is known
             if iv_attack is not None:
-                # Calculate Pokemon level
+
+                # First: Filter blacklisted Pokémon
+                if int(pok_id) in blacklisted_pokemon_0_100:
+                    if int(iv) < 100:
+                        if int(iv) != 0:
+                            continue
+                if int(pok_id) in blacklisted_pokemon_0_90:
+                    if int(iv) < 90:
+                        if int(iv) != 0:
+                            continue
+
+                # Second: Calculate Pokemon level
                 pkmnlvl = getPokemonLevel(cpm)
-                # Überspringe in for-Loop, wenn nicht in IV/WP/LVL Range
-                if float(iv) < float(pokeMinIV) or float(iv) > float(pokeMaxIV):
+
+                # Third: Filter IV/CP/LVL settings
+                if float(iv) < user_iv_min or float(iv) > user_iv_max:
                     continue
-                if int(cp) < int(pokeMinCP) or int(cp) > int(pokeMaxCP):
+                if int(cp) < user_cp_min or int(cp) > user_cp_max:
                     continue
-                if int(pkmnlvl) < int(pokeMinLVL) or int(pkmnlvl) > int(pokeMaxLVL):
+                if int(pkmnlvl) < user_lvl_min or int(pkmnlvl) > user_lvl_max:
                     continue
-                if int(iv_attack) < int(pokeMinATK) or int(iv_attack) > int(pokeMaxATK):
+                if int(iv_attack) < user_attack_min or int(iv_attack) > user_attack_max:
                     continue
-                if int(iv_defense) < int(pokeMinDEF) or int(iv_defense) > int(pokeMaxDEF):
+                if int(iv_defense) < user_defense_min or int(iv_defense) > user_defense_max:
                     continue
-                if int(iv_stamina) < int(pokeMinSTA) or int(iv_stamina) > int(pokeMaxSTA):
+                if int(iv_stamina) < user_stamina_min or int(iv_stamina) > user_stamina_max:
                     continue
 
-                #Build message
+                # Fourth: Build message
                 pkmname =  pokemon_name[lan][pok_id]
-                if int(send_venue) == 1:
+                if user_send_venue == 1:
                     pkmname = "%s: %s WP" % (pokemon_name[lan][pok_id], cp)
                     address = "%s - %s%%(%s/%s/%s)/L%s" % (disappear_time_str, iv, iv_attack, iv_defense, iv_stamina, pkmnlvl)
                 else:
@@ -1325,10 +1312,17 @@ def checkAndSend(bot, chat_id, pokemons):
 
 
 
-            # Pokemon without IV
+            # If IV is unknown
             else:
-                if int(mode) == 1:
-                    if send_venue == 1:
+                if user_mode == 0:
+                    continue
+                if int(pok_id) in blacklisted_pokemon_0_100:
+                    continue
+                if int(pok_id) in blacklisted_pokemon_0_90:
+                    continue
+
+                if user_mode == 1:
+                    if user_send_venue == 1:
                         pkmname =  pokemon_name[lan][pok_id]
                         address = "%s" % (disappear_time_str)
                         title = ""
@@ -1337,25 +1331,27 @@ def checkAndSend(bot, chat_id, pokemons):
                         address = "%s (%s)." % (disappear_time_str, deltaStr)
                         title = "Leider keine IV/WP"
 
-            if encounter_id not in mySent:
-                mySent[encounter_id] = disappear_time
 
-                notDisappeared = delta.seconds > 0
+            mySent[encounter_id] = disappear_time
+            notDisappeared = delta.seconds > 0
 
-                if counter > 20:
-                    bot.sendMessage(chat_id, text = 'Zu viele Pokemon eingestellt! Erhöhe die Minimum IV oder Entferne Pokemon.')
-                    logger.info('Too many sent')
-                    break
-                if notDisappeared and counter <= 20:
-                    try:
-                        if send_venue == 0:
-                            bot.sendLocation(chat_id, latitude, longitude)
-                            bot.sendMessage(chat_id, text = '*%s* Bis %s \n%s' % (pkmname, address, title), parse_mode='Markdown')
-                        else:
-                            bot.sendVenue(chat_id, latitude, longitude, pkmname, address)
-                        counter += 1
-                    except Exception as e:
-                        logger.error('[%s] %s' % (chat_id, repr(e)))
+            if message_counter > 10:
+                bot.sendMessage(chat_id, text = 'Zu viele Pokemon eingestellt! Erhöhe die Minimum IV oder Entferne Pokemon.')
+                logger.info('Too many sent')
+                break
+
+            if notDisappeared and message_counter <= 10:
+                try:
+                    if user_send_venue == 0:
+                        bot.sendLocation(chat_id, latitude, longitude)
+                        bot.sendMessage(chat_id, text = '*%s* Bis %s \n%s' % (pkmname, address, title), parse_mode='Markdown')
+                    else:
+                        bot.sendVenue(chat_id, latitude, longitude, pkmname, address)
+
+                    message_counter += 1
+
+                except Exception as e:
+                    logger.error('[%s] %s' % (chat_id, repr(e)))
 
     except Exception as e:
         logger.error('[%s] %s' % (chat_id, repr(e)))
@@ -1473,6 +1469,8 @@ def main():
 
     ivAvailable = True
     dataSource = DataSources.DSPokemonGoMapIVMysql(config.get('DB_CONNECT', None))
+
+    global pokemon_db_data
 
     if not dataSource:
         raise Exception("The combination SCANNER_NAME, DB_TYPE is not available: %s,%s" % (scannerName, dbType))
@@ -1623,12 +1621,14 @@ def main():
             logger.error('%s' % (chat_id))
 
     logger.info('Started!')
-
+    addJobMysql(b,j)
+    thismodule.pokemon_db_data = getMysqlData(b,j)
 
     # Block until the you presses Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
     # start_polling() is non-blocking and will stop the bot gracefully.
     updater.idle()
+
 
 if __name__ == '__main__':
     main()
