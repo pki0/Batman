@@ -1489,115 +1489,66 @@ def main():
 
     # on different commands - answer in Telegram
     dp.add_handler(CommandHandler("start", cmd_start))
-    dp.add_handler(CommandHandler("Start", cmd_start))
 
     dp.add_handler(CommandHandler("help", cmd_help))
-    dp.add_handler(CommandHandler("Help", cmd_help))
     dp.add_handler(CommandHandler("hilfe", cmd_help))
-    dp.add_handler(CommandHandler("Hilfe", cmd_help))
 
     dp.add_handler(CommandHandler("add", cmd_add, pass_args = True, pass_job_queue=True))
-    dp.add_handler(CommandHandler("Add", cmd_add, pass_args = True, pass_job_queue=True))
     dp.add_handler(CommandHandler("pokemon", cmd_add, pass_args = True, pass_job_queue=True))
-    dp.add_handler(CommandHandler("Pokemon", cmd_add, pass_args = True, pass_job_queue=True))
 
     dp.add_handler(CommandHandler("addbyrarity", cmd_addByRarity, pass_args = True, pass_job_queue=True))
-    dp.add_handler(CommandHandler("Addbyrarity", cmd_addByRarity, pass_args = True, pass_job_queue=True))
     dp.add_handler(CommandHandler("seltenheit", cmd_addByRarity, pass_args = True, pass_job_queue=True))
-    dp.add_handler(CommandHandler("Seltenheit", cmd_addByRarity, pass_args = True, pass_job_queue=True))
-    dp.add_handler(CommandHandler("rare", cmd_addByRarity, pass_args = True, pass_job_queue=True))
-    dp.add_handler(CommandHandler("Rare", cmd_addByRarity, pass_args = True, pass_job_queue=True))
-
-
-    dp.add_handler(CommandHandler("clear", cmd_clear))
-    dp.add_handler(CommandHandler("Clear", cmd_clear))
 
     dp.add_handler(CommandHandler("ende", cmd_clear))
-    dp.add_handler(CommandHandler("Ende", cmd_clear))
+    dp.add_handler(CommandHandler("clear", cmd_clear))
 
     dp.add_handler(CommandHandler("rem", cmd_remove, pass_args = True, pass_job_queue=True))
-    dp.add_handler(CommandHandler("Rem", cmd_remove, pass_args = True, pass_job_queue=True))
     dp.add_handler(CommandHandler("entferne", cmd_remove, pass_args = True, pass_job_queue=True))
-    dp.add_handler(CommandHandler("Entferne", cmd_remove, pass_args = True, pass_job_queue=True))
 
     dp.add_handler(CommandHandler("save", cmd_save))
-    dp.add_handler(CommandHandler("Save", cmd_save))
     dp.add_handler(CommandHandler("speichern", cmd_save))
-    dp.add_handler(CommandHandler("Speichern", cmd_save))
 
     dp.add_handler(CommandHandler("load", cmd_load, pass_job_queue=True))
-    dp.add_handler(CommandHandler("Load", cmd_load, pass_job_queue=True))
     dp.add_handler(CommandHandler("laden", cmd_load, pass_job_queue=True))
-    dp.add_handler(CommandHandler("Laden", cmd_load, pass_job_queue=True))
 
     dp.add_handler(CommandHandler("list", cmd_list))
-    dp.add_handler(CommandHandler("List", cmd_list))
     dp.add_handler(CommandHandler("liste", cmd_list))
-    dp.add_handler(CommandHandler("Liste", cmd_list))
-
 
     dp.add_handler(CommandHandler("radius", cmd_radius, pass_args=True))
-    dp.add_handler(CommandHandler("Radius", cmd_radius, pass_args=True))
 
     dp.add_handler(CommandHandler("location", cmd_location_str, pass_args=True, pass_job_queue=True))
-    dp.add_handler(CommandHandler("Location", cmd_location_str, pass_args=True, pass_job_queue=True))
     dp.add_handler(CommandHandler("standort", cmd_location_str, pass_args=True, pass_job_queue=True))
-    dp.add_handler(CommandHandler("Standort", cmd_location_str, pass_args=True, pass_job_queue=True))
 
-    dp.add_handler(MessageHandler([Filters.location],cmd_location))
+    dp.add_handler(MessageHandler([Filters.location], cmd_location))
 
     dp.add_handler(CommandHandler("iv", cmd_IV, pass_args = True))
-    dp.add_handler(CommandHandler("Iv", cmd_IV, pass_args = True))
-    dp.add_handler(CommandHandler("IV", cmd_IV, pass_args = True))
 
     dp.add_handler(CommandHandler("wp", cmd_CP, pass_args = True))
-    dp.add_handler(CommandHandler("Wp", cmd_CP, pass_args = True))
-    dp.add_handler(CommandHandler("WP", cmd_CP, pass_args = True))
     dp.add_handler(CommandHandler("cp", cmd_CP, pass_args = True))
-    dp.add_handler(CommandHandler("Cp", cmd_CP, pass_args = True))
-    dp.add_handler(CommandHandler("CP", cmd_CP, pass_args = True))
 
     dp.add_handler(CommandHandler("lvl", cmd_LVL, pass_args = True))
-    dp.add_handler(CommandHandler("Lvl", cmd_LVL, pass_args = True))
-    dp.add_handler(CommandHandler("LVL", cmd_LVL, pass_args = True))
+    dp.add_handler(CommandHandler("level", cmd_LVL, pass_args = True))
 
     dp.add_handler(CommandHandler("angriff", cmd_attack_filter, pass_args = True))
-    dp.add_handler(CommandHandler("Angriff", cmd_attack_filter, pass_args = True))
     dp.add_handler(CommandHandler("attack", cmd_attack_filter, pass_args = True))
-    dp.add_handler(CommandHandler("Attack", cmd_attack_filter, pass_args = True))
     dp.add_handler(CommandHandler("atk", cmd_attack_filter, pass_args = True))
-    dp.add_handler(CommandHandler("Atk", cmd_attack_filter, pass_args = True))
-    dp.add_handler(CommandHandler("ATK", cmd_attack_filter, pass_args = True))
 
     dp.add_handler(CommandHandler("verteidigung", cmd_defense_filter, pass_args = True))
-    dp.add_handler(CommandHandler("Verteidigung", cmd_defense_filter, pass_args = True))
     dp.add_handler(CommandHandler("defense", cmd_defense_filter, pass_args = True))
-    dp.add_handler(CommandHandler("Defense", cmd_defense_filter, pass_args = True))
     dp.add_handler(CommandHandler("def", cmd_defense_filter, pass_args = True))
-    dp.add_handler(CommandHandler("Def", cmd_defense_filter, pass_args = True))
-    dp.add_handler(CommandHandler("DEF", cmd_defense_filter, pass_args = True))
 
     dp.add_handler(CommandHandler("ausdauer", cmd_stamina_filter, pass_args = True))
-    dp.add_handler(CommandHandler("Ausdauer", cmd_stamina_filter, pass_args = True))
     dp.add_handler(CommandHandler("stamina", cmd_stamina_filter, pass_args = True))
-    dp.add_handler(CommandHandler("Stamina", cmd_stamina_filter, pass_args = True))
     dp.add_handler(CommandHandler("sta", cmd_stamina_filter, pass_args = True))
-    dp.add_handler(CommandHandler("Sta", cmd_stamina_filter, pass_args = True))
-    dp.add_handler(CommandHandler("STA", cmd_stamina_filter, pass_args = True))
     dp.add_handler(CommandHandler("kp", cmd_stamina_filter, pass_args = True))
-    dp.add_handler(CommandHandler("Kp", cmd_stamina_filter, pass_args = True))
-    dp.add_handler(CommandHandler("KP", cmd_stamina_filter, pass_args = True))
 
     dp.add_handler(CommandHandler("modus", cmd_Mode, pass_args = True))
-    dp.add_handler(CommandHandler("Modus", cmd_Mode, pass_args = True))
 
     dp.add_handler(CommandHandler("status", cmd_status))
-    dp.add_handler(CommandHandler("Status", cmd_status))
 
     dp.add_handler(CommandHandler("nachricht", cmd_SwitchVenue))
-    dp.add_handler(CommandHandler("Nachricht", cmd_SwitchVenue))
 
-    dp.add_handler(MessageHandler([Filters.command], cmd_unknown))
+    dp.add_handler(MessageHandler([Filters.all], cmd_unknown))
 
     # log all errors
     dp.add_error_handler(error)
