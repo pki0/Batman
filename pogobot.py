@@ -1208,12 +1208,14 @@ def addJob_silent(bot, chat_id, job_queue):
 def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
     pref = prefs.get(chat_id)
     lock = locks[chat_id]
-    logger.info('[%s] Checking pokemon and sending notifications.' % (chat_id))
+
     message_counter = 0
     blacklisted_pokemon_0_100 = [10,11,13,14,16,17,19,21,29,32,41,43,46,48,54,
         60,69,72,90,96,98,116,118,161,163,165,167,170,177,183,187,190,194,209,
         216,220,261,263,265,273,300,316]
     blacklisted_pokemon_0_90 = [129,133,198,296,309,363]
+
+    logger.info('[%s] Checking pokemon and sending notifications.' % (chat_id))
 
     if len(pokemons) == 0:
         return
@@ -1243,11 +1245,11 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
         lock.acquire()
 
         for pokemon in pokemon_db_data:
-            # Get pokemon_id
+            # Get pokemon_id and check if it's in users list
             pok_id = pokemon.getPokemonID()
             if int(pok_id) not in pokemons:
                 continue
-            # Get encounter_id
+            # Get encounter_id and check if already sent
             encounter_id = pokemon.getEncounterID()
             if encounter_id in mySent:
                 continue
@@ -1255,23 +1257,17 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
             if not pokemon.filterbylocation(location_data):
                 continue
 
+            # Get general Pokémon infos
             latitude = pokemon.getLatitude()
             longitude = pokemon.getLongitude()
             disappear_time = pokemon.getDisappearTime()
-            iv = pokemon.getIVs()
-            iv_attack = pokemon.getIVattack()
-            iv_defense = pokemon.getIVdefense()
-            iv_stamina = pokemon.getIVstamina()
-            move1 = pokemon.getMove1()
-            move2 = pokemon.getMove2()
-            cp = pokemon.getCP()
-            cpm = pokemon.getCPM()
             delta = disappear_time - datetime.utcnow()
             deltaStr = '%02dm:%02ds' % (int(delta.seconds / 60), int(delta.seconds % 60))
             disappear_time_str = disappear_time.replace(tzinfo=timezone.utc).astimezone(tz=None).strftime("%H:%M:%S")
 
             # If IV is known
-            if iv_attack is not None:
+            iv = pokemon.getIVs()
+            if iv is not None:
 
                 # First: Filter blacklisted Pokémon
                 if int(pok_id) in blacklisted_pokemon_0_100:
@@ -1283,10 +1279,15 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                         if int(iv) != 0:
                             continue
 
-                # Second: Calculate Pokemon level
+                # Second: Get Pokémon stats and calculate Pokémon level
+                iv_attack = pokemon.getIVattack()
+                iv_defense = pokemon.getIVdefense()
+                iv_stamina = pokemon.getIVstamina()
+                cp = pokemon.getCP()
+                cpm = pokemon.getCPM()
                 pkmnlvl = getPokemonLevel(cpm)
 
-                # Third: Filter IV/CP/LVL settings
+                # Third: Filter IV/CP/LVL with user_settings
                 if float(iv) < user_iv_min or float(iv) > user_iv_max:
                     continue
                 if int(cp) < user_cp_min or int(cp) > user_cp_max:
@@ -1308,10 +1309,9 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                 else:
                     address = "%s (%s)." % (disappear_time_str, deltaStr)
                     title = "*IV*:%s (%s/%s/%s) - *WP*:%s - *Level*:%s\n" % (iv, iv_attack, iv_defense, iv_stamina, cp, pkmnlvl)
-                    move1Name = moveNames[move1]
-                    move2Name = moveNames[move2]
+                    move1Name = moveNames[pokemon.getMove1()]
+                    move2Name = moveNames[pokemon.getMove2()]
                     title += "*Moves*: %s/%s" % (move1Name, move2Name)
-
 
 
             # If IV is unknown
@@ -1333,12 +1333,13 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                         address = "%s (%s)." % (disappear_time_str, deltaStr)
                         title = "Leider keine IV/WP"
 
-
+            # Add encounter_id to mySent after filter
             mySent[encounter_id] = disappear_time
             notDisappeared = delta.seconds > 0
 
             if message_counter > 10:
-                bot.sendMessage(chat_id, text = 'Zu viele Pokemon eingestellt! Erhöhe die Minimum IV oder Entferne Pokemon.')
+                bot.sendMessage(chat_id, text = 'Zu viele Pokemon eingestellt! '
+                    'Erhöhe die Minimum IV, verwende /modus 1 oder Entferne Pokemon.')
                 logger.info('Too many sent')
                 break
 
@@ -1346,7 +1347,8 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                 try:
                     if user_send_venue == 0:
                         bot.sendLocation(chat_id, latitude, longitude)
-                        bot.sendMessage(chat_id, text = '*%s* Bis %s \n%s' % (pkmname, address, title), parse_mode='Markdown')
+                        bot.sendMessage(chat_id, text = '*%s* Bis %s \n%s'
+                            % (pkmname, address, title), parse_mode='Markdown')
                     else:
                         bot.sendVenue(chat_id, latitude, longitude, pkmname, address)
 
