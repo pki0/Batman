@@ -148,62 +148,96 @@ def cmd_help(bot, update):
     userName = update.message.from_user.username
 
     logger.info('[%s@%s] Sending help text.' % (userName, chat_id))
-    text = "*Folgende Befehle kennt der Bot:* \n\n" + \
-    "/hilfe Um Hilfe zu bekommen und dieses Menü anzuzeigen. \n\n" + \
+
+    text1 = "*Folgende Befehle kennt der Bot:*\n\n" + \
+    "/hilfe Um Hilfe zu bekommen und dieses Menü anzuzeigen.\n\n" + \
     "*Pokémon:*\n\n" + \
-    "/pokemon 1 \n" + \
-    "Nummer des Pokémon eingeben um über dieses Benachrichtigungen zu erhalten. \n" + \
-    "/pokemon 1 2 3 ... \n" + \
-    "Mehrfache Nummern der Pokémon können so eingegeben werden. \n" + \
-    "/pokemon gen1 \nFügt alle Pokémon der 1. Generation hinzu. Mögliche Optionen " + \
-    "sind: gen1, gen2, gen3, alle\n\n" + \
-    "/seltenheit 1 \n" + \
+    "/pokemon 1\n" + \
+    "Nummer des Pokémon (z.B. 1 für Bisasam) eingeben um über dieses Benachrichtigungen zu erhalten.\n" + \
+    "/pokemon 1 2 3 ...\n" + \
+    "Mehrfache Nummern der Pokémon eingeben um über diese Benachrichtigungen zu erhalten.\n" + \
+    "/pokemon Bisasam\n" + \
+    "Name des Pokémon (z.B. Bisasam) eingeben um über dieses Benachrichtigungen zu erhalten.\n" + \
+    "/pokemon Bisasam Glumanda Shiggy\n" + \
+    "Mehrfache Namen der Pokémon eingeben um über diese Benachrichtigungen zu erhalten.\n" + \
+    "/pokemon gen1\n" + \
+    "Fügt alle Pokémon der 1. Generation hinzu. Mögliche Optionen sind: gen1, gen2, gen3, alle\n\n" + \
+    "/seltenheit 1\n" + \
     "Fügt eine Gruppe von Pokémon hinzu. Dabei steht die 1 für gewöhnliche Pokémon " + \
     "und die 5 für ultra-seltene Pokémon.\n\n" + \
-    "/iv 50 \n" + \
-    "Setze die Minimum IV z.B. auf 50 für die Pokémon, über die du benachrichtigt werden willst. \n" + \
-    "/iv 0 100 \n" + \
-    "Setze die Minimum IV z.B. auf 0 und Maximum IV z.B. auf 100 für die Pokémon, über die du benachrichtigt werden willst. \n\n" + \
-    "/wp 1500 \n" + \
-    "Setze die Minimum WP z.B. auf 1500 für die Pokémon, über die du benachrichtigt werden willst. \n" + \
-    "/wp 0 5000 \n" + \
-    "Setze die Minimum WP z.B. auf 0 und Maximum WP z.B. auf 5000 für die Pokémon, über die du benachrichtigt werden willst. \n\n" + \
-    "/lvl 20 \n" + \
-    "Setze die Minimum Level z.B. auf 20 für die Pokémon, über die du benachrichtigt werden willst. \n" + \
-    "/lvl 0 40 \n" + \
-    "Setze die Minimum Level z.B. auf 0 und Maximum Level z.B. auf 40 für die Pokémon, über die du benachrichtigt werden willst. \n\n" + \
-    "/modus \n" + \
-    "Stellt den Modus um:\n/modus 0 = Du erhälst nur Benachrichtigungen für Pokemon mit IV und WP. \n" + \
-    "/modus 1 = Du erhälst auch Benachrichtigungen für Pokémon ohne IV und WP (zum Beispiel, wenn die IV/WP " +\
-    "nicht ermittelt werden konnten. Somit bekommst du z.B. auch ein Relaxo ohne IV/WP angezeigt.) \n\n"
-    text2 = "/entferne 1 \n" + \
-    "Nummer des Pokémon löschen, wenn du über dieses nicht mehr benachrichtigt werden willst. \n" + \
+    "/iv 50\n" + \
+    "Setze die Minimum IV (z.B. auf 50) für die Pokémon, über die du benachrichtigt werden willst.\n" + \
+    "/iv 0 100\n" + \
+    "Setze die Minimum IV (z.B. auf 0) und Maximum IV (z.B. auf 100) für die Pokémon, " + \
+    "über die du benachrichtigt werden willst.\n\n" + \
+    "/wp 1500\n" + \
+    "Setze die Minimum WP (z.B. auf 1500) für die Pokémon, über die du benachrichtigt werden willst.\n" + \
+    "/wp 0 5000\n" + \
+    "Setze die Minimum WP (z.B. auf 0) und Maximum WP (z.B. auf 5000) für die Pokémon, " + \
+    "über die du benachrichtigt werden willst.\n\n" + \
+    "/lvl 20\n" + \
+    "Setze die Minimum Level (z.B. auf 20) für die Pokémon, über die du benachrichtigt werden willst.\n" + \
+    "/lvl 0 40\n" + \
+    "Setze die Minimum Level (z.B. auf 0) und Maximum Level (z.B. auf 40) für die Pokémon, " + \
+    "über die du benachrichtigt werden willst.\n" + \
+    "/angriff 15 oder /atk 15\n" + \
+    "Setze den Minimum Angriffswert (z.B. auf 15) für die Pokémon, über die du benachrichtigt werden willst.\n" + \
+    "/atk 10 15\n" + \
+    "Setze den Minimum Angriffswert (z.B. auf 10) und den Maximum Angriffswert (z.B. auf 15) " + \
+    "für die Pokémon, über die du benachrichtigt werden willst.\n" + \
+    "/verteidigung 15 oder /def 15\n" + \
+    "Setze den Minimum Verteidigungswert (z.B. auf 15) für die Pokémon, über die du benachrichtigt werden willst.\n" + \
+    "/def 10 15\n" + \
+    "Setze den Minimum Verteidigungswert (z.B. auf 10) und den Maximum Verteidigungswert (z.B. auf 15) " + \
+    "für die Pokémon, über die du benachrichtigt werden willst.\n" + \
+    "/ausdauer 15 oder /kp 15\n" + \
+    "Setze den Minimum Ausdauerwert (z.B. auf 15) für die Pokémon, über die du benachrichtigt werden willst.\n" + \
+    "/kp 10 15\n" + \
+    "Setze den Minimum Ausdauerwert (z.B. auf 10) und den Maximum Ausdauerwert (z.B. auf 15) " + \
+    "für die Pokémon, über die du benachrichtigt werden willst.\n\n" + \
+    "/modus\n" + \
+    "Stellt den Modus um:\n" + \
+    "/modus 0 = Du erhälst nur Benachrichtigungen für Pokemon mit IV und WP.\n" + \
+    "/modus 1 = Du erhälst auch Benachrichtigungen für Pokémon ohne IV und WP (z.B. wenn die IV/WP " + \
+    "nicht ermittelt werden konnten. Somit bekommst du z.B. auch ein Relaxo ohne IV/WP angezeigt, " + \
+    "allerdings auch ein Kleinstein ohne IV/WP.\n\n"
+
+    text2 = "/entferne 1\n" + \
+    "Nummer des Pokémon (z.B. 1 für Bisasam) löschen, wenn du über dieses nicht mehr benachrichtigt werden willst.\n" + \
     "/entferne 1 2 3 ... \n" + \
-    "Mehrfache Nummern der Pokémon löschen, wenn du über diese nicht mehr benachrichtigt werden willst. \n\n" + \
+    "Mehrfache Nummern der Pokémon löschen, wenn du über diese nicht mehr benachrichtigt werden willst.\n" + \
+    "/entferne Bisasam\n" + \
+    "Name des Pokémon (z.B. Bisasam) löschen, wenn du über dieses nicht mehr benachrichtigt werden willst.\n" + \
+    "/entferne Bisasam Glumanda Shiggy\n" + \
+    "Mehrfache Namen der Pokémon löschen, wenn du über diese nicht mehr benachrichtigt werden willst\n\n" + \
     "*Standort:*\n\n" + \
-    "Sende deinen Standort über Telegram. \n" + \
+    "Sende einfach deinen Standort über Telegram.\n" + \
     "Dies fügt einen Umkreis um deinen Standort hinzu und du erhälst Benachrichtigungen für deine Umgebung. " + \
-    "Hinweis: Das senden des Standorts funktioniert nicht in Gruppen. \n" +\
-    "/standort xx.xx, yy.yy \n" + \
-    "Sende Koordinaten als Text in der Angezeigten Form um in dem Umkreis benachrichtigt zu werden. Es kann auch" + \
-    "eine Adresse eingegeben werden zum Beispiel: /standort Holstenstraße 1, 24103 Kiel oder auch /standort Kiel, DE. \n" + \
-    "/radius 1000 \n" + \
-    "Stellt deinen Such-Radius in m (Metern) um deinen Standort herum ein. Hierbei ist 5000m das Maximum. \n" + \
+    "*Hinweis: Das senden des Standorts funktioniert in Gruppen nur, wenn der Bot auch Admin ist!*\n" +\
+    "/standort xx.xx, yy.yy\n" + \
+    "Sende Koordinaten als Text in der Angezeigten Form um in dem Umkreis benachrichtigt zu werden. " + \
+    "Es kann auch eine Adresse eingegeben werden zum Beispiel: " + \
+    "/standort Holstenstraße 1, 24103 Kiel oder auch /standort Kiel, DE.\n" + \
+    "/radius 1000\n" + \
+    "Stellt deinen Such-Radius in m (Metern) um deinen Standort herum ein. Hierbei ist 5000m das Maximum.\n\n" + \
     "*Sonstiges:*\n\n" + \
-    "/liste \n" + \
-    "Alle Pokemon auflisten, über die du aktuell benachrichtigt wirst. \n" + \
-    "/speichern \n" + \
-    "Speichert deine Einstellungen. *Dies ist wichtig*, damit du nach einem Neustart des Bots deine Einstellungen behälst! \n" + \
-    "/laden \n" + \
-    "Lade deine gespeicherten Einstellungen. \n" + \
-    "/status \n" + \
-    "Liste deine aktuellen Einstellungen auf. \n" + \
-    "/nachricht \n" + \
-    "Stellt die Art der Nachrichten um zwischen: Nur Standort oder Standort und Pokémon-Details.\n" + \
-    "/ende \n" + \
+    "/liste\n" + \
+    "Alle Pokemon auflisten, über die du aktuell benachrichtigt wirst.\n" + \
+    "/speichern\n" + \
+    "Speichert deine Einstellungen. *Dies ist wichtig*, damit du nach einem Neustart des Bots deine Einstellungen behälst!\n" + \
+    "/laden\n" + \
+    "Lade deine gespeicherten Einstellungen.\n" + \
+    "/status\n" + \
+    "Liste deine aktuellen Einstellungen auf.\n" + \
+    "/nachricht\n" + \
+    "Stellt die Art der Nachrichten um. Du hast die Wahl zwischen: Nur Standort oder Standort und Pokémon-Details.\n" + \
+    "/ende\n" + \
     "Damit kannst du alle deine Einstellungen löschen und den Bot ausschalten. Du kannst ihn danach mit /laden " + \
-    "wieder einschalten und deine Einstellungen werden geladen. \n"
-    bot.sendMessage(chat_id, text, parse_mode='Markdown')
+    "wieder einschalten und deine Einstellungen werden geladen.\n" + \
+    "Um den Bot komplett abzuschalten drücke im Chat oben auf 'Batman' und dann auf die drei Punkte. " + \
+    "Wähle 'Bot anhalten' um ihn komplett auszuschalten."
+
+    bot.sendMessage(chat_id, text1, parse_mode='Markdown')
     bot.sendMessage(chat_id, text2, parse_mode='Markdown')
 
 def cmd_start(bot, update):
@@ -211,14 +245,17 @@ def cmd_start(bot, update):
     userName = update.message.from_user.first_name
 
     logger.info('[%s@%s] Starting.' % (userName, chat_id))
-    message = "Hallo *%s*.\nDein Bot ist nun im Einstellungsmodus. *Weitere Schritte:* \n\nFalls du den Bot " + \
-    "schon genutzt hast wähle /laden um deine *gespeicherten Einstellungen* zu laden.\n\nBenutzt du diesen Bot " + \
-    "zum *ersten Mal*, dann füge bitte deine gewünschten *Pokémon* hinzu z.B. mit: \n*/pokemon 1* für Bisasam " + \
+    message = "Hallo *%s*.\nDein Bot ist nun im Einstellungsmodus. " + \
+    "*Weitere Schritte:* \n\n" + \
+    "Falls du den Bot schon mal genutzt hast wähle /laden um deine *gespeicherten Einstellungen* zu laden.\n\n" + \
+    "Benutzt du diesen Bot zum *ersten Mal*, dann füge bitte deine gewünschten *Pokémon* hinzu z.B. mit:\n" + \
+    "*/pokemon 1* oder */pokemon Bisasam* für Bisasam " + \
     "oder */pokemon 1 2 3 ...* für mehrere Pokemon über die du informiert werden willst.\n\n*Sende* anschließend " + \
     "deinen *Standort* einfach über Telegram oder nutze */standort xx.xx, yy.yy*, */standort Kiel, DE* oder " + \
     "*/standort Holstenstraße 1, 24103 Kiel* um deine Koordinaten zu senden und den Bot somit zu starten. " + \
-    "(In Gruppen funktioniert das Senden des Standortes leider nicht.)\n\nEs gibt noch weitere Einstellungen " + \
-    "zu *IV*, *WP* und *Level*.\nBitte denk daran deine Einstellungen immer zu *speichern* mit /speichern.\n\n" + \
+    "(In Gruppen funktioniert das Senden des Standortes nur, wenn der Bot Admin ist!)\n\n" + \
+    "Es gibt noch weitere Einstellungen zu *IV*, *WP* und *Level*.\n\n" + \
+    "Bitte denk daran deine Einstellungen immer zu *speichern* mit /speichern.\n\n" + \
     "*Fahre fort mit* /hilfe *um die möglichen Befehle aufzulisten.*\n"
     bot.sendMessage(chat_id, message % (userName), parse_mode='Markdown')
 
