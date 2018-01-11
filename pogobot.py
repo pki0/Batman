@@ -1295,6 +1295,14 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                 continue
 
             # Get general Pokémon infos
+            iv = pokemon.getIVs()
+            iv_attack = pokemon.getIVattack()
+            iv_defense = pokemon.getIVdefense()
+            iv_stamina = pokemon.getIVstamina()
+            cp = pokemon.getCP()
+            cpm = pokemon.getCPM()
+            move1 = pokemon.getMove1()
+            move2 = pokemon.getMove2()
             latitude = pokemon.getLatitude()
             longitude = pokemon.getLongitude()
             disappear_time = pokemon.getDisappearTime()
@@ -1303,25 +1311,18 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
             disappear_time_str = disappear_time.replace(tzinfo=timezone.utc).astimezone(tz=None).strftime("%H:%M:%S")
 
             # If IV is known
-            iv = pokemon.getIVs()
             if iv is not None:
-
                 # First: Filter blacklisted Pokémon
                 if int(pok_id) in blacklisted_pokemon_0_100:
-                    if int(iv) < 100:
-                        if int(iv) != 0:
+                    if float(iv) < 100:
+                        if float(iv) != 0:
                             continue
                 if int(pok_id) in blacklisted_pokemon_0_90:
-                    if int(iv) < 90:
-                        if int(iv) != 0:
+                    if float(iv) < 90:
+                        if float(iv) != 0:
                             continue
 
-                # Second: Get Pokémon stats and calculate Pokémon level
-                iv_attack = pokemon.getIVattack()
-                iv_defense = pokemon.getIVdefense()
-                iv_stamina = pokemon.getIVstamina()
-                cp = pokemon.getCP()
-                cpm = pokemon.getCPM()
+                # Second: Calculate Pokémon level
                 pkmnlvl = getPokemonLevel(cpm)
 
                 # Third: Filter IV/CP/LVL with user_settings
@@ -1346,8 +1347,8 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                 else:
                     address = "%s (%s)." % (disappear_time_str, deltaStr)
                     title = "*IV*:%s (%s/%s/%s) - *WP*:%s - *Level*:%s\n" % (iv, iv_attack, iv_defense, iv_stamina, cp, pkmnlvl)
-                    move1Name = moveNames[pokemon.getMove1()]
-                    move2Name = moveNames[pokemon.getMove2()]
+                    move1Name = moveNames[move1]
+                    move2Name = moveNames[move2]
                     title += "*Moves*: %s/%s" % (move1Name, move2Name)
 
 
