@@ -24,7 +24,7 @@ class UserPreferencesModel(object):
         global  config
         preferences = dict(
             location = [None, None, None],
-            language = self.loadedconfig.get('DEFAULT_LANG', 'en'),
+            language = 'de',
             search_ids = [],
             user_miniv = 0,
             user_maxiv = 100,

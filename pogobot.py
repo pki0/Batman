@@ -1364,7 +1364,7 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                 if user_mode == 1:
                     if user_send_venue == 1:
                         pkmname =  pokemon_name[lan][pok_id]
-                        address = "%s" % (disappear_time_str)
+                        address = "%s (%s). Leider keine IV/WP." % (disappear_time_str, deltaStr)
                         title = ""
                     else:
                         pkmname =  pokemon_name[lan][pok_id]
@@ -1431,27 +1431,9 @@ def read_config():
     report_config()
 
 def report_config():
-    admins_list = config.get('LIST_OF_ADMINS', [])
-    tmp = ''
-    for admin in admins_list:
-        tmp = '%s, %s' % (tmp, admin)
-    tmp = tmp[2:]
-    logger.info('LIST_OF_ADMINS: <%s>' % (tmp))
 
     logger.info('TELEGRAM_TOKEN: <%s>' % (config.get('TELEGRAM_TOKEN', None)))
-    logger.info('SCANNER_NAME: <%s>' % (config.get('SCANNER_NAME', None)))
-    logger.info('DB_TYPE: <%s>' % (config.get('DB_TYPE', None)))
     logger.info('DB_CONNECT: <%s>' % (config.get('DB_CONNECT', None)))
-    logger.info('DEFAULT_LANG: <%s>' % (config.get('DEFAULT_LANG', None)))
-    logger.info('SEND_MAP_ONLY: <%s>' % (config.get('SEND_MAP_ONLY', None)))
-    logger.info('SEND_POKEMON_WITHOUT_IV: <%s>' % (config.get('SEND_POKEMON_WITHOUT_IV', None)))
-
-    poke_ivfilter_list = config.get('POKEMON_MIN_IV_FILTER_LIST', dict())
-    tmp = ''
-    for poke_id in poke_ivfilter_list:
-        tmp = '%s %s:%s' % (tmp, poke_id, poke_ivfilter_list[poke_id])
-    tmp = tmp[1:]
-    logger.info('POKEMON_MIN_IV_FILTER_LIST: <%s>' % (tmp))
 
 def read_pokemon_names(loc):
     logger.info('Reading pokemon names. <%s>' % loc)
@@ -1501,9 +1483,6 @@ def main():
         if fnmatch.fnmatch(file, 'moves.*.json'):
             read_move_names(file.split('.')[1])
 
-    dbType = config.get('DB_TYPE', None)
-    scannerName = config.get('SCANNER_NAME', None)
-
     global dataSource
     dataSource = None
 
@@ -1512,10 +1491,8 @@ def main():
     ivAvailable = True
     dataSource = DataSources.DSPokemonGoMapIVMysql(config.get('DB_CONNECT', None))
 
-    global pokemon_db_data
-
     if not dataSource:
-        raise Exception("The combination SCANNER_NAME, DB_TYPE is not available: %s,%s" % (scannerName, dbType))
+        raise Exception("Error in MySQL connection")
 
 
     #ask it to the bot father in telegram
@@ -1599,23 +1576,30 @@ def main():
     # Start the Bot
     bot = b;
     updater.start_polling()
-    allids = os.listdir("userdata/")
-    newids = []
-    for x in allids:
-        newids = x.replace(".json", "")
-        chat_id = int(newids)
-        j = updater.job_queue
-        logger.info('%s' % (chat_id))
-        try:
-            cmd_load_silent(b, chat_id, j)
-            #bot.sendMessage(chat_id, text = 'Hinweis: Der Bot wurde neugestartet! Bitte /laden zum laden deiner Einstellungen!')
-
-        except Exception as e:
-            logger.error('%s' % (chat_id))
-
-    logger.info('Started!')
+    j = updater.job_queue
     addJobMysql(b,j)
     thismodule.pokemon_db_data = getMysqlData(b,j)
+
+    # Check if directory exists
+    if not os.path.exists("userdata/"):
+        os.makedirs("userdata/")
+
+    else:
+        allids = os.listdir("userdata/")
+        newids = []
+
+        for x in allids:
+            newids = x.replace(".json", "")
+            chat_id = int(newids)
+            j = updater.job_queue
+            logger.info('%s' % (chat_id))
+
+            try:
+                cmd_load_silent(b, chat_id, j)
+            except Exception as e:
+                logger.error('%s' % (chat_id))
+
+    logger.info('Started!')
 
     # Block until the you presses Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
