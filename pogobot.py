@@ -1138,8 +1138,8 @@ def cmd_radius(bot, update, args):
 
 def cmd_unknown(bot, update):
     chat_id = update.message.chat_id
-    bot.send_message(chat_id, text="Falsche Eingabe. Ich habe dich nicht verstanden!\nSchaue am besten in der Hilfe nach: /help")
-
+    if update.message.text:
+        bot.send_message(chat_id, text="Falsche Eingabe. Ich habe dich nicht verstanden!\nSchaue am besten in der Hilfe nach: /help")
 
 
 def error(bot, update, error):
