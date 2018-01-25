@@ -27,7 +27,7 @@ class DSPokemonGoMapIVMysql():
 
 		sqlquery = ("SELECT encounter_id, pokemon_id, latitude, "
 			"longitude, disappear_time, individual_attack, individual_defense, "
-			"individual_stamina, move_1, move_2, cp, cp_multiplier ")
+			"individual_stamina, move_1, move_2, cp, cp_multiplier, gender ")
 		sqlquery += ' FROM pokemon'
 		sqlquery += ' WHERE last_modified > UTC_TIMESTAMP() - INTERVAL 5 MINUTE'
 		sqlquery += ' AND disappear_time > UTC_TIMESTAMP()'
@@ -52,6 +52,7 @@ class DSPokemonGoMapIVMysql():
 					individual_stamina = row[7]
 					cp = row[10]
 					cp_multiplier = row[11]
+					gender = row[12]
 
 					if row[8] is not None:
 						move1 = str(row[8])
@@ -65,7 +66,7 @@ class DSPokemonGoMapIVMysql():
 						iv = str((int(individual_attack) +  int(individual_defense) + int(individual_stamina)) / 45 * 100)
 						iv = iv[0:4]
 
-					poke = DSPokemon(encounter_id, pok_id, latitude, longitude, disappear_time, iv, individual_attack, individual_defense, individual_stamina, move1, move2, cp, cp_multiplier)
+					poke = DSPokemon(encounter_id, pok_id, latitude, longitude, disappear_time, iv, individual_attack, individual_defense, individual_stamina, move1, move2, cp, cp_multiplier, gender)
 					pokelist.append(poke)
 		except pymysql.err.OperationalError as e:
 			if e.args[0] == 2006:

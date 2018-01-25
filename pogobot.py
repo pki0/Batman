@@ -7,29 +7,6 @@
 # based on timerbot made inside python-telegram-bot example folder
 
 # better on python3.4
-# ------------------------------
-# changelog:
-# 08.01.2018
-# - Added job for MySQL query
-# - Only ask MySQL once in 30s
-# - Removed unused code
-# - Rewrite of checkAndSend
-# - Filter common Pokemon
-# 07.01.2018
-# - Add Gen3 to addbyrarity
-# 06.01.2018
-# - New function getPokemonLevel
-# - Fix forgotten L30 stuff
-# 01.01.2017
-# - Use cmd_status for cmd_load message
-# - Change max_level to 40
-# - Remove old Functions
-# - Minor text fixes
-# 12.12.2017
-# - Add and remove Pokemon by their names
-# 04.12.2017
-# - Add Attack, Defense, Stamina Filters
-# ------------------------------
 
 '''please READ FIRST the README.md'''
 
@@ -1301,6 +1278,7 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
             iv_stamina = pokemon.getIVstamina()
             cp = pokemon.getCP()
             cpm = pokemon.getCPM()
+            gender = pokemon.getGender()
             move1 = pokemon.getMove1()
             move2 = pokemon.getMove2()
             latitude = pokemon.getLatitude()
@@ -1339,12 +1317,21 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                 if int(iv_stamina) < user_stamina_min or int(iv_stamina) > user_stamina_max:
                     continue
 
-                # Fourth: Build message
+                # Fourth: Define gender
+                if gender == 1:
+                    gender = '\u2642'
+                elif gender == 2:
+                    gender = '\u2640'
+                else:
+                    gender = ''
+
+                # Fifth: Build message
                 pkmname =  pokemon_name[lan][pok_id]
                 if user_send_venue == 1:
-                    pkmname = "%s: %s WP" % (pokemon_name[lan][pok_id], cp)
+                    pkmname = "%s%s: %s WP" % (pokemon_name[lan][pok_id], gender, cp)
                     address = "%s - %s%%(%s/%s/%s)/L%s" % (disappear_time_str, iv, iv_attack, iv_defense, iv_stamina, pkmnlvl)
                 else:
+                    pkmname = "%s%s" % (pokemon_name[lan][pok_id], gender)
                     address = "%s (%s)." % (disappear_time_str, deltaStr)
                     title = "*IV*:%s (%s/%s/%s) - *WP*:%s - *Level*:%s\n" % (iv, iv_attack, iv_defense, iv_stamina, cp, pkmnlvl)
                     move1Name = moveNames[move1]
@@ -1486,9 +1473,6 @@ def main():
     global dataSource
     dataSource = None
 
-    global ivAvailable
-
-    ivAvailable = True
     dataSource = DataSources.DSPokemonGoMapIVMysql(config.get('DB_CONNECT', None))
 
     if not dataSource:
