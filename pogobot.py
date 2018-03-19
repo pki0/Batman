@@ -1226,9 +1226,11 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
     message_counter = 0
     blacklisted_pokemon_0_100 = [10,11,13,14,16,17,19,21,29,32,41,43,46,48,54,
         60,69,72,90,96,98,116,118,161,163,165,167,170,177,183,187,190,194,209,
-        216,220,261,263,265,273,300,316]
-    blacklisted_pokemon_0_90 = [129,133,198,296,309,363]
+        216,220,261,263,265,273,276,293,300,316]
+    blacklisted_pokemon_0_90 = [129,133,198,296,309,315,320,333,351,363]
 
+    #weather_icons = ['', '\xE2\x98\x80', '\xE2\x98\x94', '\xE2\x9B\x85', '\xE2\x98\x81', '\xF0\x9F\x92\xA8', '\xE2\x9B\x84', '\xF0\x9F\x8C\x81']
+    weather_icons = ['', '☀️', '☔️', '⛅', '☁️', '💨', '⛄️', '🌁']
     logger.info('[%s] Checking pokemon and sending notifications.' % (chat_id))
 
     if len(pokemons) == 0:
@@ -1279,6 +1281,7 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
             cp = pokemon.getCP()
             cpm = pokemon.getCPM()
             gender = pokemon.getGender()
+            weather = pokemon.getWeather()
             move1 = pokemon.getMove1()
             move2 = pokemon.getMove2()
             latitude = pokemon.getLatitude()
@@ -1287,6 +1290,18 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
             delta = disappear_time - datetime.utcnow()
             deltaStr = '%02dm:%02ds' % (int(delta.seconds / 60), int(delta.seconds % 60))
             disappear_time_str = disappear_time.replace(tzinfo=timezone.utc).astimezone(tz=None).strftime("%H:%M:%S")
+
+            if weather is None:
+                weather = 0
+
+            if gender == 1:
+                gender = '\u2642'
+            elif gender == 2:
+                gender = '\u2640'
+            elif gender == 3:
+                gender = '\u26B2'
+            else:
+                gender = ''
 
             # If IV is known
             if iv is not None:
@@ -1317,21 +1332,14 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                 if int(iv_stamina) < user_stamina_min or int(iv_stamina) > user_stamina_max:
                     continue
 
-                # Fourth: Define gender
-                if gender == 1:
-                    gender = '\u2642'
-                elif gender == 2:
-                    gender = '\u2640'
-                else:
-                    gender = ''
 
-                # Fifth: Build message
+                # Fourth: Build message
                 pkmname =  pokemon_name[lan][pok_id]
                 if user_send_venue == 1:
-                    pkmname = "%s%s: %s WP" % (pokemon_name[lan][pok_id], gender, cp)
+                    pkmname = "%s%s: %s WP %s" % (pokemon_name[lan][pok_id], gender, cp, weather_icons[int(weather)])
                     address = "%s - %s%%(%s/%s/%s)/L%s" % (disappear_time_str, iv, iv_attack, iv_defense, iv_stamina, pkmnlvl)
                 else:
-                    pkmname = "%s%s" % (pokemon_name[lan][pok_id], gender)
+                    pkmname = "%s%s %s" % (pokemon_name[lan][pok_id], gender, weather_icons[int(weather)])
                     address = "%s (%s)." % (disappear_time_str, deltaStr)
                     title = "*IV*:%s (%s/%s/%s) - *WP*:%s - *Level*:%s\n" % (iv, iv_attack, iv_defense, iv_stamina, cp, pkmnlvl)
                     move1Name = moveNames[move1]
@@ -1350,11 +1358,11 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
 
                 if user_mode == 1:
                     if user_send_venue == 1:
-                        pkmname =  pokemon_name[lan][pok_id]
+                        pkmname =  '%s%s %s' % (pokemon_name[lan][pok_id], gender, weather_icons[int(weather)])
                         address = "%s (%s). Leider keine IV/WP." % (disappear_time_str, deltaStr)
                         title = ""
                     else:
-                        pkmname =  pokemon_name[lan][pok_id]
+                        pkmname =  '%s%s %s' % (pokemon_name[lan][pok_id], gender, weather_icons[int(weather)])
                         address = "%s (%s)." % (disappear_time_str, deltaStr)
                         title = "Leider keine IV/WP"
 

@@ -3,7 +3,7 @@ import matplotlib.path as mplPath
 import numpy as np
 
 class DSPokemon:
-	def __init__(self, encounter_id, pokemon_id, latitude, longitude, disappear_time, ivs, iv_attack, iv_defense, iv_stamina, move1, move2, cp, cp_multiplier, gender):
+	def __init__(self, encounter_id, pokemon_id, latitude, longitude, disappear_time, ivs, iv_attack, iv_defense, iv_stamina, move1, move2, cp, cp_multiplier, gender, weather_boosted_condition):
 		self.encounter_id = encounter_id
 		self.pokemon_id = pokemon_id
 		self.latitude = latitude
@@ -18,6 +18,7 @@ class DSPokemon:
 		self.cp = cp
 		self.cp_multiplier = cp_multiplier
 		self.gender = gender
+		self.weather_boosted_condition = weather_boosted_condition
 
 	def getEncounterID(self):
 		return self.encounter_id
@@ -60,6 +61,9 @@ class DSPokemon:
 
 	def getGender(self):
 		return self.gender
+
+	def getWeather(self):
+		return self.weather_boosted_condition
 
 	def filterbylocation(self,user_location):
 		user_lat_lon = (user_location[0], user_location[1])
