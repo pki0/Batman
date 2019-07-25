@@ -1050,7 +1050,6 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
     blacklisted_pokemon_0_90 = list()
     message_counter = 0
     blacklisted_pokemon_0_90 = config.get('EXCLUDE_POKEMON', 0).split(',')
-    logger.info(blacklisted_pokemon_0_90)
 
     weather_icons = ['', '☀️', '☔️', '⛅', '☁️', '💨', '⛄️', '🌁']
     pokemon_forms = {30:"Sonne", 31:"Regen", 32:"Schnee", 46:"Alola", 48:"Alola", 50:"Alola", 52:"Alola", 54:"Alola", 56:"Alola", 58:"Alola", 60:"Alola", 62:"Alola", 64:"Alola", 66:"Alola", 68:"Alola", 70:"Alola", 72:"Alola", 74:"Alola", 76:"Alola", 78:"Alola", 80:"Alola", 81:"Normal", 82:"Frost", 83:"Wirbel", 84:"Schneid", 85:"Wasch", 86:"Hitze", 87:"Pflanze", 88:"Sand", 89:"Lumpen", 92:"Zenit", 93:"Land", 94:"Wolke", 95:"Sonne", 96:"West", 97:"Ost", 98:"West", 99:"Ost", 118:"Pflanze", 119:"Sand", 120:"Lumpen"}
@@ -1089,6 +1088,19 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                 continue
             # Get encounter_id and check if already sent
             encounter_id = pokemon.getEncounterID()
+
+            # Add hashes to EncounterID:
+            iv_hash = '000'
+            iv = pokemon.getIVs()
+            if iv is not None:
+                iv_hash = '001'
+            
+            weather_hash = '00'
+            weather = pokemon.getWeather()
+            if weather is not None:
+                weather_hash = str(weather)
+
+            encounter_id = encounter_id + iv_hash + weather_hash
             if encounter_id in mySent:
                 continue
             # Check if Pokemon inside radius
@@ -1096,14 +1108,14 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                 continue
 
             # Get general Pokémon infos
-            iv = pokemon.getIVs()
+
             iv_attack = pokemon.getIVattack()
             iv_defense = pokemon.getIVdefense()
             iv_stamina = pokemon.getIVstamina()
             cp = pokemon.getCP()
             cpm = pokemon.getCPM()
             gender = pokemon.getGender()
-            weather = pokemon.getWeather()
+
             form = pokemon.getForm()
             move1 = pokemon.getMove1()
             move2 = pokemon.getMove2()
