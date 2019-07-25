@@ -66,9 +66,9 @@ def cmd_start(bot, update):
 
     bot.sendMessage(chat_id, start_text % (userName), parse_mode='Markdown')
 
-    # Setze default Werte und den Standort auf Kiel
+    # Set defaults and location
     pref = prefs.get(chat_id)
-    checkAndSetUserDefaults(pref)
+    checkAndSetUserDefaults(pref, bot, chat_id)
 
 
 def cmd_add(bot, update, args, job_queue):
@@ -78,6 +78,7 @@ def cmd_add(bot, update, args, job_queue):
     pref = prefs.get(chat_id)
     lan = pref.get('language')
     pokemon_ids = list()
+    
     usage_message = 'Nutzung:\n/pokemon #Nummer oder /pokemon #Nummer1 #Nummer2\n' + \
     '/pokemon #Name oder /pokemon #Name1 #Name2 ... (Ohne #)'
 
@@ -127,12 +128,7 @@ def cmd_add(bot, update, args, job_queue):
     addJob(bot, update, job_queue)
     logger.info('[%s@%s] Add pokemon.' % (userName, chat_id))
 
-    # Wenn nicht geladen oder mit /start gestartet wurde, dann setze ggf. auch default Werte und setze Standort auf Kiel
-    loc = pref.get('location')
-    if loc[0] is None or loc[1] is None:
-        bot.sendMessage(chat_id, text='*Du hast keinen Standort gewählt! Du wirst nun nach Kiel gesetzt!*', parse_mode='Markdown')
-
-    checkAndSetUserDefaults(pref)
+    checkAndSetUserDefaults(pref, bot, chat_id)
 
     try:
         search = pref.get('search_ids')
@@ -757,12 +753,8 @@ def cmd_load(bot, update, job_queue):
         lat = loc[0]
         lon = loc[1]
 
-        # Korrigiere Einstellungen, wenn jemand "null" oder "strings" hat
-        if lat is None or lon is None:
-            bot.sendMessage(chat_id, text='*Du hast keinen Standort gewählt! Du wirst nun nach Kiel gesetzt!*', parse_mode='Markdown')
-
         # Send Settings to user and save to json file
-        checkAndSetUserDefaults(pref)
+        checkAndSetUserDefaults(pref, bot, chat_id)
         cmd_saveSilent(bot, update)
         cmd_status(bot, update)
 
@@ -802,7 +794,7 @@ def cmd_load_silent(bot, chat_id, job_queue):
         lat = loc[0]
         lon = loc[1]
 
-        checkAndSetUserDefaults(pref)
+        checkAndSetUserDefaults(pref, bot, chat_id)
 
     else:
         if chat_id not in jobs:
@@ -914,9 +906,9 @@ def cmd_radius(bot, update, args):
         return
 
     # Change the radius
-    if float(args[0]) > 5000:
-        args[0] = 5000
-        bot.sendMessage(chat_id, text='Dein Radius ist größer als 5000m! Er wird auf 5000m gestellt.')
+    if float(args[0]) > 10000:
+        args[0] = 10000
+        bot.sendMessage(chat_id, text='Dein Radius ist größer als 10km! Er wird auf 10km gestellt.')
     try:
         radius = float(args[0])
         pref.set('location', [user_location[0], user_location[1], radius/1000])
@@ -946,7 +938,7 @@ def error(bot, update, error):
     logger.warn('Update "%s" caused error "%s"' % (update, error))
 
 
-def checkAndSetUserDefaults(pref):
+def checkAndSetUserDefaults(pref, bot, chat_id):
     if pref.get('user_miniv') is None:
         pref.set('user_miniv', 0)
     if pref.get('user_maxiv') is None:
@@ -964,11 +956,18 @@ def checkAndSetUserDefaults(pref):
 
     loc = pref.get('location')
     if loc[0] is None or loc[1] is None:
-        pref.set('location', [54.321362, 10.134511, 0.1])
+        map_location = config.get('MAP_LOCATION', '0.0, 0.0').split(',')
+        location_message = '*Du hast keinen Standort gewählt! Du wirst nun nach %s, %s gesetzt!*' % (map_location[0], map_location[1])
+        pref.set('location', [float(map_location[0]), float(map_location[1]), 0.1])
+        #pref.set('location', [1.0, 2.0, 1])
+        logger.info(pref.get('location'))
+        bot.sendMessage(chat_id, text=location_message, parse_mode='Markdown')
+        loc = pref.get('location')
+        logger.info(loc)
     if loc[2] is None:
         pref.set('location', [loc[0], loc[1], 0.1])
-    if loc[2] is not None and float(loc[2]) > 5:
-        pref.set('location', [loc[0], loc[1], 5])
+    if loc[2] is not None and float(loc[2]) > 10:
+        pref.set('location', [loc[0], loc[1], 10])
 
 
 def getMysqlData(bot, job):
@@ -1066,7 +1065,7 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
         return
 
     try:
-        checkAndSetUserDefaults(pref)
+        checkAndSetUserDefaults(pref, bot, chat_id)
         moveNames = move_name["de"]
 
         lan = pref['language']
