@@ -1047,18 +1047,12 @@ def addJob_silent(bot, chat_id, job_queue):
 def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
     pref = prefs.get(chat_id)
     lock = locks[chat_id]
-
+    blacklisted_pokemon_0_90 = list()
     message_counter = 0
-    #blacklisted_pokemon_0_100 = [10,11,13,14,16,17,19,21,29,32,41,43,46,48,54,
-        #60,69,72,90,96,98,116,118,161,163,165,167,170,177,183,187,190,194,209,
-        #216,220,261,263,265,273,276,293,300,316]
-    #blacklisted_pokemon_0_90 = [129,133,198,296,309,315,320,333,351,363]
-    blacklisted_pokemon_0_100 = []
-    blacklisted_pokemon_0_90 = []
+    blacklisted_pokemon_0_90 = config.get('EXCLUDE_POKEMON', 0).split(',')
+    logger.info(blacklisted_pokemon_0_90)
 
-    #weather_icons = ['', '\xE2\x98\x80', '\xE2\x98\x94', '\xE2\x9B\x85', '\xE2\x98\x81', '\xF0\x9F\x92\xA8', '\xE2\x9B\x84', '\xF0\x9F\x8C\x81']
     weather_icons = ['', '☀️', '☔️', '⛅', '☁️', '💨', '⛄️', '🌁']
-    #logger.info('[%s] Checking pokemon and sending notifications.' % (chat_id))
     pokemon_forms = {30:"Sonne", 31:"Regen", 32:"Schnee", 46:"Alola", 48:"Alola", 50:"Alola", 52:"Alola", 54:"Alola", 56:"Alola", 58:"Alola", 60:"Alola", 62:"Alola", 64:"Alola", 66:"Alola", 68:"Alola", 70:"Alola", 72:"Alola", 74:"Alola", 76:"Alola", 78:"Alola", 80:"Alola", 81:"Normal", 82:"Frost", 83:"Wirbel", 84:"Schneid", 85:"Wasch", 86:"Hitze", 87:"Pflanze", 88:"Sand", 89:"Lumpen", 92:"Zenit", 93:"Land", 94:"Wolke", 95:"Sonne", 96:"West", 97:"Ost", 98:"West", 99:"Ost", 118:"Pflanze", 119:"Sand", 120:"Lumpen"}
 
     if len(pokemons) == 0:
@@ -1139,11 +1133,6 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
 
             # If IV is known
             if iv is not None:
-                # First: Filter blacklisted Pokémon
-                if int(pok_id) in blacklisted_pokemon_0_100:
-                    if float(iv) < 100:
-                        if float(iv) != 0:
-                            continue
                 if int(pok_id) in blacklisted_pokemon_0_90:
                     if float(iv) < 90:
                         if float(iv) != 0:
@@ -1184,8 +1173,6 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
             # If IV is unknown
             else:
                 if user_mode == 0:
-                    continue
-                if int(pok_id) in blacklisted_pokemon_0_100:
                     continue
                 if int(pok_id) in blacklisted_pokemon_0_90:
                     continue
