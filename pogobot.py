@@ -24,7 +24,6 @@ from geopy.geocoders import Nominatim
 import geopy
 from geopy.distance import VincentyDistance
 
-from rarity import pokemon_rarity
 from instructions import help_text_1, help_text_2, start_text
 
 # Enable logging
@@ -58,6 +57,7 @@ def cmd_help(bot, update):
     bot.sendMessage(chat_id, help_text_1, parse_mode='Markdown')
     bot.sendMessage(chat_id, help_text_2, parse_mode='Markdown')
 
+
 def cmd_start(bot, update):
     chat_id = update.message.chat_id
     userName = update.message.from_user.first_name
@@ -66,9 +66,10 @@ def cmd_start(bot, update):
 
     bot.sendMessage(chat_id, start_text % (userName), parse_mode='Markdown')
 
-    # Setze default Werte und den Standort auf Kiel
+    # Set defaults and location
     pref = prefs.get(chat_id)
-    checkAndSetUserDefaults(pref)
+    checkAndSetUserDefaults(pref, bot, chat_id)
+
 
 def cmd_add(bot, update, args, job_queue):
     chat_id = update.message.chat_id
@@ -76,46 +77,48 @@ def cmd_add(bot, update, args, job_queue):
 
     pref = prefs.get(chat_id)
     lan = pref.get('language')
-    names = list()
+    pokemon_ids = list()
+    
     usage_message = 'Nutzung:\n/pokemon #Nummer oder /pokemon #Nummer1 #Nummer2\n' + \
     '/pokemon #Name oder /pokemon #Name1 #Name2 ... (Ohne #)'
 
-    if args != []:
-        if args[0].isdigit():
-            if len(args) <= 0:
+    # Check Args to prevent wrong input
+    if args[0].find(',') >= 0:
+        args = args[0].split(',')
+    else:
+        for x in args:
+            if x.find(',') >= 0:
                 bot.sendMessage(chat_id, text=usage_message)
                 return
-        else:
-            if len(args) == 1:
-                if args[0].upper() == 'GEN1':
-                    cmd_addByRarity(bot, update, str(6), job_queue)
-                    return
-                if args[0].upper() == 'GEN2':
-                    cmd_addByRarity(bot, update, str(7), job_queue)
-                    return
-                if args[0].upper() == 'GEN3':
-                    cmd_addByRarity(bot, update, str(8), job_queue)
-                    return
-                if args[0].upper() == 'GEN4':
-                    cmd_addByRarity(bot, update, str(9), job_queue)
-                    return
-                if args[0].upper() in ['ALLE', 'ALL']:
-                    cmd_addByRarity(bot, update, str(10), job_queue)
+
+    if args != []:
+        if len(args) <= 0:
+            bot.sendMessage(chat_id, text=usage_message)
+            return
+
+        if not args[0].isdigit():
+            if len(args) == 1 and args[0].upper() in ('GEN1', 'GEN2', 'GEN3', 'GEN4', 'ALLE', 'ALL'):
+                    if args[0].upper() == 'GEN1':
+                        args = list(range(1, 152))
+                    elif args[0].upper() == 'GEN2':
+                        args = list(range(152, 252))
+                    elif args[0].upper() == 'GEN3':
+                        args = list(range(252, 387))
+                    elif args[0].upper() == 'GEN4':
+                        args = list(range(387, 493))
+                    elif args[0].upper() in ['ALLE', 'ALL']:
+                        args = list(range(1, 493))
+
+            else:
+                for x in args:
+                    for poke_id, name in pokemon_name[lan].items():
+                        if x.upper() in name.upper():
+                            pokemon_ids.append(str(poke_id))
+                if len(pokemon_ids) < 1:
+                    bot.sendMessage(chat_id, text='*Ich habe nicht alle Pokémon gefunden! Bitte versuche es erneut.*', parse_mode='Markdown')
                     return
 
-            for x in args:
-                for poke_id, name in pokemon_name[lan].items():
-                    if x.upper() in name.upper():
-                        names.append(str(poke_id))
-            if len(names) < 1:
-                bot.sendMessage(chat_id, text='*Ich habe nicht alle Pokémon gefunden! Bitte versuche es erneut.*', parse_mode='Markdown')
-                return
-
-            args = names
-
-    else:
-        bot.sendMessage(chat_id, text=usage_message)
-        return
+                args = pokemon_ids
 
     for x in args:
         if int(x) > 721 or int(x) <= 0:
@@ -125,12 +128,7 @@ def cmd_add(bot, update, args, job_queue):
     addJob(bot, update, job_queue)
     logger.info('[%s@%s] Add pokemon.' % (userName, chat_id))
 
-    # Wenn nicht geladen oder mit /start gestartet wurde, dann setze ggf. auch default Werte und setze Standort auf Kiel
-    loc = pref.get('location')
-    if loc[0] is None or loc[1] is None:
-        bot.sendMessage(chat_id, text='*Du hast keinen Standort gewählt! Du wirst nun nach Kiel gesetzt!*', parse_mode='Markdown')
-
-    checkAndSetUserDefaults(pref)
+    checkAndSetUserDefaults(pref, bot, chat_id)
 
     try:
         search = pref.get('search_ids')
@@ -161,38 +159,82 @@ def cmd_add(bot, update, args, job_queue):
         bot.sendMessage(chat_id, text=usage_message)
 
 
-
-def cmd_addByRarity(bot, update, args, job_queue):
+def cmd_remove(bot, update, args, job_queue):
     chat_id = update.message.chat_id
     userName = update.message.from_user.username
 
     pref = prefs.get(chat_id)
-    usage_message = 'Nutzung: "/seltenheit #Nummer" mit 1 gewöhnlich bis 5 ultra-selten, 6:Gen1, 7:Gen2, 8:Gen3, 9:Alle'
+    lan = pref.get('language')
+    pokemon_ids = list()
+    usage_message = 'Nutzung:\n/entferne #Nummer oder /entferne #Nummer1 #Nummer2\n' + \
+    '/entferne #Name oder /entferne #Name1 #Name2 ... (Ohne #)'
+    logger.info('[%s@%s] Remove pokemon.' % (userName, chat_id))
 
-    if args != []:
-        if args.isdigit():
-            if len(args) <= 0:
-                bot.sendMessage(chat_id, text=usage_message)
-                return
-        else:
-            bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
-            return
-    else:
-        bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
+    if chat_id not in jobs:
+        bot.sendMessage(chat_id, text='Du willst Pokémon entfernen, aber du hast keinen aktiven Scanner!\n' + \
+        'Bitte füge erst Pokémon zu deiner Liste hinzu mit /pokemon 1 2 3 ...')
         return
 
-    addJob(bot, update, job_queue)
-    logger.info('[%s@%s] Add pokemon by rarity: %s' % (userName, chat_id, args))
+    # Check Args to prevent wrong input
+    if args[0].find(',') >= 0:
+        args = args[0].split(',')
+    else:
+        for x in args:
+            if x.find(',') >= 0:
+                bot.sendMessage(chat_id, text=usage_message)
+                return
+
+    if args != []:
+        if len(args) <= 0:
+            bot.sendMessage(chat_id, text=usage_message)
+            return
+
+        if not args[0].isdigit():
+            if len(args) == 1 and args[0].upper() in ('GEN1', 'GEN2', 'GEN3', 'GEN4', 'ALLE', 'ALL'):
+                    if args[0].upper() == 'GEN1':
+                        args = list(range(1, 152))
+                    elif args[0].upper() == 'GEN2':
+                        args = list(range(152, 252))
+                    elif args[0].upper() == 'GEN3':
+                        args = list(range(252, 387))
+                    elif args[0].upper() == 'GEN4':
+                        args = list(range(387, 493))
+                    elif args[0].upper() in ['ALLE', 'ALL']:
+                        args = list(range(1, 493))
+
+            else:
+                for x in args:
+                    for poke_id, name in pokemon_name[lan].items():
+                        if x.upper() in name.upper():
+                            pokemon_ids.append(str(poke_id))
+                if len(pokemon_ids) < 1:
+                    bot.sendMessage(chat_id, text='*Ich habe nicht alle Pokémon gefunden! Bitte versuche es erneut.*', parse_mode='Markdown')
+                    return
+
+                args = pokemon_ids
 
     try:
-        rarity = int(args)
         search = pref.get('search_ids')
-        for x in pokemon_rarity[rarity]:
-            if int(x) not in search:
-                search.append(int(x))
-        search.sort()
-        pref.set('search_ids', search)
-        cmd_list(bot, update)
+        tmp = 'Du hast folgende Pokémon entfernt:\n'
+
+        for x in args:
+            if int(x) in search:
+                search.remove(int(x))
+                tmp += "%s %s\n" % (x, pokemon_name[lan][str(x)])
+            else:
+                tmp += "Du willst *%s %s* entfernen. Es existiert aber nicht in deiner Liste.\n" % (x, pokemon_name[lan][str(x)])
+        pref.set('search_ids',search)
+
+        # Stringlänge berechnen und schneiden:
+        cut_position = 1
+        while cut_position > 0:
+            cut_position = tmp.rfind('\n', 3800, 4096)
+            if cut_position > 0:
+                bot.sendMessage(chat_id, text = tmp[:cut_position], parse_mode='Markdown')
+                tmp = tmp[cut_position+1:]
+            else:
+                bot.sendMessage(chat_id, text = tmp, parse_mode='Markdown')
+
     except Exception as e:
         logger.error('[%s@%s] %s' % (userName, chat_id, repr(e)))
         bot.sendMessage(chat_id, text=usage_message)
@@ -617,68 +659,6 @@ def cmd_clear(bot, update):
     bot.sendMessage(chat_id, text='Benachrichtigungen erfolgreich entfernt!')
 
 
-def cmd_remove(bot, update, args, job_queue):
-    chat_id = update.message.chat_id
-    userName = update.message.from_user.username
-
-    pref = prefs.get(chat_id)
-    lan = pref.get('language')
-    names = list()
-    usage_message = 'Nutzung:\n/entferne #Nummer oder /entferne #Nummer1 #Nummer2\n' + \
-    '/entferne #Name oder /entferne #Name1 #Name2 ... (Ohne #)'
-    logger.info('[%s@%s] Remove pokemon.' % (userName, chat_id))
-
-    if chat_id not in jobs:
-        bot.sendMessage(chat_id, text='Du willst Pokémon entfernen, aber du hast keinen aktiven Scanner!\n' + \
-        'Bitte füge erst Pokémon zu deiner Liste hinzu mit /pokemon 1 2 3 ...')
-        return
-
-    if args != []:
-        if args[0].isdigit():
-            if len(args) < 1:
-                bot.sendMessage(chat_id, text=usage_message)
-                return
-        else:
-            for x in args:
-                for poke_id, name in pokemon_name[lan].items():
-                    if x.upper() in name.upper():
-                        names.append(str(poke_id))
-            if len(names) < 1:
-                bot.sendMessage(chat_id, text='*Ich habe nicht alle Pokémon gefunden! Bitte versuche es erneut.*', parse_mode='Markdown')
-                return
-
-            args = names
-    else:
-        bot.sendMessage(chat_id, text=usage_message)
-        return
-
-    try:
-        search = pref.get('search_ids')
-        tmp = 'Du hast folgende Pokémon entfernt:\n'
-
-        for x in args:
-            if int(x) in search:
-                search.remove(int(x))
-                tmp += "%s %s\n" % (x, pokemon_name[lan][str(x)])
-            else:
-                tmp += "Du willst *%s %s* entfernen. Es existiert aber nicht in deiner Liste.\n" % (x, pokemon_name[lan][str(x)])
-        pref.set('search_ids',search)
-
-        # Stringlänge berechnen und schneiden:
-        cut_position = 1
-        while cut_position > 0:
-            cut_position = tmp.rfind('\n', 3800, 4096)
-            if cut_position > 0:
-                bot.sendMessage(chat_id, text = tmp[:cut_position], parse_mode='Markdown')
-                tmp = tmp[cut_position+1:]
-            else:
-                bot.sendMessage(chat_id, text = tmp, parse_mode='Markdown')
-
-    except Exception as e:
-        logger.error('[%s@%s] %s' % (userName, chat_id, repr(e)))
-        bot.sendMessage(chat_id, text=usage_message)
-
-
 def cmd_list(bot, update):
     chat_id = update.message.chat_id
     userName = update.message.from_user.username
@@ -773,12 +753,8 @@ def cmd_load(bot, update, job_queue):
         lat = loc[0]
         lon = loc[1]
 
-        # Korrigiere Einstellungen, wenn jemand "null" oder "strings" hat
-        if lat is None or lon is None:
-            bot.sendMessage(chat_id, text='*Du hast keinen Standort gewählt! Du wirst nun nach Kiel gesetzt!*', parse_mode='Markdown')
-
         # Send Settings to user and save to json file
-        checkAndSetUserDefaults(pref)
+        checkAndSetUserDefaults(pref, bot, chat_id)
         cmd_saveSilent(bot, update)
         cmd_status(bot, update)
 
@@ -818,7 +794,7 @@ def cmd_load_silent(bot, chat_id, job_queue):
         lat = loc[0]
         lon = loc[1]
 
-        checkAndSetUserDefaults(pref)
+        checkAndSetUserDefaults(pref, bot, chat_id)
 
     else:
         if chat_id not in jobs:
@@ -930,9 +906,9 @@ def cmd_radius(bot, update, args):
         return
 
     # Change the radius
-    if float(args[0]) > 5000:
-        args[0] = 5000
-        bot.sendMessage(chat_id, text='Dein Radius ist größer als 5000m! Er wird auf 5000m gestellt.')
+    if float(args[0]) > 10000:
+        args[0] = 10000
+        bot.sendMessage(chat_id, text='Dein Radius ist größer als 10km! Er wird auf 10km gestellt.')
     try:
         radius = float(args[0])
         pref.set('location', [user_location[0], user_location[1], radius/1000])
@@ -962,7 +938,7 @@ def error(bot, update, error):
     logger.warn('Update "%s" caused error "%s"' % (update, error))
 
 
-def checkAndSetUserDefaults(pref):
+def checkAndSetUserDefaults(pref, bot, chat_id):
     if pref.get('user_miniv') is None:
         pref.set('user_miniv', 0)
     if pref.get('user_maxiv') is None:
@@ -980,11 +956,18 @@ def checkAndSetUserDefaults(pref):
 
     loc = pref.get('location')
     if loc[0] is None or loc[1] is None:
-        pref.set('location', [54.321362, 10.134511, 0.1])
+        map_location = config.get('MAP_LOCATION', '0.0, 0.0').split(',')
+        location_message = '*Du hast keinen Standort gewählt! Du wirst nun nach %s, %s gesetzt!*' % (map_location[0], map_location[1])
+        pref.set('location', [float(map_location[0]), float(map_location[1]), 0.1])
+        #pref.set('location', [1.0, 2.0, 1])
+        logger.info(pref.get('location'))
+        bot.sendMessage(chat_id, text=location_message, parse_mode='Markdown')
+        loc = pref.get('location')
+        logger.info(loc)
     if loc[2] is None:
         pref.set('location', [loc[0], loc[1], 0.1])
-    if loc[2] is not None and float(loc[2]) > 5:
-        pref.set('location', [loc[0], loc[1], 5])
+    if loc[2] is not None and float(loc[2]) > 10:
+        pref.set('location', [loc[0], loc[1], 10])
 
 
 def getMysqlData(bot, job):
@@ -1064,25 +1047,18 @@ def addJob_silent(bot, chat_id, job_queue):
 def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
     pref = prefs.get(chat_id)
     lock = locks[chat_id]
-
+    blacklisted_pokemon_0_90 = list()
     message_counter = 0
-    #blacklisted_pokemon_0_100 = [10,11,13,14,16,17,19,21,29,32,41,43,46,48,54,
-        #60,69,72,90,96,98,116,118,161,163,165,167,170,177,183,187,190,194,209,
-        #216,220,261,263,265,273,276,293,300,316]
-    #blacklisted_pokemon_0_90 = [129,133,198,296,309,315,320,333,351,363]
-    blacklisted_pokemon_0_100 = []
-    blacklisted_pokemon_0_90 = []
+    blacklisted_pokemon_0_90 = config.get('EXCLUDE_POKEMON', 0).split(',')
 
-    #weather_icons = ['', '\xE2\x98\x80', '\xE2\x98\x94', '\xE2\x9B\x85', '\xE2\x98\x81', '\xF0\x9F\x92\xA8', '\xE2\x9B\x84', '\xF0\x9F\x8C\x81']
     weather_icons = ['', '☀️', '☔️', '⛅', '☁️', '💨', '⛄️', '🌁']
-    #logger.info('[%s] Checking pokemon and sending notifications.' % (chat_id))
     pokemon_forms = {30:"Sonne", 31:"Regen", 32:"Schnee", 46:"Alola", 48:"Alola", 50:"Alola", 52:"Alola", 54:"Alola", 56:"Alola", 58:"Alola", 60:"Alola", 62:"Alola", 64:"Alola", 66:"Alola", 68:"Alola", 70:"Alola", 72:"Alola", 74:"Alola", 76:"Alola", 78:"Alola", 80:"Alola", 81:"Normal", 82:"Frost", 83:"Wirbel", 84:"Schneid", 85:"Wasch", 86:"Hitze", 87:"Pflanze", 88:"Sand", 89:"Lumpen", 92:"Zenit", 93:"Land", 94:"Wolke", 95:"Sonne", 96:"West", 97:"Ost", 98:"West", 99:"Ost", 118:"Pflanze", 119:"Sand", 120:"Lumpen"}
 
     if len(pokemons) == 0:
         return
 
     try:
-        checkAndSetUserDefaults(pref)
+        checkAndSetUserDefaults(pref, bot, chat_id)
         moveNames = move_name["de"]
 
         lan = pref['language']
@@ -1112,6 +1088,19 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                 continue
             # Get encounter_id and check if already sent
             encounter_id = pokemon.getEncounterID()
+
+            # Add hashes to EncounterID:
+            iv_hash = '000'
+            iv = pokemon.getIVs()
+            if iv is not None:
+                iv_hash = '001'
+            
+            weather_hash = '00'
+            weather = pokemon.getWeather()
+            if weather is not None:
+                weather_hash = str(weather)
+
+            encounter_id = encounter_id + iv_hash + weather_hash
             if encounter_id in mySent:
                 continue
             # Check if Pokemon inside radius
@@ -1119,14 +1108,14 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                 continue
 
             # Get general Pokémon infos
-            iv = pokemon.getIVs()
+
             iv_attack = pokemon.getIVattack()
             iv_defense = pokemon.getIVdefense()
             iv_stamina = pokemon.getIVstamina()
             cp = pokemon.getCP()
             cpm = pokemon.getCPM()
             gender = pokemon.getGender()
-            weather = pokemon.getWeather()
+
             form = pokemon.getForm()
             move1 = pokemon.getMove1()
             move2 = pokemon.getMove2()
@@ -1156,11 +1145,6 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
 
             # If IV is known
             if iv is not None:
-                # First: Filter blacklisted Pokémon
-                if int(pok_id) in blacklisted_pokemon_0_100:
-                    if float(iv) < 100:
-                        if float(iv) != 0:
-                            continue
                 if int(pok_id) in blacklisted_pokemon_0_90:
                     if float(iv) < 90:
                         if float(iv) != 0:
@@ -1201,8 +1185,6 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
             # If IV is unknown
             else:
                 if user_mode == 0:
-                    continue
-                if int(pok_id) in blacklisted_pokemon_0_100:
                     continue
                 if int(pok_id) in blacklisted_pokemon_0_90:
                     continue
@@ -1377,8 +1359,6 @@ def ReadIncomingCommand(bot, update, args, job_queue):
         cmd_load(bot, update, job_queue)
     elif IncomingCommand in ['/ADD', '/POKEMON']:
         cmd_add(bot, update, args, job_queue)
-    elif IncomingCommand in ['/SELTENHEIT', '/ADDBYRARITY']:
-        cmd_addByRarity(bot, update, args, job_queue)
     elif IncomingCommand in ['/ENTFERNE', '/REM']:
         cmd_remove(bot, update, args, job_queue)
     elif IncomingCommand in ['/STANDORT', '/LOCATION']:
@@ -1423,7 +1403,6 @@ def main():
         'Status',
         'Modus',
         'Help','Hilfe',
-        'Addbyrarity','Seltenheit',
         'Ende','Clear',
         'Entferne','Rem',
         'Speichern','Save',
