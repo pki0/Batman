@@ -1,15 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#
-# Simple Bot thah look inside the database and see if the pokemon requested is appeared during the last scan
-# This program is dedicated to the public domain under the CC0 license.
-# First iteration made by eugenio412
-# based on timerbot made inside python-telegram-bot example folder
-
-# better on python3.4
-
-'''please READ FIRST the README.md'''
-
 
 import sys
 if sys.version_info[0] < 3:
@@ -34,6 +24,9 @@ from geopy.geocoders import Nominatim
 import geopy
 from geopy.distance import VincentyDistance
 
+from rarity import pokemon_rarity
+from instructions import help_text_1, help_text_2, start_text
+
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s:%(lineno)d - %(levelname)s - %(message)s',
                     level=logging.INFO)
@@ -43,198 +36,35 @@ prefs = Preferences.UserPreferences()
 jobs = dict()
 geolocator = Nominatim()
 
-# User dependant - dont add
+# Variables - Empty dicts
 sent = dict()
 locks = dict()
-
-# User dependant - Add to clear, addJob, loadUserConfig, saveUserConfig
 search_ids = dict()
-location_radius = 1
-# Pokemon:
 pokemon_name = dict()
-# Moves:
 move_name = dict()
+
+location_radius = 1
 # Mysql data
 thismodule = sys.modules[__name__]
-# Pokemon rarity
-pokemon_rarity = [[],
-	["7","16","19","41","133","161","163","165","167","170","177","183","187","194","198","216","220"],
-	["1","7","10","17","21","23","25","29","32","35","43","46","48","58","60","69","84","92","96","98",\
-	"120","127","129","147","152","155","158","162","164","166","168","171","178","184","185","188","190",\
-	"191","200","206","209","211","215","223","228"],
-	["2","4","8","11","14","15","18","20","22","27","37","39","42","47","49","50","52","54","56","61","63",\
-	"66","70","72","74","77","79","81","86","90","93","95","97","100","102","104","107","108","109","111",\
-	"114","116","118","123","124","125","126","128","138","140","143","153","156","159","169","185","193",\
-	"195","202","203","204","207","213","218","221","231","234"],
-	["3","5","6","9","12","24","30","31","33","34","36","44","53","55","57","59","64","67","73","75","78",\
-	"80","85","88","99","103","105","106","110","112","113","117","119","121","122","131","134","135","137",\
-	"142","148","149","179","180","189","205","210","217","219","224","226","227","246","247"],
-	["26","28","38","40","45","51","62","65","68","71","76","82","83","87","89","91","94","101","115","130",\
-	"132","136","139","141","144","145","146","149","150","151","154","157","160","172","173","174","175",\
-	"176","181","182","186","192","196","197","199","201","208","210","212","214","222","225","229","230",\
-	"232","233","235","236","237","238","239","240","241","242","243","244","245","248","249","250","251"],
-	["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22",\
-	"23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43",\
-	"44","45","46","47","48","49","50","51","52","53","54","55","56","57","58","59","60","61","62","63","64",\
-	"65","66","67","68","69","70","71","72","73","74","75","76","77","78","79","80","81","82","83","84","85",\
-	"86","87","88","89","90","91","92","93","94","95","96","97","98","99","100","101","102","103","104","105",\
-	"106","107","108","109","110","111","112","113","114","115","116","117","118","119","120","121","122","123",\
-	"124","125","126","127","128","129","130","131","132","133","134","135","136","137","138","139","140","141",\
-	"142","143","144","145","146","147","148","149","150","151"],
-	["152","153","154","155","156","157","158","159","160","161","162","163","164","165","166","167","168","169",\
-	"170","171","172","173","174","175","176","177","178","179","180","181","182","183","184","185","186","187",\
-	"188","189","190","191","192","193","194","195","196","197","198","199","200","201","202","203","204","205",\
-	"206","207","208","209","210","211","212","213","214","215","216","217","218","219","220","221","222","223",\
-	"224","225","226","227","228","229","230","231","232","233","234","235","236","237","238","239","240","241",\
-	"242","243","244","245","246","247","248","249","250","251"],
-    ["252","253","254","255","256","257","258","259","260","261","262","263","264","265","266","267","268",\
-    "269","270","271","272","273","274","275","276","277","278","279","280","281","282","283","284","285","286",\
-    "287","288","289","290","291","292","293","294","295","296","297","298","299","300","301","302","303","304",\
-    "305","306","307","308","309","310","311","312","313","314","315","316","317","318","319","320","321","322",\
-    "323","324","325","326","327","328","329","330","331","332","333","334","335","336","337","338","339","340",\
-    "341","342","343","344","345","346","347","348","349","350","351","352","353","354","355","356","357","358",\
-    "359","360","361","362","363","364","365","366","367","368","369","370","371","372","373","374","375","376",\
-    "377","378","379","380","381","382","383","384","385","386"],
-	["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23",\
-    "24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44",\
-    "45","46","47","48","49","50","51","52","53","54","55","56","57","58","59","60","61","62","63","64","65",\
-    "66","67","68","69","70","71","72","73","74","75","76","77","78","79","80","81","82","83","84","85","86",\
-    "87","88","89","90","91","92","93","94","95","96","97","98","99","100","101","102","103","104","105","106",\
-    "107","108","109","110","111","112","113","114","115","116","117","118","119","120","121","122","123","124",\
-    "125","126","127","128","129","130","131","132","133","134","135","136","137","138","139","140","141","142",\
-    "143","144","145","146","147","148","149","150","151","152","153","154","155","156","157","158","159","160",\
-    "161","162","163","164","165","166","167","168","169","170","171","172","173","174","175","176","177","178",\
-    "179","180","181","182","183","184","185","186","187","188","189","190","191","192","193","194","195","196",\
-    "197","198","199","200","201","202","203","204","205","206","207","208","209","210","211","212","213","214",\
-    "215","216","217","218","219","220","221","222","223","224","225","226","227","228","229","230","231","232",\
-    "233","234","235","236","237","238","239","240","241","242","243","244","245","246","247","248","249","250",\
-    "251","252","253","254","255","256","257","258","259","260","261","262","263","264","265","266","267","268",\
-    "269","270","271","272","273","274","275","276","277","278","279","280","281","282","283","284","285","286",\
-    "287","288","289","290","291","292","293","294","295","296","297","298","299","300","301","302","303","304",\
-    "305","306","307","308","309","310","311","312","313","314","315","316","317","318","319","320","321","322",\
-    "323","324","325","326","327","328","329","330","331","332","333","334","335","336","337","338","339","340",\
-    "341","342","343","344","345","346","347","348","349","350","351","352","353","354","355","356","357","358",\
-    "359","360","361","362","363","364","365","366","367","368","369","370","371","372","373","374","375","376",\
-    "377","378","379","380","381","382","383","384","385","386"],
-];
 
-# Define a few command handlers. These usually take the two arguments bot and
-# update. Error handlers also receive the raised TelegramError object in error.
+
+# Command-functions
 def cmd_help(bot, update):
     chat_id = update.message.chat_id
     userName = update.message.from_user.username
 
     logger.info('[%s@%s] Sending help text.' % (userName, chat_id))
 
-    text1 = "*Folgende Befehle kennt der Bot:*\n\n" + \
-    "/hilfe Um Hilfe zu bekommen und dieses Menü anzuzeigen.\n\n" + \
-    "*Pokémon:*\n\n" + \
-    "/pokemon 1\n" + \
-    "Nummer des Pokémon (z.B. 1 für Bisasam) eingeben um über dieses Benachrichtigungen zu erhalten.\n" + \
-    "/pokemon 1 2 3 ...\n" + \
-    "Mehrfache Nummern der Pokémon eingeben um über diese Benachrichtigungen zu erhalten.\n" + \
-    "/pokemon Bisasam\n" + \
-    "Name des Pokémon (z.B. Bisasam) eingeben um über dieses Benachrichtigungen zu erhalten.\n" + \
-    "/pokemon Bisasam Glumanda Shiggy\n" + \
-    "Mehrfache Namen der Pokémon eingeben um über diese Benachrichtigungen zu erhalten.\n" + \
-    "/pokemon gen1\n" + \
-    "Fügt alle Pokémon der 1. Generation hinzu. Mögliche Optionen sind: gen1, gen2, gen3, alle\n\n" + \
-    "/seltenheit 1\n" + \
-    "Fügt eine Gruppe von Pokémon hinzu. Dabei steht die 1 für gewöhnliche Pokémon " + \
-    "und die 5 für ultra-seltene Pokémon.\n\n" + \
-    "/iv 50\n" + \
-    "Setze die Minimum IV (z.B. auf 50) für die Pokémon, über die du benachrichtigt werden willst.\n" + \
-    "/iv 0 100\n" + \
-    "Setze die Minimum IV (z.B. auf 0) und Maximum IV (z.B. auf 100) für die Pokémon, " + \
-    "über die du benachrichtigt werden willst.\n\n" + \
-    "/wp 1500\n" + \
-    "Setze die Minimum WP (z.B. auf 1500) für die Pokémon, über die du benachrichtigt werden willst.\n" + \
-    "/wp 0 5000\n" + \
-    "Setze die Minimum WP (z.B. auf 0) und Maximum WP (z.B. auf 5000) für die Pokémon, " + \
-    "über die du benachrichtigt werden willst.\n\n" + \
-    "/lvl 20\n" + \
-    "Setze die Minimum Level (z.B. auf 20) für die Pokémon, über die du benachrichtigt werden willst.\n" + \
-    "/lvl 0 40\n" + \
-    "Setze die Minimum Level (z.B. auf 0) und Maximum Level (z.B. auf 40) für die Pokémon, " + \
-    "über die du benachrichtigt werden willst.\n" + \
-    "/angriff 15 oder /atk 15\n" + \
-    "Setze den Minimum Angriffswert (z.B. auf 15) für die Pokémon, über die du benachrichtigt werden willst.\n" + \
-    "/atk 10 15\n" + \
-    "Setze den Minimum Angriffswert (z.B. auf 10) und den Maximum Angriffswert (z.B. auf 15) " + \
-    "für die Pokémon, über die du benachrichtigt werden willst.\n" + \
-    "/verteidigung 15 oder /def 15\n" + \
-    "Setze den Minimum Verteidigungswert (z.B. auf 15) für die Pokémon, über die du benachrichtigt werden willst.\n" + \
-    "/def 10 15\n" + \
-    "Setze den Minimum Verteidigungswert (z.B. auf 10) und den Maximum Verteidigungswert (z.B. auf 15) " + \
-    "für die Pokémon, über die du benachrichtigt werden willst.\n" + \
-    "/ausdauer 15 oder /kp 15\n" + \
-    "Setze den Minimum Ausdauerwert (z.B. auf 15) für die Pokémon, über die du benachrichtigt werden willst.\n" + \
-    "/kp 10 15\n" + \
-    "Setze den Minimum Ausdauerwert (z.B. auf 10) und den Maximum Ausdauerwert (z.B. auf 15) " + \
-    "für die Pokémon, über die du benachrichtigt werden willst.\n\n" + \
-    "/modus\n" + \
-    "Stellt den Modus um:\n" + \
-    "/modus 0 = Du erhälst nur Benachrichtigungen für Pokemon mit IV und WP.\n" + \
-    "/modus 1 = Du erhälst auch Benachrichtigungen für Pokémon ohne IV und WP (z.B. wenn die IV/WP " + \
-    "nicht ermittelt werden konnten. Somit bekommst du z.B. auch ein Relaxo ohne IV/WP angezeigt, " + \
-    "allerdings auch ein Kleinstein ohne IV/WP.\n\n"
-
-    text2 = "/entferne 1\n" + \
-    "Nummer des Pokémon (z.B. 1 für Bisasam) löschen, wenn du über dieses nicht mehr benachrichtigt werden willst.\n" + \
-    "/entferne 1 2 3 ... \n" + \
-    "Mehrfache Nummern der Pokémon löschen, wenn du über diese nicht mehr benachrichtigt werden willst.\n" + \
-    "/entferne Bisasam\n" + \
-    "Name des Pokémon (z.B. Bisasam) löschen, wenn du über dieses nicht mehr benachrichtigt werden willst.\n" + \
-    "/entferne Bisasam Glumanda Shiggy\n" + \
-    "Mehrfache Namen der Pokémon löschen, wenn du über diese nicht mehr benachrichtigt werden willst\n\n" + \
-    "*Standort:*\n\n" + \
-    "Sende einfach deinen Standort über Telegram.\n" + \
-    "Dies fügt einen Umkreis um deinen Standort hinzu und du erhälst Benachrichtigungen für deine Umgebung. " + \
-    "*Hinweis: Das senden des Standorts funktioniert in Gruppen nur, wenn der Bot auch Admin ist!*\n" +\
-    "/standort xx.xx, yy.yy\n" + \
-    "Sende Koordinaten als Text in der Angezeigten Form um in dem Umkreis benachrichtigt zu werden. " + \
-    "Es kann auch eine Adresse eingegeben werden zum Beispiel: " + \
-    "/standort Holstenstraße 1, 24103 Kiel oder auch /standort Kiel, DE.\n" + \
-    "/radius 1000\n" + \
-    "Stellt deinen Such-Radius in m (Metern) um deinen Standort herum ein. Hierbei ist 5000m das Maximum.\n\n" + \
-    "*Sonstiges:*\n\n" + \
-    "/liste\n" + \
-    "Alle Pokemon auflisten, über die du aktuell benachrichtigt wirst.\n" + \
-    "/speichern\n" + \
-    "Speichert deine Einstellungen. *Dies ist wichtig*, damit du nach einem Neustart des Bots deine Einstellungen behälst!\n" + \
-    "/laden\n" + \
-    "Lade deine gespeicherten Einstellungen.\n" + \
-    "/status\n" + \
-    "Liste deine aktuellen Einstellungen auf.\n" + \
-    "/nachricht\n" + \
-    "Stellt die Art der Nachrichten um. Du hast die Wahl zwischen: Nur Standort oder Standort und Pokémon-Details.\n" + \
-    "/ende\n" + \
-    "Damit kannst du alle deine Einstellungen löschen und den Bot ausschalten. Du kannst ihn danach mit /laden " + \
-    "wieder einschalten und deine Einstellungen werden geladen.\n" + \
-    "Um den Bot komplett abzuschalten drücke im Chat oben auf 'Batman' und dann auf die drei Punkte. " + \
-    "Wähle 'Bot anhalten' um ihn komplett auszuschalten."
-
-    bot.sendMessage(chat_id, text1, parse_mode='Markdown')
-    bot.sendMessage(chat_id, text2, parse_mode='Markdown')
+    bot.sendMessage(chat_id, help_text_1, parse_mode='Markdown')
+    bot.sendMessage(chat_id, help_text_2, parse_mode='Markdown')
 
 def cmd_start(bot, update):
     chat_id = update.message.chat_id
     userName = update.message.from_user.first_name
 
     logger.info('[%s@%s] Starting.' % (userName, chat_id))
-    message = "Hallo *%s*.\nDein Bot ist nun im Einstellungsmodus. " + \
-    "*Weitere Schritte:* \n\n" + \
-    "Falls du den Bot schon mal genutzt hast wähle /laden um deine *gespeicherten Einstellungen* zu laden.\n\n" + \
-    "Benutzt du diesen Bot zum *ersten Mal*, dann füge bitte deine gewünschten *Pokémon* hinzu z.B. mit:\n" + \
-    "*/pokemon 1* oder */pokemon Bisasam* für Bisasam " + \
-    "oder */pokemon 1 2 3 ...* für mehrere Pokemon über die du informiert werden willst.\n\n*Sende* anschließend " + \
-    "deinen *Standort* einfach über Telegram oder nutze */standort xx.xx, yy.yy*, */standort Kiel, DE* oder " + \
-    "*/standort Holstenstraße 1, 24103 Kiel* um deine Koordinaten zu senden und den Bot somit zu starten. " + \
-    "(In Gruppen funktioniert das Senden des Standortes nur, wenn der Bot Admin ist!)\n\n" + \
-    "Es gibt noch weitere Einstellungen zu *IV*, *WP* und *Level*.\n\n" + \
-    "Bitte denk daran deine Einstellungen immer zu *speichern* mit /speichern.\n\n" + \
-    "*Fahre fort mit* /hilfe *um die möglichen Befehle aufzulisten.*\n"
-    bot.sendMessage(chat_id, message % (userName), parse_mode='Markdown')
+
+    bot.sendMessage(chat_id, start_text % (userName), parse_mode='Markdown')
 
     # Setze default Werte und den Standort auf Kiel
     pref = prefs.get(chat_id)
@@ -266,21 +96,23 @@ def cmd_add(bot, update, args, job_queue):
                 if args[0].upper() == 'GEN3':
                     cmd_addByRarity(bot, update, str(8), job_queue)
                     return
-                if args[0].upper() == 'ALL':
+                if args[0].upper() == 'GEN4':
                     cmd_addByRarity(bot, update, str(9), job_queue)
                     return
-                if args[0].upper() == 'ALLE':
-                    cmd_addByRarity(bot, update, str(9), job_queue)
+                if args[0].upper() in ['ALLE', 'ALL']:
+                    cmd_addByRarity(bot, update, str(10), job_queue)
                     return
 
             for x in args:
                 for poke_id, name in pokemon_name[lan].items():
-                    if name.upper() == x.upper():
+                    if x.upper() in name.upper():
                         names.append(str(poke_id))
-            if len(names) != len(args):
+            if len(names) < 1:
                 bot.sendMessage(chat_id, text='*Ich habe nicht alle Pokémon gefunden! Bitte versuche es erneut.*', parse_mode='Markdown')
+                return
 
             args = names
+
     else:
         bot.sendMessage(chat_id, text=usage_message)
         return
@@ -338,7 +170,7 @@ def cmd_addByRarity(bot, update, args, job_queue):
     usage_message = 'Nutzung: "/seltenheit #Nummer" mit 1 gewöhnlich bis 5 ultra-selten, 6:Gen1, 7:Gen2, 8:Gen3, 9:Alle'
 
     if args != []:
-        if args[0].isdigit():
+        if args.isdigit():
             if len(args) <= 0:
                 bot.sendMessage(chat_id, text=usage_message)
                 return
@@ -350,10 +182,10 @@ def cmd_addByRarity(bot, update, args, job_queue):
         return
 
     addJob(bot, update, job_queue)
-    logger.info('[%s@%s] Add pokemon by rarity.' % (userName, chat_id))
+    logger.info('[%s@%s] Add pokemon by rarity: %s' % (userName, chat_id, args))
 
     try:
-        rarity = int(args[0])
+        rarity = int(args)
         search = pref.get('search_ids')
         for x in pokemon_rarity[rarity]:
             if int(x) not in search:
@@ -542,7 +374,7 @@ def cmd_attack_filter(bot, update, args):
 
     # Sende Bestaetigung
     logger.info('[%s@%s] Set attack_min to %s and attack_max to %s' % (userName, chat_id, attack_min, attack_max))
-    bot.sendMessage(chat_id, text='Setze Minimum Anriffswert auf: %s und Maximum Angriffswert auf: %s' % (attack_min, attack_max))
+    bot.sendMessage(chat_id, text='Setze Minimum Anriff auf: %s und Maximum Angriff auf: %s' % (attack_min, attack_max))
 
 
 def cmd_defense_filter(bot, update, args):
@@ -589,7 +421,7 @@ def cmd_defense_filter(bot, update, args):
 
     # Sende Bestaetigung
     logger.info('[%s@%s] Set defense_min to %s and defense_max to %s' % (userName, chat_id, defense_min, defense_max))
-    bot.sendMessage(chat_id, text='Setze Minimum Anriffswert auf: %s und Maximum Angriffswert auf: %s' % (defense_min, defense_max))
+    bot.sendMessage(chat_id, text='Setze Minimum Verteidigung auf: %s und Maximum Verteidigung auf: %s' % (defense_min, defense_max))
 
 
 def cmd_stamina_filter(bot, update, args):
@@ -636,7 +468,7 @@ def cmd_stamina_filter(bot, update, args):
 
     # Sende Bestaetigung
     logger.info('[%s@%s] Set stamina_min to %s and stamina_max to %s' % (userName, chat_id, stamina_min, stamina_max))
-    bot.sendMessage(chat_id, text='Setze Minimum Anriffswert auf: %s und Maximum Angriffswert auf: %s' % (stamina_min, stamina_max))
+    bot.sendMessage(chat_id, text='Setze Minimum Ausdauer auf: %s und Maximum Ausdauer auf: %s' % (stamina_min, stamina_max))
 
 
 # Funktion: Modus = 0 -> Nur Pokemon mit IV . Modus = 1 -> Auch Pokemon ohne IV
@@ -772,6 +604,7 @@ def cmd_clear(bot, update):
     # Remove from jobs
     job = jobs[chat_id]
     job.schedule_removal()
+    #job.stop()
     del jobs[chat_id]
 
     # Remove from sent
@@ -808,10 +641,11 @@ def cmd_remove(bot, update, args, job_queue):
         else:
             for x in args:
                 for poke_id, name in pokemon_name[lan].items():
-                    if name.upper() == x.upper():
+                    if x.upper() in name.upper():
                         names.append(str(poke_id))
-            if len(names) != len(args):
+            if len(names) < 1:
                 bot.sendMessage(chat_id, text='*Ich habe nicht alle Pokémon gefunden! Bitte versuche es erneut.*', parse_mode='Markdown')
+                return
 
             args = names
     else:
@@ -952,6 +786,7 @@ def cmd_load(bot, update, job_queue):
         if chat_id not in jobs:
             job = jobs[chat_id]
             job.schedule_removal()
+            #job.stop()
             del jobs[chat_id]
 
 
@@ -960,7 +795,7 @@ def cmd_load_silent(bot, chat_id, job_queue):
 
     pref = prefs.get(chat_id)
 
-    logger.info('[%s@%s] Automatic load.' % (userName, chat_id))
+    #logger.info('[%s@%s] Automatic load.' % (userName, chat_id))
     r = pref.load()
     if r is None:
         return
@@ -989,12 +824,16 @@ def cmd_load_silent(bot, chat_id, job_queue):
         if chat_id not in jobs:
             job = jobs[chat_id]
             job.schedule_removal()
+            #job.stop()
             del jobs[chat_id]
 
 
 def cmd_location(bot, update):
     chat_id = update.message.chat_id
     userName = update.message.from_user.username
+
+    if update.message.chat.type != 'private':
+        return
 
     pref = prefs.get(chat_id)
     usage_message = 'Du hast keinen aktiven Scanner! Bitte füge erst Pokémon zu deiner Liste hinzu mit /pokemon 1 2 3 ...'
@@ -1115,7 +954,7 @@ def cmd_radius(bot, update, args):
 
 def cmd_unknown(bot, update):
     chat_id = update.message.chat_id
-    if update.message.text:
+    if update.message.text and update.message.chat.type == 'private':
         bot.send_message(chat_id, text="Falsche Eingabe. Ich habe dich nicht verstanden!\nSchaue am besten in der Hilfe nach: /help")
 
 
@@ -1159,10 +998,11 @@ def addJobMysql(bot, job_queue):
     logger.info('MySQL job added.')
     try:
         if chat_id not in jobs:
-            job = Job(getMysqlData, 30, repeat=True, context=(chat_id, "Other"))
+            #job = Job(getMysqlData, 30, repeat=True, context=(chat_id, "Other"))
+            job = job_queue.run_repeating(getMysqlData, interval=30, first=5, context=(chat_id, "Other"))
             # Add to jobs
             jobs[chat_id] = job
-            job_queue.put(job)
+            #job_queue.put(job)
 
     except Exception as e:
         logger.error('MySQL job failed.')
@@ -1170,7 +1010,7 @@ def addJobMysql(bot, job_queue):
 
 def alarm(bot, job):
     chat_id = job.context[0]
-    logger.info('[%s] Checking alarm.' % (chat_id))
+    #logger.info('[%s] Checking alarm.' % (chat_id))
 
     checkAndSend(bot, chat_id, prefs.get(chat_id).get('search_ids'), thismodule.pokemon_db_data)
 
@@ -1178,14 +1018,15 @@ def alarm(bot, job):
 def addJob(bot, update, job_queue):
     chat_id = update.message.chat_id
     userName = update.message.from_user.username
-    logger.info('[%s@%s] Adding job.' % (userName, chat_id))
+    #logger.info('[%s@%s] Adding job.' % (userName, chat_id))
 
     try:
         if chat_id not in jobs:
-            job = Job(alarm, 30, repeat=True, context=(chat_id, "Other"))
+            #job = Job(alarm, 30, repeat=True, context=(chat_id, "Other"))
+            job = job_queue.run_repeating(alarm, interval=30, first=0, context=(chat_id, "Other"))
             # Add to jobs
             jobs[chat_id] = job
-            job_queue.put(job)
+            #job_queue.put(job)
 
             # User dependant
             if chat_id not in sent:
@@ -1200,14 +1041,15 @@ def addJob(bot, update, job_queue):
 
 def addJob_silent(bot, chat_id, job_queue):
     userName = ''
-    logger.info('[%s@%s] Adding job.' % (userName, chat_id))
+    #logger.info('[%s@%s] Adding job.' % (userName, chat_id))
 
     try:
         if chat_id not in jobs:
-            job = Job(alarm, 30, repeat=True, context=(chat_id, "Other"))
+            #job = Job(alarm, 30, repeat=True, context=(chat_id, "Other"))
+            job = job_queue.run_repeating(alarm, interval=30, first=0, context=(chat_id, "Other"))
             # Add to jobs
             jobs[chat_id] = job
-            job_queue.put(job)
+            #job_queue.put(job)
 
             # User dependant
             if chat_id not in sent:
@@ -1224,14 +1066,17 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
     lock = locks[chat_id]
 
     message_counter = 0
-    blacklisted_pokemon_0_100 = [10,11,13,14,16,17,19,21,29,32,41,43,46,48,54,
-        60,69,72,90,96,98,116,118,161,163,165,167,170,177,183,187,190,194,209,
-        216,220,261,263,265,273,276,293,300,316]
-    blacklisted_pokemon_0_90 = [129,133,198,296,309,315,320,333,351,363]
+    #blacklisted_pokemon_0_100 = [10,11,13,14,16,17,19,21,29,32,41,43,46,48,54,
+        #60,69,72,90,96,98,116,118,161,163,165,167,170,177,183,187,190,194,209,
+        #216,220,261,263,265,273,276,293,300,316]
+    #blacklisted_pokemon_0_90 = [129,133,198,296,309,315,320,333,351,363]
+    blacklisted_pokemon_0_100 = []
+    blacklisted_pokemon_0_90 = []
 
     #weather_icons = ['', '\xE2\x98\x80', '\xE2\x98\x94', '\xE2\x9B\x85', '\xE2\x98\x81', '\xF0\x9F\x92\xA8', '\xE2\x9B\x84', '\xF0\x9F\x8C\x81']
     weather_icons = ['', '☀️', '☔️', '⛅', '☁️', '💨', '⛄️', '🌁']
-    logger.info('[%s] Checking pokemon and sending notifications.' % (chat_id))
+    #logger.info('[%s] Checking pokemon and sending notifications.' % (chat_id))
+    pokemon_forms = {30:"Sonne", 31:"Regen", 32:"Schnee", 46:"Alola", 48:"Alola", 50:"Alola", 52:"Alola", 54:"Alola", 56:"Alola", 58:"Alola", 60:"Alola", 62:"Alola", 64:"Alola", 66:"Alola", 68:"Alola", 70:"Alola", 72:"Alola", 74:"Alola", 76:"Alola", 78:"Alola", 80:"Alola", 81:"Normal", 82:"Frost", 83:"Wirbel", 84:"Schneid", 85:"Wasch", 86:"Hitze", 87:"Pflanze", 88:"Sand", 89:"Lumpen", 92:"Zenit", 93:"Land", 94:"Wolke", 95:"Sonne", 96:"West", 97:"Ost", 98:"West", 99:"Ost", 118:"Pflanze", 119:"Sand", 120:"Lumpen"}
 
     if len(pokemons) == 0:
         return
@@ -1282,6 +1127,7 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
             cpm = pokemon.getCPM()
             gender = pokemon.getGender()
             weather = pokemon.getWeather()
+            form = pokemon.getForm()
             move1 = pokemon.getMove1()
             move2 = pokemon.getMove2()
             latitude = pokemon.getLatitude()
@@ -1302,6 +1148,11 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                 gender = '\u26B2'
             else:
                 gender = ''
+
+            pok_form = ''
+            if int(form) != 0:
+                if int(form) in pokemon_forms:
+                    pok_form = ' (' + pokemon_forms[int(form)] + ')'
 
             # If IV is known
             if iv is not None:
@@ -1336,10 +1187,10 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                 # Fourth: Build message
                 pkmname =  pokemon_name[lan][pok_id]
                 if user_send_venue == 1:
-                    pkmname = "%s%s: %s WP %s" % (pokemon_name[lan][pok_id], gender, cp, weather_icons[int(weather)])
+                    pkmname = "%s%s%s: %s WP %s" % (pokemon_name[lan][pok_id], pok_form, gender, cp, weather_icons[int(weather)])
                     address = "%s - %s%%(%s/%s/%s)/L%s" % (disappear_time_str, iv, iv_attack, iv_defense, iv_stamina, pkmnlvl)
                 else:
-                    pkmname = "%s%s %s" % (pokemon_name[lan][pok_id], gender, weather_icons[int(weather)])
+                    pkmname = "%s%s%s %s" % (pokemon_name[lan][pok_id], pok_form, gender, weather_icons[int(weather)])
                     address = "%s (%s)." % (disappear_time_str, deltaStr)
                     title = "*IV*:%s (%s/%s/%s) - *WP*:%s - *Level*:%s\n" % (iv, iv_attack, iv_defense, iv_stamina, cp, pkmnlvl)
                     move1Name = moveNames[move1]
@@ -1358,11 +1209,11 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
 
                 if user_mode == 1:
                     if user_send_venue == 1:
-                        pkmname =  '%s%s %s' % (pokemon_name[lan][pok_id], gender, weather_icons[int(weather)])
+                        pkmname =  '%s%s%s %s' % (pokemon_name[lan][pok_id], pok_form, gender, weather_icons[int(weather)])
                         address = "%s (%s). Leider keine IV/WP." % (disappear_time_str, deltaStr)
                         title = ""
                     else:
-                        pkmname =  '%s%s %s' % (pokemon_name[lan][pok_id], gender, weather_icons[int(weather)])
+                        pkmname =  '%s%s%s %s' % (pokemon_name[lan][pok_id], pok_form, gender, weather_icons[int(weather)])
                         address = "%s (%s)." % (disappear_time_str, deltaStr)
                         title = "Leider keine IV/WP"
 
@@ -1409,7 +1260,7 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
     except Exception as e:
         logger.error('[%s] %s' % (chat_id, repr(e)))
     lock.release()
-    logger.info('Done.')
+    #logger.info('Done.')
 
 def read_config():
     config_path = os.path.join(
@@ -1466,6 +1317,76 @@ def getPokemonLevel(cpMultiplier):
     return int(pokemonLevel)
 
 
+def ReadIncomingCommand(bot, update, args, job_queue):
+    Authenticated = 0
+
+    ChatId = update.message.chat_id
+    IncomingCommand = update.message.text.upper().split()[0]
+    ChatType = update.message.chat.type
+    UserID = update.effective_user.id
+
+    if ChatType == 'private':
+        Authenticated = 1
+    else:
+        GroupAdmins = bot.get_chat_administrators(chat_id = ChatId)
+        for Admin in GroupAdmins:
+            if Admin.user.id == UserID:
+                Authenticated = 1
+                break
+
+    if Authenticated == 0:
+        return
+
+    # Commands
+    # Without args:
+    if IncomingCommand in ['/START']:
+        cmd_start(bot, update)
+    elif IncomingCommand in ['/STATUS']:
+        cmd_status(bot, update)
+    elif IncomingCommand in ['/NACHRICHT', '/MESSAGE']:
+        cmd_SwitchVenue(bot, update)
+    elif IncomingCommand in ['/HILFE', '/HELP']:
+        cmd_help(bot, update)
+    elif IncomingCommand in ['/LISTE', '/LIST']:
+        cmd_list(bot, update)
+    elif IncomingCommand in ['/SPEICHERN', '/SAVE']:
+        cmd_save(bot, update)
+    elif IncomingCommand in ['/ENDE', '/CLEAR']:
+        cmd_clear(bot, update)
+
+    # With args:
+    elif IncomingCommand in ['/MODUS', '/MODE']:
+        cmd_Mode(bot, update, args)
+    elif IncomingCommand in ['/RADIUS']:
+        cmd_radius(bot, update, args)
+    elif IncomingCommand in ['/IV']:
+        cmd_IV(bot, update, args)
+    elif IncomingCommand in ['/WP', '/CP']:
+        cmd_CP(bot, update, args)
+    elif IncomingCommand in ['/LEVEL', '/LVL']:
+         cmd_LVL(bot, update, args)
+    elif IncomingCommand in ['/ANGRIFF', '/ATTACK', '/ATK']:
+         cmd_attack_filter(bot, update, args)
+    elif IncomingCommand in ['/VERTEIDIGUNG', '/DEFENSE', '/DEF']:
+         cmd_defense_filter(bot, update, args)
+    elif IncomingCommand in ['/AUSDAUER', '/STAMINA', '/STA']:
+         cmd_stamina_filter(bot, update, args)
+
+    # With job_queue
+    elif IncomingCommand in ['/LADEN', '/LOAD']:
+        cmd_load(bot, update, job_queue)
+    elif IncomingCommand in ['/ADD', '/POKEMON']:
+        cmd_add(bot, update, args, job_queue)
+    elif IncomingCommand in ['/SELTENHEIT', '/ADDBYRARITY']:
+        cmd_addByRarity(bot, update, args, job_queue)
+    elif IncomingCommand in ['/ENTFERNE', '/REM']:
+        cmd_remove(bot, update, args, job_queue)
+    elif IncomingCommand in ['/STANDORT', '/LOCATION']:
+        cmd_location_str(bot, update, args, job_queue)
+
+    else:
+        cmd_unknown(bot, update)
+
 def main():
     logger.info('Starting...')
     read_config()
@@ -1496,68 +1417,30 @@ def main():
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
 
-    # on different commands - answer in Telegram
-    dp.add_handler(CommandHandler("start", cmd_start))
+    AvailableCommands = ['Add','Pokemon',
+        'Nachricht',
+        'Start',
+        'Status',
+        'Modus',
+        'Help','Hilfe',
+        'Addbyrarity','Seltenheit',
+        'Ende','Clear',
+        'Entferne','Rem',
+        'Speichern','Save',
+        'Laden','Load',
+        'Liste','List',
+        'Radius',
+        'Standort','Location',
+        'Iv',
+        'Wp','Cp',
+        'Level','Lvl',
+        'Angriff','Attack','Atk',
+        'Verteidigung','Defense','Def',
+        'Ausdauer','Stamina','Sta']
 
-    dp.add_handler(CommandHandler("help", cmd_help))
-    dp.add_handler(CommandHandler("hilfe", cmd_help))
-
-    dp.add_handler(CommandHandler("add", cmd_add, pass_args = True, pass_job_queue=True))
-    dp.add_handler(CommandHandler("pokemon", cmd_add, pass_args = True, pass_job_queue=True))
-
-    dp.add_handler(CommandHandler("addbyrarity", cmd_addByRarity, pass_args = True, pass_job_queue=True))
-    dp.add_handler(CommandHandler("seltenheit", cmd_addByRarity, pass_args = True, pass_job_queue=True))
-
-    dp.add_handler(CommandHandler("ende", cmd_clear))
-    dp.add_handler(CommandHandler("clear", cmd_clear))
-
-    dp.add_handler(CommandHandler("rem", cmd_remove, pass_args = True, pass_job_queue=True))
-    dp.add_handler(CommandHandler("entferne", cmd_remove, pass_args = True, pass_job_queue=True))
-
-    dp.add_handler(CommandHandler("save", cmd_save))
-    dp.add_handler(CommandHandler("speichern", cmd_save))
-
-    dp.add_handler(CommandHandler("load", cmd_load, pass_job_queue=True))
-    dp.add_handler(CommandHandler("laden", cmd_load, pass_job_queue=True))
-
-    dp.add_handler(CommandHandler("list", cmd_list))
-    dp.add_handler(CommandHandler("liste", cmd_list))
-
-    dp.add_handler(CommandHandler("radius", cmd_radius, pass_args=True))
-
-    dp.add_handler(CommandHandler("location", cmd_location_str, pass_args=True, pass_job_queue=True))
-    dp.add_handler(CommandHandler("standort", cmd_location_str, pass_args=True, pass_job_queue=True))
-
-    dp.add_handler(MessageHandler([Filters.location], cmd_location))
-
-    dp.add_handler(CommandHandler("iv", cmd_IV, pass_args = True))
-
-    dp.add_handler(CommandHandler("wp", cmd_CP, pass_args = True))
-    dp.add_handler(CommandHandler("cp", cmd_CP, pass_args = True))
-
-    dp.add_handler(CommandHandler("lvl", cmd_LVL, pass_args = True))
-    dp.add_handler(CommandHandler("level", cmd_LVL, pass_args = True))
-
-    dp.add_handler(CommandHandler("angriff", cmd_attack_filter, pass_args = True))
-    dp.add_handler(CommandHandler("attack", cmd_attack_filter, pass_args = True))
-    dp.add_handler(CommandHandler("atk", cmd_attack_filter, pass_args = True))
-
-    dp.add_handler(CommandHandler("verteidigung", cmd_defense_filter, pass_args = True))
-    dp.add_handler(CommandHandler("defense", cmd_defense_filter, pass_args = True))
-    dp.add_handler(CommandHandler("def", cmd_defense_filter, pass_args = True))
-
-    dp.add_handler(CommandHandler("ausdauer", cmd_stamina_filter, pass_args = True))
-    dp.add_handler(CommandHandler("stamina", cmd_stamina_filter, pass_args = True))
-    dp.add_handler(CommandHandler("sta", cmd_stamina_filter, pass_args = True))
-    dp.add_handler(CommandHandler("kp", cmd_stamina_filter, pass_args = True))
-
-    dp.add_handler(CommandHandler("modus", cmd_Mode, pass_args = True))
-
-    dp.add_handler(CommandHandler("status", cmd_status))
-
-    dp.add_handler(CommandHandler("nachricht", cmd_SwitchVenue))
-
-    dp.add_handler(MessageHandler([Filters.all], cmd_unknown))
+    dp.add_handler(CommandHandler(AvailableCommands, ReadIncomingCommand, pass_args = True, pass_job_queue=True))
+    dp.add_handler(MessageHandler(Filters.location, cmd_location))
+    dp.add_handler(MessageHandler((Filters.text | Filters.command), cmd_unknown))
 
     # log all errors
     dp.add_error_handler(error)
@@ -1584,12 +1467,13 @@ def main():
             newids = x.replace(".json", "")
             chat_id = int(newids)
             j = updater.job_queue
-            logger.info('%s' % (chat_id))
+            #logger.info('%s' % (chat_id))
 
             try:
                 cmd_load_silent(b, chat_id, j)
             except Exception as e:
                 logger.error('%s' % (chat_id))
+                logger.info("FEHLER!!!!")
 
     logger.info('Started!')
 

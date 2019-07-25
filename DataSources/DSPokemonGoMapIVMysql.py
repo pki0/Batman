@@ -28,7 +28,7 @@ class DSPokemonGoMapIVMysql():
 		sqlquery = ("SELECT encounter_id, pokemon_id, latitude, "
 			"longitude, disappear_time, individual_attack, individual_defense, "
 			"individual_stamina, move_1, move_2, cp, cp_multiplier, gender, "
-			"weather_boosted_condition")
+			"weather_boosted_condition, form")
 		sqlquery += ' FROM pokemon'
 		sqlquery += ' WHERE last_modified > UTC_TIMESTAMP() - INTERVAL 5 MINUTE'
 		sqlquery += ' AND disappear_time > UTC_TIMESTAMP()'
@@ -41,6 +41,7 @@ class DSPokemonGoMapIVMysql():
 				rows = cur.fetchall()
 				for row in rows:
 					encounter_id = str(row[0])
+					#logger.info(encounter_id)
 					pok_id = str(row[1])
 					latitude = str(row[2])
 					longitude = str(row[3])
@@ -55,6 +56,7 @@ class DSPokemonGoMapIVMysql():
 					cp_multiplier = row[11]
 					gender = row[12]
 					weather_boosted_condition = row[13]
+					form = row[14]
 
 					if row[8] is not None:
 						move1 = str(row[8])
@@ -68,7 +70,7 @@ class DSPokemonGoMapIVMysql():
 						iv = str((int(individual_attack) +  int(individual_defense) + int(individual_stamina)) / 45 * 100)
 						iv = iv[0:4]
 
-					poke = DSPokemon(encounter_id, pok_id, latitude, longitude, disappear_time, iv, individual_attack, individual_defense, individual_stamina, move1, move2, cp, cp_multiplier, gender, weather_boosted_condition)
+					poke = DSPokemon(encounter_id, pok_id, latitude, longitude, disappear_time, iv, individual_attack, individual_defense, individual_stamina, move1, move2, cp, cp_multiplier, gender, weather_boosted_condition, form)
 					pokelist.append(poke)
 		except pymysql.err.OperationalError as e:
 			if e.args[0] == 2006:
@@ -82,7 +84,7 @@ class DSPokemonGoMapIVMysql():
 
 
 	def __connect(self):
-		self.con = pymysql.connect(user=self.__user,password=self.__passw,host=self.__host,port=self.__port,database=self.__db)
+		self.con = pymysql.connect(user=self.__user,password=self.__passw,host=self.__host,port=self.__port,database=self.__db, charset='utf8')
 
 	def __reconnect(self):
 		logger.info('Reconnecting to remote database')
