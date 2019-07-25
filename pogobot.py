@@ -77,18 +77,26 @@ def cmd_add(bot, update, args, job_queue):
 
     pref = prefs.get(chat_id)
     lan = pref.get('language')
-    names = list()
+    pokemon_ids = list()
     usage_message = 'Nutzung:\n/pokemon #Nummer oder /pokemon #Nummer1 #Nummer2\n' + \
     '/pokemon #Name oder /pokemon #Name1 #Name2 ... (Ohne #)'
 
-    if args != []:
-        if args[0].isdigit():
-            if len(args) <= 0:
+    # Check Args to prevent wrong input
+    if args[0].find(',') >= 0:
+        args = args[0].split(',')
+    else:
+        for x in args:
+            if x.find(',') >= 0:
                 bot.sendMessage(chat_id, text=usage_message)
                 return
-        else:
-            if len(args) == 1:
-                if args[0].upper() in ('GEN1', 'GEN2', 'GEN3', 'GEN4', 'ALLE', 'ALL'):
+
+    if args != []:
+        if len(args) <= 0:
+            bot.sendMessage(chat_id, text=usage_message)
+            return
+
+        if not args[0].isdigit():
+            if len(args) == 1 and args[0].upper() in ('GEN1', 'GEN2', 'GEN3', 'GEN4', 'ALLE', 'ALL'):
                     if args[0].upper() == 'GEN1':
                         args = list(range(1, 152))
                     elif args[0].upper() == 'GEN2':
@@ -100,19 +108,16 @@ def cmd_add(bot, update, args, job_queue):
                     elif args[0].upper() in ['ALLE', 'ALL']:
                         args = list(range(1, 493))
 
-            for x in args:
-                for poke_id, name in pokemon_name[lan].items():
-                    if x.upper() in name.upper():
-                        names.append(str(poke_id))
-            if len(names) < 1:
-                bot.sendMessage(chat_id, text='*Ich habe nicht alle Pokémon gefunden! Bitte versuche es erneut.*', parse_mode='Markdown')
-                return
+            else:
+                for x in args:
+                    for poke_id, name in pokemon_name[lan].items():
+                        if x.upper() in name.upper():
+                            pokemon_ids.append(str(poke_id))
+                if len(pokemon_ids) < 1:
+                    bot.sendMessage(chat_id, text='*Ich habe nicht alle Pokémon gefunden! Bitte versuche es erneut.*', parse_mode='Markdown')
+                    return
 
-            args = names
-
-    else:
-        bot.sendMessage(chat_id, text=usage_message)
-        return
+                args = pokemon_ids
 
     for x in args:
         if int(x) > 721 or int(x) <= 0:
@@ -164,7 +169,7 @@ def cmd_remove(bot, update, args, job_queue):
 
     pref = prefs.get(chat_id)
     lan = pref.get('language')
-    names = list()
+    pokemon_ids = list()
     usage_message = 'Nutzung:\n/entferne #Nummer oder /entferne #Nummer1 #Nummer2\n' + \
     '/entferne #Name oder /entferne #Name1 #Name2 ... (Ohne #)'
     logger.info('[%s@%s] Remove pokemon.' % (userName, chat_id))
@@ -174,24 +179,43 @@ def cmd_remove(bot, update, args, job_queue):
         'Bitte füge erst Pokémon zu deiner Liste hinzu mit /pokemon 1 2 3 ...')
         return
 
-    if args != []:
-        if args[0].isdigit():
-            if len(args) < 1:
+    # Check Args to prevent wrong input
+    if args[0].find(',') >= 0:
+        args = args[0].split(',')
+    else:
+        for x in args:
+            if x.find(',') >= 0:
                 bot.sendMessage(chat_id, text=usage_message)
                 return
-        else:
-            for x in args:
-                for poke_id, name in pokemon_name[lan].items():
-                    if x.upper() in name.upper():
-                        names.append(str(poke_id))
-            if len(names) < 1:
-                bot.sendMessage(chat_id, text='*Ich habe nicht alle Pokémon gefunden! Bitte versuche es erneut.*', parse_mode='Markdown')
-                return
 
-            args = names
-    else:
-        bot.sendMessage(chat_id, text=usage_message)
-        return
+    if args != []:
+        if len(args) <= 0:
+            bot.sendMessage(chat_id, text=usage_message)
+            return
+
+        if not args[0].isdigit():
+            if len(args) == 1 and args[0].upper() in ('GEN1', 'GEN2', 'GEN3', 'GEN4', 'ALLE', 'ALL'):
+                    if args[0].upper() == 'GEN1':
+                        args = list(range(1, 152))
+                    elif args[0].upper() == 'GEN2':
+                        args = list(range(152, 252))
+                    elif args[0].upper() == 'GEN3':
+                        args = list(range(252, 387))
+                    elif args[0].upper() == 'GEN4':
+                        args = list(range(387, 493))
+                    elif args[0].upper() in ['ALLE', 'ALL']:
+                        args = list(range(1, 493))
+
+            else:
+                for x in args:
+                    for poke_id, name in pokemon_name[lan].items():
+                        if x.upper() in name.upper():
+                            pokemon_ids.append(str(poke_id))
+                if len(pokemon_ids) < 1:
+                    bot.sendMessage(chat_id, text='*Ich habe nicht alle Pokémon gefunden! Bitte versuche es erneut.*', parse_mode='Markdown')
+                    return
+
+                args = pokemon_ids
 
     try:
         search = pref.get('search_ids')
