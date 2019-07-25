@@ -24,7 +24,6 @@ from geopy.geocoders import Nominatim
 import geopy
 from geopy.distance import VincentyDistance
 
-from rarity import pokemon_rarity
 from instructions import help_text_1, help_text_2, start_text
 
 # Enable logging
@@ -58,6 +57,7 @@ def cmd_help(bot, update):
     bot.sendMessage(chat_id, help_text_1, parse_mode='Markdown')
     bot.sendMessage(chat_id, help_text_2, parse_mode='Markdown')
 
+
 def cmd_start(bot, update):
     chat_id = update.message.chat_id
     userName = update.message.from_user.first_name
@@ -69,6 +69,7 @@ def cmd_start(bot, update):
     # Setze default Werte und den Standort auf Kiel
     pref = prefs.get(chat_id)
     checkAndSetUserDefaults(pref)
+
 
 def cmd_add(bot, update, args, job_queue):
     chat_id = update.message.chat_id
@@ -87,21 +88,17 @@ def cmd_add(bot, update, args, job_queue):
                 return
         else:
             if len(args) == 1:
-                if args[0].upper() == 'GEN1':
-                    cmd_addByRarity(bot, update, str(6), job_queue)
-                    return
-                if args[0].upper() == 'GEN2':
-                    cmd_addByRarity(bot, update, str(7), job_queue)
-                    return
-                if args[0].upper() == 'GEN3':
-                    cmd_addByRarity(bot, update, str(8), job_queue)
-                    return
-                if args[0].upper() == 'GEN4':
-                    cmd_addByRarity(bot, update, str(9), job_queue)
-                    return
-                if args[0].upper() in ['ALLE', 'ALL']:
-                    cmd_addByRarity(bot, update, str(10), job_queue)
-                    return
+                if args[0].upper() in ('GEN1', 'GEN2', 'GEN3', 'GEN4', 'ALLE', 'ALL'):
+                    if args[0].upper() == 'GEN1':
+                        args = list(range(1, 152))
+                    elif args[0].upper() == 'GEN2':
+                        args = list(range(152, 252))
+                    elif args[0].upper() == 'GEN3':
+                        args = list(range(252, 387))
+                    elif args[0].upper() == 'GEN4':
+                        args = list(range(387, 493))
+                    elif args[0].upper() in ['ALLE', 'ALL']:
+                        args = list(range(1, 493))
 
             for x in args:
                 for poke_id, name in pokemon_name[lan].items():
@@ -161,38 +158,63 @@ def cmd_add(bot, update, args, job_queue):
         bot.sendMessage(chat_id, text=usage_message)
 
 
-
-def cmd_addByRarity(bot, update, args, job_queue):
+def cmd_remove(bot, update, args, job_queue):
     chat_id = update.message.chat_id
     userName = update.message.from_user.username
 
     pref = prefs.get(chat_id)
-    usage_message = 'Nutzung: "/seltenheit #Nummer" mit 1 gewöhnlich bis 5 ultra-selten, 6:Gen1, 7:Gen2, 8:Gen3, 9:Alle'
+    lan = pref.get('language')
+    names = list()
+    usage_message = 'Nutzung:\n/entferne #Nummer oder /entferne #Nummer1 #Nummer2\n' + \
+    '/entferne #Name oder /entferne #Name1 #Name2 ... (Ohne #)'
+    logger.info('[%s@%s] Remove pokemon.' % (userName, chat_id))
+
+    if chat_id not in jobs:
+        bot.sendMessage(chat_id, text='Du willst Pokémon entfernen, aber du hast keinen aktiven Scanner!\n' + \
+        'Bitte füge erst Pokémon zu deiner Liste hinzu mit /pokemon 1 2 3 ...')
+        return
 
     if args != []:
-        if args.isdigit():
-            if len(args) <= 0:
+        if args[0].isdigit():
+            if len(args) < 1:
                 bot.sendMessage(chat_id, text=usage_message)
                 return
         else:
-            bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
-            return
+            for x in args:
+                for poke_id, name in pokemon_name[lan].items():
+                    if x.upper() in name.upper():
+                        names.append(str(poke_id))
+            if len(names) < 1:
+                bot.sendMessage(chat_id, text='*Ich habe nicht alle Pokémon gefunden! Bitte versuche es erneut.*', parse_mode='Markdown')
+                return
+
+            args = names
     else:
-        bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
+        bot.sendMessage(chat_id, text=usage_message)
         return
 
-    addJob(bot, update, job_queue)
-    logger.info('[%s@%s] Add pokemon by rarity: %s' % (userName, chat_id, args))
-
     try:
-        rarity = int(args)
         search = pref.get('search_ids')
-        for x in pokemon_rarity[rarity]:
-            if int(x) not in search:
-                search.append(int(x))
-        search.sort()
-        pref.set('search_ids', search)
-        cmd_list(bot, update)
+        tmp = 'Du hast folgende Pokémon entfernt:\n'
+
+        for x in args:
+            if int(x) in search:
+                search.remove(int(x))
+                tmp += "%s %s\n" % (x, pokemon_name[lan][str(x)])
+            else:
+                tmp += "Du willst *%s %s* entfernen. Es existiert aber nicht in deiner Liste.\n" % (x, pokemon_name[lan][str(x)])
+        pref.set('search_ids',search)
+
+        # Stringlänge berechnen und schneiden:
+        cut_position = 1
+        while cut_position > 0:
+            cut_position = tmp.rfind('\n', 3800, 4096)
+            if cut_position > 0:
+                bot.sendMessage(chat_id, text = tmp[:cut_position], parse_mode='Markdown')
+                tmp = tmp[cut_position+1:]
+            else:
+                bot.sendMessage(chat_id, text = tmp, parse_mode='Markdown')
+
     except Exception as e:
         logger.error('[%s@%s] %s' % (userName, chat_id, repr(e)))
         bot.sendMessage(chat_id, text=usage_message)
@@ -615,68 +637,6 @@ def cmd_clear(bot, update):
     pref.reset_user()
 
     bot.sendMessage(chat_id, text='Benachrichtigungen erfolgreich entfernt!')
-
-
-def cmd_remove(bot, update, args, job_queue):
-    chat_id = update.message.chat_id
-    userName = update.message.from_user.username
-
-    pref = prefs.get(chat_id)
-    lan = pref.get('language')
-    names = list()
-    usage_message = 'Nutzung:\n/entferne #Nummer oder /entferne #Nummer1 #Nummer2\n' + \
-    '/entferne #Name oder /entferne #Name1 #Name2 ... (Ohne #)'
-    logger.info('[%s@%s] Remove pokemon.' % (userName, chat_id))
-
-    if chat_id not in jobs:
-        bot.sendMessage(chat_id, text='Du willst Pokémon entfernen, aber du hast keinen aktiven Scanner!\n' + \
-        'Bitte füge erst Pokémon zu deiner Liste hinzu mit /pokemon 1 2 3 ...')
-        return
-
-    if args != []:
-        if args[0].isdigit():
-            if len(args) < 1:
-                bot.sendMessage(chat_id, text=usage_message)
-                return
-        else:
-            for x in args:
-                for poke_id, name in pokemon_name[lan].items():
-                    if x.upper() in name.upper():
-                        names.append(str(poke_id))
-            if len(names) < 1:
-                bot.sendMessage(chat_id, text='*Ich habe nicht alle Pokémon gefunden! Bitte versuche es erneut.*', parse_mode='Markdown')
-                return
-
-            args = names
-    else:
-        bot.sendMessage(chat_id, text=usage_message)
-        return
-
-    try:
-        search = pref.get('search_ids')
-        tmp = 'Du hast folgende Pokémon entfernt:\n'
-
-        for x in args:
-            if int(x) in search:
-                search.remove(int(x))
-                tmp += "%s %s\n" % (x, pokemon_name[lan][str(x)])
-            else:
-                tmp += "Du willst *%s %s* entfernen. Es existiert aber nicht in deiner Liste.\n" % (x, pokemon_name[lan][str(x)])
-        pref.set('search_ids',search)
-
-        # Stringlänge berechnen und schneiden:
-        cut_position = 1
-        while cut_position > 0:
-            cut_position = tmp.rfind('\n', 3800, 4096)
-            if cut_position > 0:
-                bot.sendMessage(chat_id, text = tmp[:cut_position], parse_mode='Markdown')
-                tmp = tmp[cut_position+1:]
-            else:
-                bot.sendMessage(chat_id, text = tmp, parse_mode='Markdown')
-
-    except Exception as e:
-        logger.error('[%s@%s] %s' % (userName, chat_id, repr(e)))
-        bot.sendMessage(chat_id, text=usage_message)
 
 
 def cmd_list(bot, update):
@@ -1377,8 +1337,6 @@ def ReadIncomingCommand(bot, update, args, job_queue):
         cmd_load(bot, update, job_queue)
     elif IncomingCommand in ['/ADD', '/POKEMON']:
         cmd_add(bot, update, args, job_queue)
-    elif IncomingCommand in ['/SELTENHEIT', '/ADDBYRARITY']:
-        cmd_addByRarity(bot, update, args, job_queue)
     elif IncomingCommand in ['/ENTFERNE', '/REM']:
         cmd_remove(bot, update, args, job_queue)
     elif IncomingCommand in ['/STANDORT', '/LOCATION']:
@@ -1423,7 +1381,6 @@ def main():
         'Status',
         'Modus',
         'Help','Hilfe',
-        'Addbyrarity','Seltenheit',
         'Ende','Clear',
         'Entferne','Rem',
         'Speichern','Save',
