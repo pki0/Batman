@@ -11,9 +11,6 @@ help_text_1 = "*Folgende Befehle kennt der Bot:*\n\n" + \
     "Mehrfache Namen der Pokémon eingeben um über diese Benachrichtigungen zu erhalten.\n" + \
     "/pokemon gen1\n" + \
     "Fügt alle Pokémon der 1. Generation hinzu. Mögliche Optionen sind: gen1, gen2, gen3, alle\n\n" + \
-    "/seltenheit 1\n" + \
-    "Fügt eine Gruppe von Pokémon hinzu. Dabei steht die 1 für gewöhnliche Pokémon " + \
-    "und die 5 für ultra-seltene Pokémon.\n\n" + \
     "/iv 50\n" + \
     "Setze die Minimum IV (z.B. auf 50) für die Pokémon, über die du benachrichtigt werden willst.\n" + \
     "/iv 0 100\n" + \
