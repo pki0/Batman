@@ -30,8 +30,8 @@ class DSPokemonGoMapIVMysql():
 			"individual_stamina, move_1, move_2, cp, cp_multiplier, gender, "
 			"weather_boosted_condition, form")
 		sqlquery += ' FROM pokemon'
-		sqlquery += ' WHERE last_modified > UTC_TIMESTAMP() - INTERVAL 5 MINUTE'
-		sqlquery += ' AND disappear_time > UTC_TIMESTAMP()'
+		sqlquery += ' WHERE last_modified > UTC_TIMESTAMP() - INTERVAL 3 MINUTE'
+		sqlquery += ' AND disappear_time > UTC_TIMESTAMP() + INTERVAL 1 MINUTE'
 		sqlquery += ' ORDER BY pokemon_id ASC'
 		try:
 			with self.con:
