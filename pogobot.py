@@ -1094,7 +1094,7 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
             iv = pokemon.getIVs()
             if iv is not None:
                 iv_hash = '001'
-            
+
             weather_hash = '00'
             weather = pokemon.getWeather()
             if weather is not None:
@@ -1125,6 +1125,10 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
             delta = disappear_time - datetime.utcnow()
             deltaStr = '%02dm:%02ds' % (int(delta.seconds / 60), int(delta.seconds % 60))
             disappear_time_str = disappear_time.replace(tzinfo=timezone.utc).astimezone(tz=None).strftime("%H:%M:%S")
+
+            # Skip Pokemon with lower then 1 minute timedelta
+            if int(delta.seconds / 60) < 1:
+                continue
 
             if weather is None:
                 weather = 0
