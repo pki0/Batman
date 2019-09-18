@@ -68,6 +68,7 @@ def cmd_start(bot, update):
 
     # Set defaults and location
     pref = prefs.get(chat_id)
+    pref.set('user_active', 1)
     checkAndSetUserDefaults(pref, bot, chat_id)
 
 
@@ -76,6 +77,7 @@ def cmd_add(bot, update, args, job_queue):
     userName = update.message.from_user.username
 
     pref = prefs.get(chat_id)
+    pref.set('user_active', 1)
     lan = pref.get('language')
     pokemon_ids = list()
     
@@ -97,7 +99,7 @@ def cmd_add(bot, update, args, job_queue):
             return
 
         if not args[0].isdigit():
-            if len(args) == 1 and args[0].upper() in ('GEN1', 'GEN2', 'GEN3', 'GEN4', 'ALLE', 'ALL'):
+            if len(args) == 1 and args[0].upper() in ('GEN1', 'GEN2', 'GEN3', 'GEN4', 'GEN5', 'ALLE', 'ALL'):
                     if args[0].upper() == 'GEN1':
                         args = list(range(1, 152))
                     elif args[0].upper() == 'GEN2':
@@ -106,8 +108,10 @@ def cmd_add(bot, update, args, job_queue):
                         args = list(range(252, 387))
                     elif args[0].upper() == 'GEN4':
                         args = list(range(387, 493))
+                    elif args[0].upper() == 'GEN5':
+                        args = list(range(493, 649))
                     elif args[0].upper() in ['ALLE', 'ALL']:
-                        args = list(range(1, 493))
+                        args = list(range(1, 649))
 
             else:
                 for x in args:
@@ -151,7 +155,7 @@ def cmd_add(bot, update, args, job_queue):
             if cut_position > 0:
                 bot.sendMessage(chat_id, text = tmp[:cut_position], parse_mode='Markdown')
                 tmp = tmp[cut_position+1:]
-            else:
+            elif len(tmp) > 0:
                 bot.sendMessage(chat_id, text = tmp, parse_mode='Markdown')
 
     except Exception as e:
@@ -164,16 +168,18 @@ def cmd_remove(bot, update, args, job_queue):
     userName = update.message.from_user.username
 
     pref = prefs.get(chat_id)
+    pref.set('user_active', 1)
+    addJob(bot, update, job_queue)
     lan = pref.get('language')
     pokemon_ids = list()
     usage_message = 'Nutzung:\n/entferne #Nummer oder /entferne #Nummer1 #Nummer2\n' + \
     '/entferne #Name oder /entferne #Name1 #Name2 ... (Ohne #)'
     logger.info('[%s@%s] Remove pokemon.' % (userName, chat_id))
 
-    if chat_id not in jobs:
-        bot.sendMessage(chat_id, text='Du willst Pokémon entfernen, aber du hast keinen aktiven Scanner!\n' + \
-        'Bitte füge erst Pokémon zu deiner Liste hinzu mit /pokemon 1 2 3 ...')
-        return
+    #if chat_id not in jobs:
+        #bot.sendMessage(chat_id, text='Du willst Pokémon entfernen, aber du hast keinen aktiven Scanner!\n' + \
+        #'Bitte füge erst Pokémon zu deiner Liste hinzu mit /pokemon 1 2 3 ...')
+        #return
 
     # Check Args to prevent wrong input
     if args[0].find(',') >= 0:
@@ -190,7 +196,7 @@ def cmd_remove(bot, update, args, job_queue):
             return
 
         if not args[0].isdigit():
-            if len(args) == 1 and args[0].upper() in ('GEN1', 'GEN2', 'GEN3', 'GEN4', 'ALLE', 'ALL'):
+            if len(args) == 1 and args[0].upper() in ('GEN1', 'GEN2', 'GEN3', 'GEN4', 'GEN5', 'ALLE', 'ALL'):
                     if args[0].upper() == 'GEN1':
                         args = list(range(1, 152))
                     elif args[0].upper() == 'GEN2':
@@ -199,8 +205,10 @@ def cmd_remove(bot, update, args, job_queue):
                         args = list(range(252, 387))
                     elif args[0].upper() == 'GEN4':
                         args = list(range(387, 493))
+                    elif args[0].upper() == 'GEN5':
+                        args = list(range(493, 649))
                     elif args[0].upper() in ['ALLE', 'ALL']:
-                        args = list(range(1, 493))
+                        args = list(range(1, 649))
 
             else:
                 for x in args:
@@ -232,7 +240,7 @@ def cmd_remove(bot, update, args, job_queue):
             if cut_position > 0:
                 bot.sendMessage(chat_id, text = tmp[:cut_position], parse_mode='Markdown')
                 tmp = tmp[cut_position+1:]
-            else:
+            elif len(tmp) > 0:
                 bot.sendMessage(chat_id, text = tmp, parse_mode='Markdown')
 
     except Exception as e:
@@ -520,6 +528,9 @@ def cmd_Mode(bot, update, args):
 
     # Lade User Einstellungen
     pref = prefs.get(chat_id)
+    pref.set('user_active', 1)
+    pref.set_preferences()
+    
     usage_message = 'Nutzung: "/modus 0" oder "/modus 1" (Einen Wert: 0 oder 1!)'
 
     # Fange keine Eingabe ab
@@ -654,10 +665,35 @@ def cmd_clear(bot, update):
     # Remove from locks
     del locks[chat_id]
 
-    pref.reset_user()
+    pref.set('user_active', 0)
+    pref.set_preferences()
 
     bot.sendMessage(chat_id, text='Benachrichtigungen erfolgreich entfernt!')
 
+
+def cmd_remove_user(bot, chat_id):
+
+    pref = prefs.get(chat_id)
+
+    #Removes the job if the user changed their mind
+    logger.info('[%s] Removed.' % (chat_id))
+
+    if chat_id not in jobs:
+        return
+
+    # Remove from jobs
+    job = jobs[chat_id]
+    job.schedule_removal()
+    #job.stop()
+    del jobs[chat_id]
+
+    # Remove from sent
+    del sent[chat_id]
+    # Remove from locks
+    del locks[chat_id]
+
+    pref.set('user_active', 0)
+    pref.set_preferences()
 
 def cmd_list(bot, update):
     chat_id = update.message.chat_id
@@ -685,12 +721,12 @@ def cmd_list(bot, update):
             if cut_position > 0:
                 bot.sendMessage(chat_id, text = tmp[:cut_position], parse_mode='Markdown')
                 tmp = tmp[cut_position+1:]
-            else:
+            elif len(tmp) > 0:
                 bot.sendMessage(chat_id, text = tmp, parse_mode='Markdown')
 
     except Exception as e:
         logger.error('[%s@%s] %s' % (userName, chat_id, repr(e)))
-        bot.sendMessage('Liste leider Fehlerhaft. Bitte /ende eingeben und erneut beginnen')
+        bot.sendMessage(chat_id, text='Liste leider Fehlerhaft. Bitte /ende eingeben und erneut beginnen')
 
 def cmd_save(bot, update):
     chat_id = update.message.chat_id
@@ -749,12 +785,14 @@ def cmd_load(bot, update, job_queue):
         maxlvl = pref.get('user_maxlvl')
         mode = pref.get('user_mode')
         send_venue = pref.get('user_send_venue')
+        user_active = pref.get('user_active')
         loc = pref.get('location')
         lat = loc[0]
         lon = loc[1]
 
         # Send Settings to user and save to json file
         checkAndSetUserDefaults(pref, bot, chat_id)
+        pref.set('user_active', 1)
         cmd_saveSilent(bot, update)
         cmd_status(bot, update)
 
@@ -781,6 +819,7 @@ def cmd_load_silent(bot, chat_id, job_queue):
 
     # We might be the first user and above failed....
     if len(pref.get('search_ids')) > 0:
+    
         addJob_silent(bot, chat_id, job_queue)
         miniv = pref.get('user_miniv')
         maxiv = pref.get('user_maxiv')
@@ -790,11 +829,16 @@ def cmd_load_silent(bot, chat_id, job_queue):
         maxlvl = pref.get('user_maxlvl')
         mode = pref.get('user_mode')
         send_venue = pref.get('user_send_venue')
+        user_active = pref.get('user_active')
         loc = pref.get('location')
         lat = loc[0]
         lon = loc[1]
 
+        if user_active == 0:
+            return
+
         checkAndSetUserDefaults(pref, bot, chat_id)
+        addJob_silent(bot, chat_id, job_queue)
 
     else:
         if chat_id not in jobs:
@@ -1078,7 +1122,11 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
         user_stamina_max = int(pref['user_stamina_max'])
         user_mode = int(pref['user_mode'])
         user_send_venue = int(pref['user_send_venue'])
+        user_active = int(pref['user_active'])
 
+        if user_active == 0:
+            return
+        
         lock.acquire()
 
         for pokemon in pokemon_db_data:
@@ -1181,8 +1229,14 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                     pkmname = "%s%s%s %s" % (pokemon_name[lan][pok_id], pok_form, gender, weather_icons[int(weather)])
                     address = "%s (%s)." % (disappear_time_str, deltaStr)
                     title = "*IV*:%s (%s/%s/%s) - *WP*:%s - *Level*:%s\n" % (iv, iv_attack, iv_defense, iv_stamina, cp, pkmnlvl)
-                    move1Name = moveNames[move1]
-                    move2Name = moveNames[move2]
+                    if moveNames[move1]:
+                        move1Name = moveNames[move1]
+                    else:
+                        move1Name = 'Unbekannt'
+                    if moveNames[move2]:
+                        move2Name = moveNames[move2]
+                    else:
+                        move2Name = 'Unbekannt'
                     title += "*Moves*: %s/%s" % (move1Name, move2Name)
 
 
@@ -1209,8 +1263,11 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
 
             if message_counter > 10:
                 bot.sendMessage(chat_id, text = 'Zu viele Pokemon eingestellt! '
-                    'Erhöhe die Minimum IV, verwende /modus 1 oder Entferne Pokemon.')
-                logger.info('Too many sent')
+                    'Erhöhe die Minimum IV, verwende /modus 1 oder Entferne Pokemon.\n\n'
+                    'Du wurdest von den Benachrichtigungen entfernt, weil du zu viele Pokémon eingestellt hast! Beginne erneut mit /start')
+
+                cmd_remove_user(bot, chat_id)
+                logger.info('%s - Too many sent' % chat_id)
                 break
 
             if notDisappeared and message_counter <= 10:
@@ -1229,6 +1286,8 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
 
     except Exception as e:
         logger.error('[%s] %s' % (chat_id, repr(e)))
+    except Unauthorized:
+        cmd_remove_user(bot, chat_id)
     lock.release()
 
     # Clean already disappeared pokemon

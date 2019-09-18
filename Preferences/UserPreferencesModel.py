@@ -40,8 +40,7 @@ class UserPreferencesModel(object):
             user_maxlvl = 40,
             user_mode = 1,
             user_send_venue = 1,
-            #user_ivfilter = [-1] * 251,
-            #user_lvlfilter = [-1] * 251,
+            user_active = 1,
         )
         return preferences
 
