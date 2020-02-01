@@ -35,60 +35,100 @@ for i in gamemaster_data["itemTemplates"]:
        "FORMS" not in i["templateId"] and \
        "SPAWN" not in i["templateId"] and \
        len(i["templateId"].split("_")) == 3:
+
+        new_gm[j] = i
+        j += 1
+
+    # Ho-OH and some are mofus...
+    elif len(i["templateId"].split("_")) == 4 and (i["templateId"].split("_"))[2] in ("HO", "MR", "MIME",  "PORYGON"):
+
         new_gm[j] = i
         j += 1
 
 
-
 # Now get Evos: This function is fast enough xe-5 seconds...
 def get_evolution_and_stats_from_gamemaster_by_pokemon_id(poke_id, new_gm, pokemon_names):
+    # Cancel if poke_id is not available
+    if str(poke_id) not in pokemon_names:
+        return False
     # Check for prevolution
     i = 1
+    found = False
     evos = dict()
     evos[i] = {}
     evos[i]["pokemon_id"] = poke_id
     evos[i]["pokemon_name"] = pokemon_names[str(poke_id)]
+
     # Find baste stats once
     for x in new_gm.items():
         if str(poke_id).zfill(4) in x[1]['templateId'][1:5] and 'pokemonSettings' in x[1]:
             evos[i]["pokemon_stats_a"] = x[1]["pokemonSettings"]["stats"]["baseAttack"]
             evos[i]["pokemon_stats_d"] = x[1]["pokemonSettings"]["stats"]["baseDefense"]
             evos[i]["pokemon_stats_s"] = x[1]["pokemonSettings"]["stats"]["baseStamina"]
+            found = True
             break
+    # Finished but not found...
+    if found == False:
+        print("%s NOT FOUND" % str(poke_id).zfill(4))
+        return evos
 
-    while "evolutionIds" in new_gm[poke_id]["pokemonSettings"] or "evolutionBranch" in new_gm[poke_id]["pokemonSettings"]:
-        if "evolutionIds" in new_gm[poke_id]["pokemonSettings"]:
-        # Now find the Evolution in GM
-            for x in new_gm.items():
-                if new_gm[poke_id]["pokemonSettings"]["evolutionIds"][0] == x[1]["pokemonSettings"]["pokemonId"]:
-                    i += 1
-                    evo_id = x[1]["templateId"]
-                    evos[i] = {}
-                    evos[i]["pokemon_id"] = int(evo_id[1:5])
-                    evos[i]["pokemon_name"] = pokemon_names[str(int(evo_id[1:5]))]
-                    evos[i]["pokemon_stats_a"] = x[1]["pokemonSettings"]["stats"]["baseAttack"]
-                    evos[i]["pokemon_stats_d"] = x[1]["pokemonSettings"]["stats"]["baseDefense"]
-                    evos[i]["pokemon_stats_s"] = x[1]["pokemonSettings"]["stats"]["baseStamina"]
-                    poke_id = int(evo_id[1:5])
-                    break
-        # Special case for stone-evos
-        elif "evolutionBranch" in new_gm[poke_id]["pokemonSettings"]:
-            for x in new_gm.items():
-                if new_gm[poke_id]["pokemonSettings"]["evolutionBranch"][0]["evolution"] == x[1]["pokemonSettings"]["pokemonId"]:
-                    i += 1
-                    evo_id = x[1]["templateId"]
-                    evos[i] = {}
-                    evos[i]["pokemon_id"] = int(evo_id[1:5])
-                    evos[i]["pokemon_name"] = pokemon_names[str(int(evo_id[1:5]))]
-                    evos[i]["pokemon_stats_a"] = x[1]["pokemonSettings"]["stats"]["baseAttack"]
-                    evos[i]["pokemon_stats_d"] = x[1]["pokemonSettings"]["stats"]["baseDefense"]
-                    evos[i]["pokemon_stats_s"] = x[1]["pokemonSettings"]["stats"]["baseStamina"]
-                    poke_id = int(evo_id[1:5])
-                    break
+
+    while "evolutionBranch" in x[1]["pokemonSettings"]:
+        found = False
+        if "evolutionBranch" in x[1]["pokemonSettings"]:
+            if "evolution" in x[1]["pokemonSettings"]["evolutionBranch"][0]:
+                if len(x[1]["pokemonSettings"]["evolutionBranch"]) == 1:
+                    # Special case for loop evos. Fuck you Nia
+                    if "parentPokemonId" in x[1]["pokemonSettings"] and (x[1]["pokemonSettings"]["parentPokemonId"] == x[1]["pokemonSettings"]["evolutionBranch"][0]["evolution"]):
+                        return evos
+                    for y in new_gm.items():
+                        if x[1]["pokemonSettings"]["evolutionBranch"][0]["evolution"] == y[1]["pokemonSettings"]["pokemonId"]:
+                            i += 1
+                            evo_id = y[1]["templateId"]
+                            evos[i] = {}
+                            evos[i]["pokemon_id"] = int(evo_id[1:5])
+                            evos[i]["pokemon_name"] = pokemon_names[str(int(evo_id[1:5]))]
+                            evos[i]["pokemon_stats_a"] = y[1]["pokemonSettings"]["stats"]["baseAttack"]
+                            evos[i]["pokemon_stats_d"] = y[1]["pokemonSettings"]["stats"]["baseDefense"]
+                            evos[i]["pokemon_stats_s"] = y[1]["pokemonSettings"]["stats"]["baseStamina"]
+                            poke_id = int(evo_id[1:5])
+                            x = y
+                            found = True
+                            break
+                    # If not found => return
+                    if found == False:
+                        return evos
+                elif len(x[1]["pokemonSettings"]["evolutionBranch"]) > 1:
+                    for z in x[1]["pokemonSettings"]["evolutionBranch"]:
+                        if "evolution" not in z:
+                            return evos # break while
+                        for y in new_gm.items():
+                            if z["evolution"] == y[1]["pokemonSettings"]["pokemonId"]:
+                                i += 1
+                                evo_id = y[1]["templateId"]
+                                evos[i] = {}
+                                evos[i]["pokemon_id"] = int(evo_id[1:5])
+                                evos[i]["pokemon_name"] = pokemon_names[str(int(evo_id[1:5]))]
+                                evos[i]["pokemon_stats_a"] = y[1]["pokemonSettings"]["stats"]["baseAttack"]
+                                evos[i]["pokemon_stats_d"] = y[1]["pokemonSettings"]["stats"]["baseDefense"]
+                                evos[i]["pokemon_stats_s"] = y[1]["pokemonSettings"]["stats"]["baseStamina"]
+                                poke_id = int(evo_id[1:5])
+                                break
+                    return evos # break while if all are done
+            # Sepcial case if evolutionBranch is available but no evolution entry
+            else:
+                return evos
+        #if found == True:
     return evos
 
-# TESTING
+# TESTING => All evos are working even Evee
 '''
+for i in range(1,900):
+    print(i)
+    print(get_evolution_and_stats_from_gamemaster_by_pokemon_id(i,new_gm,pokemon_names))
+    print("\n")
+
+
 start = time.time()
 
 evo = get_evolution_and_stats_from_gamemaster_by_pokemon_id(1,new_gm,pokemon_names)
@@ -147,86 +187,103 @@ CPMultiplier = {
     '37.0':0.7731865,   '37.5':0.7760649616,
     '38.0':0.77893275,  '38.5':0.7817900548,
     '39.0':0.78463697,  '39.5':0.7874736075,
-    '40.0':0.79030001,  '40.5':0.792803946731,
+    '40.0':0.79030001
+  }
+'''
+We ignore these levels because it will destory the results
+    '40.5':0.792803946731,
     '41.0':0.7928039467,'41.5':0.797803921997,
     '42.0':0.8003,      '42.5':0.802803892616,
     '43.0':0.8053,      '43.5':0.807803863507,
     '44.0':0.81029999,  '44.5':0.812803834725,
     '45.0':0.81529999
   }
-
+'''
 
 
 
 
 def pvpivcalc(poke_id, new_gm, pokemon_names, iv_a, iv_d, iv_s, poke_level, CPMultiplier):
+    results = dict()
     # Get the data
     evo = get_evolution_and_stats_from_gamemaster_by_pokemon_id(poke_id,new_gm,pokemon_names)
-    print(evo)
-    # Get Base stats
-    iv_base_a = int(evo[1]["pokemon_stats_a"])
-    iv_base_d = int(evo[1]["pokemon_stats_d"])
-    iv_base_s = int(evo[1]["pokemon_stats_s"])
-    ## Now calculate all possible IV combos
+    if evo == False:
+        return False, False, False
 
-    # First calc the maximum level for CP < 1500
-    max_level_p, max_cp_p  = get_maximum_level(poke_id, iv_base_a, iv_base_d, iv_base_s, iv_a, iv_d, iv_s, 0, CPMultiplier)
-    k = 1
-    # Shit on comments from here... :D
-    score_dict = dict()
-    for iv0_a in range(0,16):
-        for iv0_d in range(0,16):
-            for iv0_s in range(0,16):
-                max_level, cp_tmp  = get_maximum_level(poke_id, iv_base_a, iv_base_d, iv_base_s, iv0_a, iv0_d, iv0_s, float(max_level_p)-2, CPMultiplier)
-                max_cpm  = CPMultiplier[str(max_level)]
-                rank_val = math.pow(max_cpm,2)*(iv_base_a+iv0_a)*(iv_base_d+iv0_d)*math.floor(max_cpm*(iv_base_s+iv0_s))
-                score_dict[k] = {"score":rank_val, "iv0_a":iv0_a, "iv0_d":iv0_d, "iv0_s":iv0_s}
-                k += 1
+    # Calculate everything for all evos
+    for x in evo:
+        # Get Base stats
+        base_a = int(evo[x]["pokemon_stats_a"])
+        base_d = int(evo[x]["pokemon_stats_d"])
+        base_s = int(evo[x]["pokemon_stats_s"])
+        ## Now calculate all possible IV combos
 
-    rank_needed = 0
-    i = 0
-    for key in score_dict:
-        if score_dict[key]["iv0_a"] == iv_a and score_dict[key]["iv0_d"] == iv_d and score_dict[key]["iv0_s"] == iv_s:
-            rank_needed = score_dict[key]["score"]
-            break
-    # Some sort form Stackoverflow
-    sorted_score = sorted(score_dict.items(), key=lambda item: int(item[1]['score']))
+        # First calc the maximum level for CP < 1500
+        max_level_p, max_cp_p  = get_maximum_level(poke_id, base_a, base_d, base_s, iv_a, iv_d, iv_s, 0, CPMultiplier)
+        k = 1
+        # Calculate all possible iv combinations
+        score_dict = dict()
+        for iv0_a in range(0,16):
+            for iv0_d in range(0,16):
+                for iv0_s in range(0,16):
+                    max_level, cp_tmp  = get_maximum_level(poke_id, base_a, base_d, base_s, iv0_a, iv0_d, iv0_s, float(max_level_p)-2, CPMultiplier)
+                    max_cpm  = CPMultiplier[str(max_level)]
+                    rank_val = math.pow(max_cpm,2)*(base_a+iv0_a)*(base_d+iv0_d)*math.floor(max_cpm*(base_s+iv0_s))
+                    score_dict[k] = {"score":rank_val, "iv0_a":iv0_a, "iv0_d":iv0_d, "iv0_s":iv0_s}
+                    k += 1
 
-    for key in sorted_score:
-        if key[1]["score"] == rank_needed:
-            # is this also slow? return len(sorted_score)-i, max_level_p, max_cp_p
-            break
-        i += 1
+        rank_needed = 0
+        i = 0
+        for key in score_dict:
+            if score_dict[key]["iv0_a"] == iv_a and score_dict[key]["iv0_d"] == iv_d and score_dict[key]["iv0_s"] == iv_s:
+                rank_needed = score_dict[key]["score"]
+                break
+        # Some sort form Stackoverflow
+        sorted_score = sorted(score_dict.items(), key=lambda item: int(item[1]['score']))
 
-    return len(sorted_score)-i, max_level_p, max_cp_p
+        for key in sorted_score:
+            if key[1]["score"] == rank_needed:
+                # is this also slow? return len(sorted_score)-i, max_level_p, max_cp_p
+                break
+            i += 1
+
+        results[x] = {}
+        results[x]["poke_id"] = evo[x]["pokemon_id"]
+        results[x]["poke_name"] = evo[x]["pokemon_name"]
+        results[x]["rank"] = len(sorted_score)-i
+        results[x]["perfection"] = (float(rank_needed)/float(sorted_score[-1][1]["score"]))*100
+        results[x]["max_level"] = max_level_p
+        results[x]["max_cp"] = max_cp_p
+
+    return results
 
 
-def get_maximum_level(poke_id, iv_base_a, iv_base_d, iv_base_s, iv_a, iv_d, iv_s, poke_level, CPMultiplier):
+def get_maximum_level(poke_id, base_a, base_d, base_s, iv_a, iv_d, iv_s, poke_level, CPMultiplier):
     for x in CPMultiplier:
         # WTF this continue is an extrem speeeeeeeeed up by factor 3-4 oO
         if float(x) < poke_level:
             continue
-        cp = math.floor((iv_base_a + int(iv_a)) * math.pow((iv_base_d + int(iv_d)),0.5) * \
-            math.pow((iv_base_s + int(iv_s)),0.5) * math.pow(CPMultiplier[str(x)],2)/10)
+        cp = math.floor((base_a + int(iv_a)) * math.pow((base_d + int(iv_d)),0.5) * \
+            math.pow((base_s + int(iv_s)),0.5) * math.pow(CPMultiplier[str(x)],2)/10)
         if cp > 1500:
             x = float(x) - 0.5
-            cp = math.floor((iv_base_a + int(iv_a)) * math.pow((iv_base_d + int(iv_d)),0.5) * \
-                math.pow((iv_base_s + int(iv_s)),0.5) * math.pow(CPMultiplier[str(x)],2)/10)
+            cp = math.floor((base_a + int(iv_a)) * math.pow((base_d + int(iv_d)),0.5) * \
+                math.pow((base_s + int(iv_s)),0.5) * math.pow(CPMultiplier[str(x)],2)/10)
             break
             # Fuck it... why is break so much faster then returning here?! *Middlefinger*
     return x, cp
 
 
 # TESTING
-
+'''
 start = time.time()
-rank, level, cp = pvpivcalc(334,new_gm,pokemon_names,0,14,15,10,CPMultiplier)
+rank, level, cp = pvpivcalc(1,new_gm,pokemon_names,0,14,15,10,CPMultiplier)
 end = time.time()
 print("This took: %s Seconds" % (end - start))
 print("%s (0,14,15))-> Rang %s -> Level %s -> WP %s" % (pokemon_names["334"],rank,level,cp))
 
 start = time.time()
-rank, level, cp = pvpivcalc(334,new_gm,pokemon_names,0,15,14,10,CPMultiplier)
+rank, level, cp = pvpivcalc(133,new_gm,pokemon_names,0,15,14,10,CPMultiplier)
 end = time.time()
 print("This took: %s Seconds" % (end - start))
 print("%s (0,15,14))-> Rang %s -> Level %s -> WP %s" % (pokemon_names["334"],rank,level,cp))
@@ -237,4 +294,32 @@ end = time.time()
 print("This took: %s Seconds" % (end - start))
 print("%s (10,10,10))-> Rang %s -> Level %s -> WP %s" % (pokemon_names["379"],rank,level,cp))
 
+'''
 
+# Further testing with evos -> works
+'''
+print("Eingabe: Evoli, 10,10,10")
+start = time.time()
+print(pvpivcalc(133,new_gm,pokemon_names,10,10,10,10,CPMultiplier))
+end = time.time()
+print("This took: %s Seconds" % (end - start))
+
+
+print("Eingabe: Registeel, 0,8,15")
+start = time.time()
+print(pvpivcalc(379,new_gm,pokemon_names,0,8,15,10,CPMultiplier))
+end = time.time()
+print("This took: %s Seconds" % (end - start))
+
+print("Eingabe: Wablu, 0,15,15")
+start = time.time()
+print(pvpivcalc(333,new_gm,pokemon_names,0,15,15,10,CPMultiplier))
+end = time.time()
+print("This took: %s Seconds" % (end - start))
+
+print("Eingabe: Wablu, 0,14,15")
+start = time.time()
+print(pvpivcalc(333,new_gm,pokemon_names,0,14,15,10,CPMultiplier))
+end = time.time()
+print("This took: %s Seconds" % (end - start))
+'''
