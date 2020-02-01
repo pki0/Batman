@@ -1229,11 +1229,11 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                     pkmname = "%s%s%s %s" % (pokemon_name[lan][pok_id], pok_form, gender, weather_icons[int(weather)])
                     address = "%s (%s)." % (disappear_time_str, deltaStr)
                     title = "*IV*:%s (%s/%s/%s) - *WP*:%s - *Level*:%s\n" % (iv, iv_attack, iv_defense, iv_stamina, cp, pkmnlvl)
-                    if moveNames[move1]:
+                    if move1 in moveNames:
                         move1Name = moveNames[move1]
                     else:
                         move1Name = 'Unbekannt'
-                    if moveNames[move2]:
+                    if move2 in moveNames:
                         move2Name = moveNames[move2]
                     else:
                         move2Name = 'Unbekannt'
