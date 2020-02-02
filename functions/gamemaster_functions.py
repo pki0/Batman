@@ -33,7 +33,6 @@ def get_evolutions_from_gamemaster(pokemon_id,gamemaster_data,pokemon_names):
             break
     # Not found
     if found == False:
-        print("%s NOT FOUND" % str(pokemon_id).zfill(4))
         return False
 
     while "evolutionBranch" in x[1]["pokemonSettings"]:
@@ -69,7 +68,6 @@ def get_evolutions_from_gamemaster(pokemon_id,gamemaster_data,pokemon_names):
             # Sepcial case if evolutionBranch is available but no evolution entry
             else:
                 return evolutions
-        #if found == True:
     return evolutions
 
 
@@ -91,5 +89,4 @@ def get_stats_from_gamemaster(pokemon_id,gamemaster_data,pokemon_names):
             return stats
     # Finished but not found...
     if found == False:
-        print("%s NOT FOUND" % str(pokemon_id).zfill(4))
         return False
