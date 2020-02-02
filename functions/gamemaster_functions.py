@@ -23,6 +23,7 @@ def get_evolutions_from_gamemaster(pokemon_id,gamemaster_data,pokemon_names):
         return False
 
     evolutions = list()
+    evolutions.append(pokemon_id)
     i = 1
     found = False
     # Find in GamemasterFile
