@@ -23,7 +23,7 @@ from pvp_functions import *
 
 ####### SETTINGS #######
 
-detailed_files = True
+detailed_files = False
 
 ########################
 
@@ -76,9 +76,9 @@ def generate_lists(league_cp, maximum_level, cp_multiplier, detailed_files):
         bases = get_stats_from_gamemaster(i,gamemaster_data,pokemon_names)
         if bases == False:
             continue
-        base_a = int(bases["pokemon_stats_a"])
-        base_d = int(bases["pokemon_stats_d"])
-        base_s = int(bases["pokemon_stats_s"])
+        base_a = int(bases["baseAttack"])
+        base_d = int(bases["baseDefense"])
+        base_s = int(bases["baseStamina"])
         score_dict = dict()
         k = 1
         for iv0_a in range(0,16):
@@ -99,6 +99,7 @@ def generate_lists(league_cp, maximum_level, cp_multiplier, detailed_files):
 
     logger.info("Saving files...")
     store_lists_as_json(league_cp, maximum_level, rankings_dict, rankings_iv_dict, detailed_files)
+    logger.info("Success")
     return
     
 def store_lists_as_json(league_cp, maximum_level, rankings_dict, rankings_iv_dict, detailed_files):
@@ -135,6 +136,3 @@ if __name__ == '__main__':
         
     for process in processes:
         process.join()
-
-
-logger.info("Success")

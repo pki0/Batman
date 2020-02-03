@@ -20,7 +20,7 @@ def cut_gamemaster(gamemaster_data):
 def get_evolutions_from_gamemaster(pokemon_id,gamemaster_data,pokemon_names):
     # Cancel if poke_id is not available
     if str(pokemon_id) not in pokemon_names:
-        return False
+        return None
 
     evolutions = list()
     evolutions.append(pokemon_id)
@@ -33,7 +33,7 @@ def get_evolutions_from_gamemaster(pokemon_id,gamemaster_data,pokemon_names):
             break
     # Not found
     if found == False:
-        return False
+        return None
 
     while "evolutionBranch" in x[1]["pokemonSettings"]:
         found = False
@@ -74,7 +74,7 @@ def get_evolutions_from_gamemaster(pokemon_id,gamemaster_data,pokemon_names):
 def get_stats_from_gamemaster(pokemon_id,gamemaster_data,pokemon_names):
     # Cancel if poke_id is not available
     if str(pokemon_id) not in pokemon_names:
-        return False
+        return None
 
     found = False
     stats = dict()
@@ -82,11 +82,11 @@ def get_stats_from_gamemaster(pokemon_id,gamemaster_data,pokemon_names):
     # Find baste stats once
     for x in gamemaster_data.items():
         if str(pokemon_id).zfill(4) in x[1]['templateId'][1:5] and 'pokemonSettings' in x[1]:
-            stats["pokemon_stats_a"] = x[1]["pokemonSettings"]["stats"]["baseAttack"]
-            stats["pokemon_stats_d"] = x[1]["pokemonSettings"]["stats"]["baseDefense"]
-            stats["pokemon_stats_s"] = x[1]["pokemonSettings"]["stats"]["baseStamina"]
+            stats["baseAttack"] = x[1]["pokemonSettings"]["stats"]["baseAttack"]
+            stats["baseDefense"] = x[1]["pokemonSettings"]["stats"]["baseDefense"]
+            stats["baseStamina"] = x[1]["pokemonSettings"]["stats"]["baseStamina"]
             found = True
             return stats
     # Finished but not found...
     if found == False:
-        return False
+        return None
