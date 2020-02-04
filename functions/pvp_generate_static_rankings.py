@@ -23,7 +23,7 @@ from pvp_functions import *
 
 ####### SETTINGS #######
 
-detailed_files = False
+detailed_files = True
 
 ########################
 
@@ -34,10 +34,9 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S')
 logger = logging.getLogger(__name__)
 
-# GameMaster Stuff
-gamemaster_file = '../static/gamemaster.json'
 
-# Read GamemasterFile
+# GameMaster stuff
+gamemaster_file = '../static/gamemaster.json'
 try:
     with open(gamemaster_file, 'r', encoding='utf-8') as f:
         gamemaster_data = json.loads(f.read())
@@ -47,13 +46,8 @@ except Exception as e:
     logger.error('%s not found' % gamemaster_file)
     sys.exit(1)
 
-# Cut gamemaster_data
-gamemaster_data = cut_gamemaster(gamemaster_data)
-
 # Pokemon names stuff
 locale_file = '../locales/pokemon.de.json'
-
-# Read locales
 try:
     with open(locale_file, 'r', encoding='utf-8') as f:
         pokemon_names = json.loads(f.read())
@@ -62,46 +56,59 @@ except Exception as e:
     logger.error('%s not found' % locale_file)
     sys.exit(1)
 
+# Pokemon base stats stuff
+base_stats_file = '../static/pokemon_base_stats.json'
+try:
+    with open(base_stats_file, 'r', encoding='utf-8') as f:
+        pokemon_base_stats = json.loads(f.read())
+except Exception as e:
+    logger.error('%s' % (repr(e)))
+    logger.error('%s not found' % base_stats_file)
+    sys.exit(1)
+
+
+
+# Cut gamemaster_data
+gamemaster_data = cut_gamemaster(gamemaster_data)
 
 # Create nice lists
-def generate_lists(league_cp, maximum_level, cp_multiplier, detailed_files):
+def generate_lists(league_cp, maximum_level, cp_multiplier, detailed_files, processname):
     # 1. Rankings only | 2. Rankings with  IVs
+    sim_level = 0
     rankings_dict = {}
     rankings_iv_dict = {}
     for i in range(1,810):
-        logger.info("Process: %.2f %% done." % float((float(i)/8))) if float((float(i)/8)) % 5 == 0 else None
+        logger.info("%s: %.2f %% done." % (processname, float((float(i)/8)))) if float((float(i)/8)) % 5 == 0 else None
         rankings_dict['pkmn_%s' % i] = []
         rankings_iv_dict['pkmn_%s' % i] = []
 
-        bases = get_stats_from_gamemaster(i,gamemaster_data,pokemon_names)
-        if bases == False:
+        bases = pokemon_base_stats[str(i)]
+        if not bases:
             continue
         base_a = int(bases["baseAttack"])
         base_d = int(bases["baseDefense"])
         base_s = int(bases["baseStamina"])
         score_dict = dict()
         k = 1
-        for iv0_a in range(0,16):
-            for iv0_d in range(0,16):
-                for iv0_s in range(0,16):
-                    max_level, cp_tmp  = get_maximum_level(i, base_a, base_d, base_s, iv0_a, iv0_d, iv0_s, league_cp, cp_multiplier)
-                    max_cpm  = cp_multiplier[str(max_level)]
-                    rank_val = calculate_rank(base_a, base_d, base_s, iv0_a, iv0_d, iv0_s, max_cpm)
-                    score_dict[k] = {"score":rank_val, "iv0_a":iv0_a, "iv0_d":iv0_d, "iv0_s":iv0_s}
+        for iv_attack in range(0,16):
+            for iv_defense in range(0,16):
+                for iv_stamina in range(0,16):
+                    pvp_level, pvp_cp, pvp_rank = get_pvp_values(base_a, base_d, base_s, iv_attack, iv_defense, iv_stamina, league_cp, cp_multiplier, sim_level)
+                    score_dict[k] = {"pvpScore":pvp_rank, "ivAttack":iv_attack, "ivDefense":iv_defense, "ivStamina":iv_stamina}
                     k += 1
 
-        sorted_score = sorted(score_dict.items(), key=lambda item: int(item[1]['score']))
+        sorted_score = sorted(score_dict.items(), key=lambda item: int(item[1]['pvpScore']))
 
         for j in reversed(sorted_score):
-            rankings_dict['pkmn_%s' % i].append(j[1]["score"])
+            rankings_dict['pkmn_%s' % i].append(j[1]["pvpScore"])
             if detailed_files == True:
                 rankings_iv_dict['pkmn_%s' % i].append(j)
 
-    logger.info("Saving files...")
+    logger.info("%s: Saving files..." % processname)
     store_lists_as_json(league_cp, maximum_level, rankings_dict, rankings_iv_dict, detailed_files)
-    logger.info("Success")
+    logger.info("%s: Success" % processname)
     return
-    
+
 def store_lists_as_json(league_cp, maximum_level, rankings_dict, rankings_iv_dict, detailed_files):
     # Store the shittah
     file_name = '../static/pvp_rankings_%s_level_%s.json' % (league_cp, maximum_level)
@@ -121,18 +128,18 @@ logger.info("Starting... Updating status every 5%.")
 if __name__ == '__main__':
 
     processes = []
-    p = multiprocessing.Process(target=generate_lists, args=(1500, 40, cp_multiplier_40, detailed_files,))
+    p = multiprocessing.Process(target=generate_lists, args=(1500, 40, cp_multiplier_40, detailed_files, "File 1",))
     processes.append(p)
     p.start()
-    p = multiprocessing.Process(target=generate_lists, args=(1500, 41, cp_multiplier_41, detailed_files,))
+    p = multiprocessing.Process(target=generate_lists, args=(1500, 41, cp_multiplier_41, detailed_files, "File 2",))
     processes.append(p)
     p.start()
-    p = multiprocessing.Process(target=generate_lists, args=(2500, 40, cp_multiplier_40, detailed_files,))
+    p = multiprocessing.Process(target=generate_lists, args=(2500, 40, cp_multiplier_40, detailed_files, "File 3",))
     processes.append(p)
     p.start()
-    p = multiprocessing.Process(target=generate_lists, args=(2500, 41, cp_multiplier_41, detailed_files,))
+    p = multiprocessing.Process(target=generate_lists, args=(2500, 41, cp_multiplier_41, detailed_files, "File 4",))
     processes.append(p)
     p.start()
-        
+
     for process in processes:
         process.join()
