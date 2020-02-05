@@ -23,8 +23,9 @@ from time import sleep
 from geopy.geocoders import Nominatim
 import geopy
 from geopy.distance import VincentyDistance
-
-from instructions import help_text_1, help_text_2, start_text
+from functions.pvp_functions import *
+from functions.cp_multiplier import *
+from instructions import *
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s:%(lineno)d - %(levelname)s - %(message)s',
@@ -40,6 +41,8 @@ sent = dict()
 locks = dict()
 search_ids = dict()
 pokemon_name = dict()
+pokemon_evolutions = dict()
+pokemon_base_stats = dict()
 move_name = dict()
 
 location_radius = 1
@@ -583,6 +586,46 @@ def cmd_SwitchVenue(bot, update):
     logger.info('[%s@%s] Switched message style' % (userName, chat_id))
 
 
+# Funktion: Modus = 0 -> Nur Pokemon mit IV . Modus = 1 -> Auch Pokemon ohne IV
+def cmd_pvp(bot, update, args):
+    chat_id = update.message.chat_id
+    userName = update.message.from_user.username
+
+    # Welcome message
+    if args == []:
+        bot.sendMessage(chat_id, text=pvp_text)
+        return
+
+    # Lade User Einstellungen
+    pref = prefs.get(chat_id)
+    pref.set('user_active', 1)
+    pref.set_preferences()
+    
+    usage_message = 'Nutzung: "/pvp 1500 100"'
+
+    # Fange keine Eingabe ab
+    if args != []:
+        if args[0].isdigit():
+            if len(args) > 2:
+                bot.sendMessage(chat_id, text=usage_message)
+                return
+        else:
+            bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
+            return
+    else:
+        bot.sendMessage(chat_id, text='Bitte nur Zahlenwerte eingeben!')
+        return
+
+    if int(args[0]) in [1500,2500]:
+        pref.set('user_pvp_max_league', int(args[0]))
+        pref.set('user_pvp_max_rank', int(args[1]))
+        # Sende Bestaetigung
+        logger.info('[%s@%s] Set pvp to %s and %s' % (userName, chat_id, args[0], args[1]))
+        bot.sendMessage(chat_id, text='PVP Einstellungen sind: Maximale WP: %s, Maximaler Rang: %s' % (int(args[0]), int(args[1])))
+    else:
+        bot.sendMessage(chat_id, text="Wähle 1500 oder 2500")
+
+
 def cmd_status(bot, update):
     chat_id = update.message.chat_id
     userName = update.message.from_user.username
@@ -1094,6 +1137,7 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
     blacklisted_pokemon_0_90 = list()
     message_counter = 0
     blacklisted_pokemon_0_90 = config.get('EXCLUDE_POKEMON', 0).split(',')
+    pvp = False
 
     weather_icons = ['', '☀️', '☔️', '⛅', '☁️', '💨', '⛄️', '🌁']
     pokemon_forms = {30:"Sonne", 31:"Regen", 32:"Schnee", 46:"Alola", 48:"Alola", 50:"Alola", 52:"Alola", 54:"Alola", 56:"Alola", 58:"Alola", 60:"Alola", 62:"Alola", 64:"Alola", 66:"Alola", 68:"Alola", 70:"Alola", 72:"Alola", 74:"Alola", 76:"Alola", 78:"Alola", 80:"Alola", 81:"Normal", 82:"Frost", 83:"Wirbel", 84:"Schneid", 85:"Wasch", 86:"Hitze", 87:"Pflanze", 88:"Sand", 89:"Lumpen", 92:"Zenit", 93:"Land", 94:"Wolke", 95:"Sonne", 96:"West", 97:"Ost", 98:"West", 99:"Ost", 118:"Pflanze", 119:"Sand", 120:"Lumpen"}
@@ -1123,9 +1167,11 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
         user_mode = int(pref['user_mode'])
         user_send_venue = int(pref['user_send_venue'])
         user_active = int(pref['user_active'])
+        user_pvp_max_league = int(pref['user_pvp_max_league'])
+        user_pvp_max_rank = int(pref['user_pvp_max_rank'])
 
-        if user_active == 0:
-            return
+        #if user_active == 0:
+            #return
         
         lock.acquire()
 
@@ -1205,7 +1251,7 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                 # Second: Calculate Pokémon level
                 pkmnlvl = getPokemonLevel(cpm)
 
-                # Third: Filter IV/CP/LVL with user_settings
+                # Third: Filter IV/CP/LVL/PVP with user_settings
                 if float(iv) < user_iv_min or float(iv) > user_iv_max:
                     continue
                 if int(cp) < user_cp_min or int(cp) > user_cp_max:
@@ -1219,6 +1265,58 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                 if int(iv_stamina) < user_stamina_min or int(iv_stamina) > user_stamina_max:
                     continue
 
+                # NEW PVP filter
+                if user_pvp_max_league and int(form) not in pokemon_forms:
+                    print("%s %s %s %s %s %s" % (pok_id, iv_attack, iv_defense, iv_stamina, pkmnlvl, cp))
+                    #print("WP:%s, A: %s, D: %s, S: %s" % (cp, iv_attack, iv_defense, iv_stamina))
+                    if int(cp) > int(user_pvp_max_league):
+                        continue
+
+                    prepared_pvp_message = '*PVP 1500 Liga:*\n\n'
+                    base = []
+                    evos = pokemon_evolutions[str(pok_id)]
+                    #print(evos)
+                    for x in evos:
+                        base.append(pokemon_base_stats[str(x)])
+                    #print(base)
+                    ranks = []
+                    maxcp = []
+                    pvplvl = []
+                    # 1500 league first
+                    
+                    for x in base:
+                        #print("%s %s %s %s %s %s %s %s %s" % (x['baseAttack'],x['baseDefense'],x['baseStamina'],int(iv_attack),int(iv_defense),int(iv_stamina),user_pvp_max_league,cp_multiplier_40,int(pkmnlvl)))
+                        max_l, max_cp, rank_val = get_pvp_values(x['baseAttack'],x['baseDefense'],x['baseStamina'],
+                                              int(iv_attack),int(iv_defense),int(iv_stamina),user_pvp_max_league,cp_multiplier_40,int(pkmnlvl))
+                        maxcp.append(max_cp)
+                        ranks.append(rank_val)
+                        pvplvl.append(max_l)
+
+
+                    ranking_1500 = []
+                    #ranking_2500 = []
+                    perfection_1500 = []
+                    #perfection_2500 = []
+                    i = 0
+                    for x in evos:
+                        if pvplvl[i] == False:
+                            continue
+                        ranklist_1500 = ranking_data_1500['pkmn_%s' % x]
+                        #ranklist_2500 = ranking_data_1500['pkmn_%s' % x]
+                        ranking_1500.append(ranklist_1500.index(ranks[i])+1)
+                        #ranking_2500.append(ranklist_2500.index(ranks[i])+1)
+                        perfection_1500.append(100*(ranks[i]/ranklist_1500[0]))
+                        #perfection_2500.append(100*(ranks[i]/ranklist_2500[0]))
+                        i += 1
+                    #print(ranking_1500)
+                    add_pvp_message = ''
+                    for k in range(0, len(ranking_1500)):
+                        if int(ranking_1500[k]) < user_pvp_max_rank and maxcp[k] <= user_pvp_max_league:
+                            pvp = True
+                            if maxcp[k] > cp:
+                                add_pvp_message += "*%s* - *Rang:*%s - *WP:*%s@*Level:*%s (%.2f%%)\n" % (pokemon_name[lan][str(evos[k])], ranking_1500[k], maxcp[k], pvplvl[k], float(perfection_1500[k]))
+                            else:
+                                add_pvp_message += "*%s* - Zu hohe WP auf Level: %s!" % (pokemon_name[lan][str(evos[k])], pkmnlvl)
 
                 # Fourth: Build message
                 pkmname =  pokemon_name[lan][pok_id]
@@ -1238,6 +1336,10 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                     else:
                         move2Name = 'Unbekannt'
                     title += "*Moves*: %s/%s" % (move1Name, move2Name)
+                    
+                    if pvp == True:
+                        title += "\n\n" + (prepared_pvp_message+add_pvp_message)
+                        pvp = False
 
 
             # If IV is unknown
@@ -1278,6 +1380,9 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                             % (pkmname, address, title), parse_mode='Markdown')
                     else:
                         bot.sendVenue(chat_id, latitude, longitude, pkmname, address)
+                    #if pvp == True:
+                        #bot.sendMessage(chat_id, text = (prepared_pvp_message+add_pvp_message), parse_mode='Markdown')
+                        #pvp = False
 
                     message_counter += 1
 
@@ -1416,6 +1521,8 @@ def ReadIncomingCommand(bot, update, args, job_queue):
          cmd_defense_filter(bot, update, args)
     elif IncomingCommand in ['/AUSDAUER', '/STAMINA', '/STA']:
          cmd_stamina_filter(bot, update, args)
+    elif IncomingCommand in ['/PVP']:
+         cmd_pvp(bot, update, args)
 
     # With job_queue
     elif IncomingCommand in ['/LADEN', '/LOAD']:
@@ -1441,6 +1548,22 @@ def main():
             read_pokemon_names(file.split('.')[1])
         if fnmatch.fnmatch(file, 'moves.*.json'):
             read_move_names(file.split('.')[1])
+
+     # Read stats files
+    global pokemon_base_stats
+    with open('static/pokemon_base_stats.json', 'r', encoding='utf-8') as f:
+        pokemon_base_stats = json.loads(f.read())
+    global pokemon_evolutions
+    with open('static/pokemon_evolutions.json', 'r', encoding='utf-8') as f:
+        pokemon_evolutions = json.loads(f.read())
+
+    # Read ranking files
+    global ranking_data_1500
+    global ranking_data_2500
+    with open('static/pvp_rankings_1500_level_40.json', 'r', encoding='utf-8') as f:
+        ranking_data_1500 = json.loads(f.read())
+    with open('static/pvp_rankings_2500_level_40.json', 'r', encoding='utf-8') as f:
+        ranking_data_2500 = json.loads(f.read())
 
     global dataSource
     dataSource = None
@@ -1478,7 +1601,8 @@ def main():
         'Level','Lvl',
         'Angriff','Attack','Atk',
         'Verteidigung','Defense','Def',
-        'Ausdauer','Stamina','Sta']
+        'Ausdauer','Stamina','Sta',
+        'Pvp']
 
     dp.add_handler(CommandHandler(AvailableCommands, ReadIncomingCommand, pass_args = True, pass_job_queue=True))
     dp.add_handler(MessageHandler(Filters.location, cmd_location))

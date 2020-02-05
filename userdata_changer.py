@@ -4,25 +4,18 @@ import os
 allids = os.listdir("userdata/")
 newids = []
 
-input = '    "user_active":1\n' + '}'
+to_add = ["user_pvp_max_league", "user_pvp_max_rank"]
 
 
 for x in allids:
     filename = "userdata/" + x
 
-    f = open(filename, "r")
-    lines = f.readlines()
-    f.close()
+    with open(filename, 'r', encoding='utf-8') as f:
+        user_settings = json.loads(f.read())
+    print(user_settings)
+    for i in to_add:
+        user_settings[i] = None
+    print(user_settings)
+    with open(filename, 'w') as fp:
+        json.dump(user_settings, fp)
 
-    last_line = lines[:-1]
-    last_element = last_line[-1]
-    mod_last_element = ''.join((last_element[:-1],',\n'))
-    lines = lines[:-2]
-    lines.append(mod_last_element)
-    lines.append(input)
-
-    f = open(filename, "w")
-    for line in lines:
-        #if line!= "}":
-        f.write(line)
-    f.close()
