@@ -1,7 +1,7 @@
 import math
 
 
-def get_maximum_level(base_attack, base_defense, base_stamina, iv_attack, iv_defense, iv_stamina, league_cp, cp_multiplier, spawn_level):
+def get_maximum_level(base_attack, base_defense, base_stamina, iv_attack, iv_defense, iv_stamina, league_cp, cp_multiplier):
     for level in cp_multiplier:
         cp = calculate_cp(base_attack, base_defense, base_stamina, iv_attack, iv_defense, iv_stamina, cp_multiplier[str(level)])
         if cp > league_cp:
@@ -23,10 +23,8 @@ def calculate_rank(base_attack, base_defense, base_stamina, iv_attack, iv_defens
     return math.pow(max_cpm,2)*(base_attack+iv_attack)*(base_defense+iv_defense)*math.floor(max_cpm*(base_stamina+iv_stamina))
 
 
-def get_pvp_values(base_attack, base_defense, base_stamina, iv_attack, iv_defense, iv_stamina, league_cp, cp_multiplier, spawn_level):
-    pvp_level = get_maximum_level(base_attack, base_defense, base_stamina, iv_attack, iv_defense, iv_stamina, league_cp, cp_multiplier, spawn_level)
-    if pvp_level == False:
-        return False, False, False
+def get_pvp_values(base_attack, base_defense, base_stamina, iv_attack, iv_defense, iv_stamina, league_cp, cp_multiplier):
+    pvp_level = get_maximum_level(base_attack, base_defense, base_stamina, iv_attack, iv_defense, iv_stamina, league_cp, cp_multiplier)
     pvp_cp = calculate_cp(base_attack, base_defense, base_stamina, iv_attack, iv_defense, iv_stamina, cp_multiplier[str(pvp_level)])
     pvp_rank = calculate_rank(base_attack, base_defense, base_stamina, iv_attack, iv_defense, iv_stamina, cp_multiplier[str(pvp_level)])
 

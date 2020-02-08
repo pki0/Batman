@@ -97,12 +97,8 @@ start_text = "Hallo *%s*.\nDein Bot ist nun im Einstellungsmodus. " + \
     "*Fahre fort mit* /hilfe *um die möglichen Befehle aufzulisten.*\n"
 
 pvp_text = "Willkommen im neuen PVP Modus!\n" + \
-    "Im PVP Modus kannst du deine geünschte Liga und ein maximales Ranking festlegen. " + \
+    "Im PVP Modus kannst du deine gewünschte Liga und ein maximales Ranking festlegen. " + \
     "Die Berechnung der Ränge wird nach dem bekannten Muster durchgeführt, den Internetseiten, wie " + \
     "PokeBattler, GoStaduim oder PogoStat benutzen.\n\n" + \
-    "Beachte, dass Batman dir hierfür jedesmal eine zusätzliche Nachricht senden wird.\n\n" + \
-    "Um zu starten, gib nun z.B. einfach `/pvp 1500 100` ein. Das bedeutet, dass das Pokßemon nur " + \
-    "dann gepostet wird, wenn es unter den TOP 100 der 1500er Liga mitspielt.\n" + \
-    "Du kannst natürlich auch `/pvp 2500 500` eingeben und wenn das Pokémon in der 1500er oder 2500er Liga " + \
-    "in den TOP 500 ist, wird es dir gepostet.\n\n" + \
-    "Hinweis: Formen, wie ALOLA oder Formeo werden noch nicht unterstützt!"
+    "Beachte, dass Batman dir hierfür jedesmal eine zusätzliche Nachricht senden wird, wenn du den Ein-Zeilen Modus verwendest.\n\n" + \
+    "Hinweis: Formen, wie ALOLA oder Formeo-Sonne werden noch nicht unterstützt!"
