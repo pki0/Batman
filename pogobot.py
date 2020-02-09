@@ -1340,14 +1340,18 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                     continue
 
                 # NEW PVP filter
-                if (user_pvp_league_1500 == True or user_pvp_league_2500 == True) and (int(form) not in pokemon_forms):
+                if (user_pvp_league_1500 == True or user_pvp_league_2500 == True):
+                    if (int(form) in pokemon_forms):
+                        continue
                     #print("%s %s %s %s %s %s" % (pok_id, iv_attack, iv_defense, iv_stamina, pkmnlvl, cp))
                     
                     # FIRST: 1500 L40
                     if user_pvp_league_1500 == True:
-                        prepared_pvp_message = '*PVP 1500 Liga:*\n\n'
+                        league_cp = 1500
 
-                        if int(cp) <= 1500:
+
+                        if int(cp) <= league_cp:
+                            prepared_pvp_message = '*PVP %s Liga:*\n\n' % league_cp
                             base_stats = []
                             # Get evolutions
                             pokemon_evos = pokemon_evolutions[str(pok_id)]
@@ -1370,7 +1374,7 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                             for x in base_stats:
                                 max_level, max_cp, ranking_score = get_pvp_values(x['baseAttack'],x['baseDefense'],x['baseStamina'],
                                                                              int(iv_attack),int(iv_defense),int(iv_stamina),
-                                                                             1500,cp_multiplier_to_use)
+                                                                             league_cp,cp_multiplier_to_use)
                                 # ... and put them in these lists
                                 maxcp.append(max_cp)
                                 pvplvl.append(max_level)
@@ -1391,10 +1395,9 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                                 i += 1
 
                             additional_pvp_message = ''
-                            send_with_pvp = False
                             for k in range(0, len(ranking_1500)):
                                 # We have at leat one Pokemon that meets the criteria: Ranking < user_pvp_max_rank AND pvplvl >= spawnlevel
-                                if int(ranking_1500[k]) <= int(user_pvp_max_rank) and float(pvplvl[k]) >= pkmnlvl:
+                                if int(ranking_1500[k]) <= int(user_pvp_max_rank) and float(pvplvl[k]) >= pkmnlvl and maxcp[k] > (league_cp-200):
                                     send_with_pvp = True
                                     # Build message for pvp
                                     additional_pvp_message += "*%s* - *Rang:*%s - *WP:*%s@*Level:*%s (%.2f%%)\n" % (pokemon_name[lan][str(pokemon_evos[k])], ranking_1500[k], maxcp[k], pvplvl[k], float(perfection_1500[k]))
