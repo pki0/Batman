@@ -1349,7 +1349,6 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                     if user_pvp_league_1500 == True:
                         league_cp = 1500
 
-
                         if int(cp) <= league_cp:
                             prepared_pvp_message = '*PVP %s Liga:*\n\n' % league_cp
                             base_stats = []
@@ -1407,7 +1406,9 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                                 continue
                             else:
                                 pvp_message = prepared_pvp_message + additional_pvp_message
-
+                        # Skip if cp > league_cp
+                        else:
+                            continue
 
                 # Fourth: Build message
                 pkmname =  pokemon_name[lan][pok_id]
@@ -1428,7 +1429,7 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                         move2Name = 'Unbekannt'
                     title += "*Moves*: %s/%s" % (move1Name, move2Name)
                     
-                    if send_with_pvp == True:
+                    if send_with_pvp == True and user_send_venue == 0:
                         title += "\n\n" + (pvp_message)
 
 
