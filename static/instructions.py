@@ -96,7 +96,33 @@ start_text = "Hallo *%s*.\nDein Bot ist nun im Einstellungsmodus. " + \
     "Bitte denk daran deine Einstellungen immer zu *speichern* mit /speichern.\n\n" + \
     "*Fahre fort mit* /hilfe *um die möglichen Befehle aufzulisten.*\n"
 
-pvp_text = "Willkommen im neuen PVP Modus!\n" + \
+config_main_text = "*Einstellungen*\n\n" + \
+    "*Pokémon hinzugüfen:* Füge Pokémon anhand ihre Nummer oder ihres Namens hinzu. Du kannst auch Alle " + \
+    "Pokémon hinzufügen indem du einfach __alle__ schreibst oder z.B. __Gen1__ für Generation 1.\n\n" + \
+    "*Pokémon entfernen:* Lösche Pokémon aus deiner Liste, indem du die Nummer oder den Namen eingibst. " + \
+    "Analog zur der Hinzufügen-Funktion kannst du auch __alle__ oder Generationen wählen.\n\n" + \
+    "*Pokémon Einstellungen:* Hier kannst du deine IV, WP und Level Einstellungen vornehmen. Zudem gibt es " + \
+    "eine Einstellung, ob nur Pokémon mit IV oder gernerell Alle versendet werden sollen.\n\n" + \
+    "*Standort Einstellungen:* Lege einen neuen Standort fest oder verändere deinen Radius.\n\n" + \
+    "*Nachrichten Einstellungen:* Wähle zwischen dem 1-Nachrichten und 2-Nachrichten-Modus.\n\n" + \
+    "*PVP Einstellungen:* Lege fest ob du Batman im PVP-Modus betreiben willst. Wähle zwischen " + \
+    "den unterschiedlichen Ligen und lege fest, wie gut die Pokémon sein sollen.\n\n" + \
+    "Falls du Hilfe benötigst, schreibe einfach /hilfe ."
+
+config_pokemon_text = "*Pokémon-Einstellungen*\n\n" + \
+    "Lege einfach fest, welche minimalen und maximalen Werte deine Pokémon haben dürfen.\n" + \
+    "Um z.B. eine 100er Gruppe zu machen, wähle *Min IV* und *Max IV* jeweils *100*."
+
+config_location_text = "*Standort-Einstellungen*\n\n" + \
+    "Zum ändern deines Standorts, klicke auf *Standort* und sende danach über die Büroklammer einen neuen Standort.\n" + \
+    "Um den Suchradius zu verändern, klicke auf *Radius*."
+
+config_message_text = "*Nachrichten-Einstellungen*\n\n" + \
+    "Wähle den Modus, der für dich der richtige ist.\n" + \
+    "Im *1-Nachrichten-Modus* wird ein Standort mit wenig Text versendet.\n" + \
+    "Im *2-Nachrichten-Modus* wird ein Standort und eine detaillierte Nachricht über das Pokémon versendet."
+
+pvp_text = "*PVP-Einstellung*\n\n" + \
     "Im PVP Modus kannst du deine gewünschte Liga und ein maximales Ranking festlegen. " + \
     "Die Berechnung der Ränge wird nach dem bekannten Muster durchgeführt, den Internetseiten, wie " + \
     "PokeBattler, GoStaduim oder PogoStat benutzen.\n\n" + \

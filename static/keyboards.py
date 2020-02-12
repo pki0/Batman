@@ -96,5 +96,5 @@ def get_keyboard_config_message_settings(config_settings):
                        [InlineKeyboardButton("%s" % config_user_send_venue_off, callback_data='button_config_message_venue_off')],
 
                        [InlineKeyboardButton("Zurück 🔙", callback_data='button_config_back_to_main')]
-
+                      ]
     return keyboard_config_message_settings
