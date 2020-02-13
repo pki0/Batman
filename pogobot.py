@@ -19,6 +19,7 @@ import fnmatch
 import DataSources
 import Preferences
 import copy
+import re
 from time import sleep
 from geopy.geocoders import Nominatim
 import geopy
@@ -81,58 +82,65 @@ def cmd_add(bot, update, args, job_queue):
     chat_id = update.message.chat_id
     userName = update.message.from_user.username
 
+    # Correct args for idiots...
+    args_tmp = []
+    for x in args:
+        if ',' in x:
+            x = x.replace(',',' ')
+            x = x.split(' ')
+            if len(x) > 0:
+                for y in x:
+                    if y != '':
+                        args_tmp.append(y)
+        else:
+            args_tmp.append(x)
+
+
+    # Now check if somewhere is a special character...
+    for x in args_tmp:
+        if not re.match("^[a-zA-Z0-9_]*$", x):
+            bot.sendMessage(chat_id, text="Du hast irgendwo einen Fehler in deiner Eingabe! Bitte versuche es erneut.")
+            return
+
+    args = args_tmp
+
     pref = prefs.get(chat_id)
     pref.set('user_active', 1)
     lan = pref.get('language')
     pokemon_ids = list()
-    
+
     usage_message = 'Nutzung:\n/pokemon #Nummer oder /pokemon #Nummer1 #Nummer2\n' + \
     '/pokemon #Name oder /pokemon #Name1 #Name2 ... (Ohne #)'
 
-    # Check Args to prevent wrong input
-    if args[0].find(',') >= 0:
-        args = args[0].split(',')
-    else:
-        for x in args:
-            if x.find(',') >= 0:
-                bot.sendMessage(chat_id, text=usage_message)
-                return
+    if len(args) <= 0:
+        bot.sendMessage(chat_id, text=usage_message)
+        return
 
-    if args != []:
-        if len(args) <= 0:
-            bot.sendMessage(chat_id, text=usage_message)
-            return
+    if not args[0].isdigit():
+        if len(args) == 1 and args[0].upper() in ('GEN1', 'GEN2', 'GEN3', 'GEN4', 'GEN5', 'ALLE', 'ALL'):
+                if args[0].upper() == 'GEN1':
+                    args = list(range(1, 152))
+                elif args[0].upper() == 'GEN2':
+                    args = list(range(152, 252))
+                elif args[0].upper() == 'GEN3':
+                    args = list(range(252, 387))
+                elif args[0].upper() == 'GEN4':
+                    args = list(range(387, 493))
+                elif args[0].upper() == 'GEN5':
+                    args = list(range(493, 649))
+                elif args[0].upper() in ['ALLE', 'ALL']:
+                    args = list(range(1, 649))
 
-        if not args[0].isdigit():
-            if len(args) == 1 and args[0].upper() in ('GEN1', 'GEN2', 'GEN3', 'GEN4', 'GEN5', 'ALLE', 'ALL'):
-                    if args[0].upper() == 'GEN1':
-                        args = list(range(1, 152))
-                    elif args[0].upper() == 'GEN2':
-                        args = list(range(152, 252))
-                    elif args[0].upper() == 'GEN3':
-                        args = list(range(252, 387))
-                    elif args[0].upper() == 'GEN4':
-                        args = list(range(387, 493))
-                    elif args[0].upper() == 'GEN5':
-                        args = list(range(493, 649))
-                    elif args[0].upper() in ['ALLE', 'ALL']:
-                        args = list(range(1, 649))
-
-            else:
-                for x in args:
+        else:
+            for x in args:
+                if int(x) > 721 or int(x) <= 0:
+                    bot.sendMessage(chat_id, text='Bitte keine Pokemonnummer über 721 eingeben!')
+                    return
+                else:
                     for poke_id, name in pokemon_name[lan].items():
                         if x.upper() in name.upper():
                             pokemon_ids.append(str(poke_id))
-                if len(pokemon_ids) < 1:
-                    bot.sendMessage(chat_id, text='*Ich habe nicht alle Pokémon gefunden! Bitte versuche es erneut.*', parse_mode='Markdown')
-                    return
-
-                args = pokemon_ids
-
-    for x in args:
-        if int(x) > 721 or int(x) <= 0:
-            bot.sendMessage(chat_id, text='Bitte keine Pokemonnummer über 721 eingeben!')
-            return
+            args = pokemon_ids
 
     addJob(bot, update, job_queue)
     logger.info('[%s@%s] Add pokemon.' % (userName, chat_id))
@@ -172,6 +180,28 @@ def cmd_remove(bot, update, args, job_queue):
     chat_id = update.message.chat_id
     userName = update.message.from_user.username
 
+    # Correct args for idiots...
+    args_tmp = []
+    for x in args:
+        if ',' in x:
+            x = x.replace(',',' ')
+            x = x.split(' ')
+            if len(x) > 0:
+                for y in x:
+                    if y != '':
+                        args_tmp.append(y)
+        else:
+            args_tmp.append(x)
+
+
+    # Now check if somewhere is a special character...
+    for x in args_tmp:
+        if not re.match("^[a-zA-Z0-9_]*$", x):
+            bot.sendMessage(chat_id, text="Du hast irgendwo einen Fehler in deiner Eingabe! Bitte versuche es erneut.")
+            return
+
+    args = args_tmp
+
     pref = prefs.get(chat_id)
     pref.set('user_active', 1)
     addJob(bot, update, job_queue)
@@ -186,45 +216,31 @@ def cmd_remove(bot, update, args, job_queue):
         #'Bitte füge erst Pokémon zu deiner Liste hinzu mit /pokemon 1 2 3 ...')
         #return
 
-    # Check Args to prevent wrong input
-    if args[0].find(',') >= 0:
-        args = args[0].split(',')
-    else:
-        for x in args:
-            if x.find(',') >= 0:
-                bot.sendMessage(chat_id, text=usage_message)
-                return
+    if len(args) <= 0:
+        bot.sendMessage(chat_id, text=usage_message)
+        return
 
-    if args != []:
-        if len(args) <= 0:
-            bot.sendMessage(chat_id, text=usage_message)
-            return
+    if not args[0].isdigit():
+        if len(args) == 1 and args[0].upper() in ('GEN1', 'GEN2', 'GEN3', 'GEN4', 'GEN5', 'ALLE', 'ALL'):
+                if args[0].upper() == 'GEN1':
+                    args = list(range(1, 152))
+                elif args[0].upper() == 'GEN2':
+                    args = list(range(152, 252))
+                elif args[0].upper() == 'GEN3':
+                    args = list(range(252, 387))
+                elif args[0].upper() == 'GEN4':
+                    args = list(range(387, 493))
+                elif args[0].upper() == 'GEN5':
+                    args = list(range(493, 649))
+                elif args[0].upper() in ['ALLE', 'ALL']:
+                    args = list(range(1, 649))
 
-        if not args[0].isdigit():
-            if len(args) == 1 and args[0].upper() in ('GEN1', 'GEN2', 'GEN3', 'GEN4', 'GEN5', 'ALLE', 'ALL'):
-                    if args[0].upper() == 'GEN1':
-                        args = list(range(1, 152))
-                    elif args[0].upper() == 'GEN2':
-                        args = list(range(152, 252))
-                    elif args[0].upper() == 'GEN3':
-                        args = list(range(252, 387))
-                    elif args[0].upper() == 'GEN4':
-                        args = list(range(387, 493))
-                    elif args[0].upper() == 'GEN5':
-                        args = list(range(493, 649))
-                    elif args[0].upper() in ['ALLE', 'ALL']:
-                        args = list(range(1, 649))
-
-            else:
-                for x in args:
-                    for poke_id, name in pokemon_name[lan].items():
-                        if x.upper() in name.upper():
-                            pokemon_ids.append(str(poke_id))
-                if len(pokemon_ids) < 1:
-                    bot.sendMessage(chat_id, text='*Ich habe nicht alle Pokémon gefunden! Bitte versuche es erneut.*', parse_mode='Markdown')
-                    return
-
-                args = pokemon_ids
+        else:
+            for x in args:
+                for poke_id, name in pokemon_name[lan].items():
+                    if x.upper() in name.upper():
+                        pokemon_ids.append(str(poke_id))
+            args = pokemon_ids
 
     try:
         search = pref.get('search_ids')
@@ -1670,7 +1686,7 @@ def ReadIncomingCommand(bot, update, args, job_queue):
         cmd_load(bot, update, job_queue)
     elif IncomingCommand in ['/ADD', '/POKEMON']:
         cmd_add(bot, update, args, job_queue)
-    elif IncomingCommand in ['/ENTFERNE', '/REM']:
+    elif IncomingCommand in ['/ENTFERNE', '/REM', '/RM']:
         cmd_remove(bot, update, args, job_queue)
     elif IncomingCommand in ['/STANDORT', '/LOCATION']:
         cmd_location_str(bot, update, args, job_queue)
