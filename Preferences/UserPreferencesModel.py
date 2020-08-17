@@ -38,7 +38,7 @@ class UserPreferencesModel(object):
             user_maxcp = 5000,
             user_minlvl = 0,
             user_maxlvl = 40,
-            user_mode = 1,
+            user_mode = 0,
             user_send_venue = 1,
             user_active = 1,
             user_pvp_league_1500 = False,
