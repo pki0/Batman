@@ -81,7 +81,8 @@ help_text_2 = "/entferne 1\n" + \
     "Damit kannst du alle deine Einstellungen löschen und den Bot ausschalten. Du kannst ihn danach mit /laden " + \
     "wieder einschalten und deine Einstellungen werden geladen.\n" + \
     "Um den Bot komplett abzuschalten drücke im Chat oben auf 'Batman' und dann auf die drei Punkte. " + \
-    "Wähle 'Bot anhalten' um ihn komplett auszuschalten."
+    "Wähle 'Bot anhalten' um ihn komplett auszuschalten." + \
+    "\n\n*NEU: /pvp*\nPVP-Modus. Wähle 1500er oder 2500er Liga (nur eine zur Zeit möglich)."
 
 start_text = "Hallo *%s*.\nDein Bot ist nun im Einstellungsmodus. " + \
     "*Weitere Schritte:* \n\n" + \

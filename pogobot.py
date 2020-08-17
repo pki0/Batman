@@ -85,7 +85,7 @@ def cmd_add(bot, update, args, job_queue):
     pref.set('user_active', 1)
     lan = pref.get('language')
     pokemon_ids = list()
-    
+
     usage_message = 'Nutzung:\n/pokemon #Nummer oder /pokemon #Nummer1 #Nummer2\n' + \
     '/pokemon #Name oder /pokemon #Name1 #Name2 ... (Ohne #)'
 
@@ -535,7 +535,7 @@ def cmd_Mode(bot, update, args):
     pref = prefs.get(chat_id)
     pref.set('user_active', 1)
     pref.set_preferences()
-    
+
     usage_message = 'Nutzung: "/modus 0" oder "/modus 1" (Einen Wert: 0 oder 1!)'
 
     # Fange keine Eingabe ab
@@ -627,7 +627,7 @@ def cmd_pvp(bot, update):
 
     keyboard = get_keyboard_pvp(pvp_settings)
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
+
 
     if hasattr(update, 'callback_query') and update.callback_query is None:
         bot.sendMessage(chat_id, text=pvp_text, reply_markup=reply_markup)
@@ -648,6 +648,7 @@ def pvp_buttons(bot, update):
     if query.data == 'button_pvp_1500_league':
         if not pref['user_pvp_league_1500']:
             pref.set('user_pvp_league_1500', True)
+            pref.set('user_pvp_league_2500', False)
             pref.set('user_maxcp', 1500)
             pref.set('user_mode', 0)
         else:
@@ -656,6 +657,7 @@ def pvp_buttons(bot, update):
     elif query.data == 'button_pvp_2500_league':
         if not pref['user_pvp_league_2500']:
             pref.set('user_pvp_league_2500', True)
+            pref.set('user_pvp_league_1500', False)
             pref.set('user_maxcp', 2500)
             pref.set('user_mode', 0)
         else:
@@ -930,7 +932,7 @@ def cmd_load_silent(bot, chat_id, job_queue):
 
     # We might be the first user and above failed....
     if len(pref.get('search_ids')) > 0:
-    
+
         addJob_silent(bot, chat_id, job_queue)
         miniv = pref.get('user_miniv')
         maxiv = pref.get('user_maxiv')
@@ -1108,7 +1110,7 @@ def checkAndSetUserDefaults(pref, bot, chat_id):
     if pref.get('user_maxlvl') is None:
         pref.set('user_maxlvl', 40)
     if pref.get('user_mode') is None:
-        pref.set('user_mode', 1)
+        pref.set('user_mode', 0)
 
     loc = pref.get('location')
     if loc[0] is None or loc[1] is None:
@@ -1243,7 +1245,7 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
 
         if user_active == 0:
             return
-        
+
         lock.acquire()
 
         for pokemon in pokemon_db_data:
@@ -1344,10 +1346,14 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                     if (int(form) in pokemon_forms):
                         continue
                     #print("%s %s %s %s %s %s" % (pok_id, iv_attack, iv_defense, iv_stamina, pkmnlvl, cp))
-                    
-                    # FIRST: 1500 L40
+
+                    # FIRST: 1500
                     if user_pvp_league_1500 == True:
                         league_cp = 1500
+                    elif user_pvp_league_2500 == True:
+                        league_cp = 2500
+
+                    if league_cp > 0:
 
                         if int(cp) <= league_cp:
                             prepared_pvp_message = '*PVP %s Liga:*\n\n' % league_cp
@@ -1362,12 +1368,21 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                             pvplvl = []
 
                             # Choose cp_multiplier
+
                             if user_pvp_buddy == True:
                                 cp_multiplier_to_use = cp_multiplier_41
-                                ranking_list_to_use = ranking_data_1500_41
-                            else:
+                                if user_pvp_league_1500 == True:
+                                    ranking_list_to_use = ranking_data_1500_41
+                                elif user_pvp_league_2500 == True:
+                                    ranking_list_to_use = ranking_data_2500_41
+                            elif user_pvp_buddy == False:
                                 cp_multiplier_to_use = cp_multiplier_40
-                                ranking_list_to_use = ranking_data_1500_40
+                                if user_pvp_league_1500 == True:
+                                    ranking_list_to_use = ranking_data_1500_40
+                                elif user_pvp_league_2500 == True:
+                                    ranking_list_to_use = ranking_data_2500_40
+
+
 
                             # Get max_level, max_cp and own pvp ranking_score for all evolutions...
                             for x in base_stats:
@@ -1386,7 +1401,7 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                             perfection_1500 = []
                             i = 0
 
-                            # Find index in the complete ranking lists 
+                            # Find index in the complete ranking lists
                             for x in pokemon_evos:
                                 ranklist_1500 = ranking_list_to_use['pkmn_%s' % x]
                                 ranking_1500.append(ranklist_1500.index(ranks[i])+1)
@@ -1428,7 +1443,7 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                     else:
                         move2Name = 'Unbekannt'
                     title += "*Moves*: %s/%s" % (move1Name, move2Name)
-                    
+
                     if send_with_pvp == True and user_send_venue == 0:
                         title += "\n\n" + (pvp_message)
 
@@ -1456,7 +1471,7 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
 
             if message_counter > 10:
                 bot.sendMessage(chat_id, text = 'Zu viele Pokemon eingestellt! '
-                    'Erhöhe die Minimum IV, verwende /modus 1 oder Entferne Pokemon.\n\n'
+                    'Erhöhe die Minimum IV, verwende /modus 0 oder Entferne Pokemon.\n\n'
                     'Du wurdest von den Benachrichtigungen entfernt, weil du zu viele Pokémon eingestellt hast! Beginne erneut mit /start')
 
                 cmd_remove_user(bot, chat_id)
