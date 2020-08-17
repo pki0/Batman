@@ -738,10 +738,10 @@ def pvp_buttons(bot, update):
         bot.editMessageText(text=text, chat_id=chat_id, message_id=query.message.message_id, reply_markup=None, parse_mode='Markdown')
         return PVP_RANK
 
-    #elif query.data == 'button_pvp_finished':
-        #text = "Gespeichert!\n\nDieses Menü erreichst du jederzeit mit /pvp ."
-        #bot.editMessageText(text=text, chat_id=chat_id, message_id=query.message.message_id, reply_markup=None)
-        #return ConversationHandler.END
+    elif query.data == 'button_pvp_finished':
+        text = "Gespeichert!\n\nDieses Menü erreichst du jederzeit mit /pvp ."
+        bot.editMessageText(text=text, chat_id=chat_id, message_id=query.message.message_id, reply_markup=None)
+        return ConversationHandler.END
 
     pref.set_preferences()
 
@@ -1677,7 +1677,7 @@ def ReadIncomingCommand(bot, update, args, job_queue):
         cmd_clear(bot, update)
     elif IncomingCommand in ['/PVP']:
          cmd_pvp(bot, update)
-    elif IncomingCommand in ['/CONFIG']:
+    elif IncomingCommand in ['/CONFIGTEST']:
          cmd_config(bot, update)
 
 
@@ -1766,7 +1766,7 @@ def main():
     dp = updater.dispatcher
 
     AvailableCommands = ['Add','Pokemon',
-        'Config',
+        'Configtest',
         'Nachricht',
         'Start',
         'Status',
@@ -1806,7 +1806,8 @@ def main():
                     ],
             CONFIG_SET_VARS: [MessageHandler(callback=config_set_vars, filters=Filters.all)]
         },
-        fallbacks=[CallbackQueryHandler(config_buttons, pattern='^button_config_main_finished$')]
+        #fallbacks=[CallbackQueryHandler(config_buttons, pattern='^button_config_main_finished$')]
+        fallbacks=[CallbackQueryHandler(pvp_buttons, pattern='^button_pvp_finished$')]
     )
     dp.add_handler(conv_pvp_handler)
     dp.add_handler(CommandHandler(AvailableCommands, ReadIncomingCommand, pass_args = True, pass_job_queue=True))

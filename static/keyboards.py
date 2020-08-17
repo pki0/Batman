@@ -7,8 +7,9 @@ def get_keyboard_pvp(pvp_settings):
 
                     [InlineKeyboardButton("Maximaler Rang: %s" % pvp_settings['user_pvp_max_rank'], callback_data='button_pvp_max_rank'),
                      InlineKeyboardButton("Buddy: %s" % pvp_settings['buddy_sign'], callback_data='button_pvp_buddy')],
-                
-                    [InlineKeyboardButton("Zurück 🔙", callback_data='button_config_back_to_main')]
+
+                    #[InlineKeyboardButton("Zurück 🔙", callback_data='button_config_back_to_main')]
+                    [InlineKeyboardButton("Fertig", callback_data='button_pvp_finished')]
                    ]
 
     return keyboard_pvp
