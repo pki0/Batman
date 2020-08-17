@@ -19,14 +19,15 @@ import fnmatch
 import DataSources
 import Preferences
 import copy
+import re
 from time import sleep
 from geopy.geocoders import Nominatim
 import geopy
 from geopy.distance import VincentyDistance
 from functions.pvp_functions import *
 from functions.cp_multiplier import *
-from instructions import *
-from functions.keyboards import *
+from static.instructions import *
+from static.keyboards import *
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s:%(lineno)d - %(levelname)s - %(message)s',
@@ -50,7 +51,7 @@ location_radius = 1
 # Mysql data
 thismodule = sys.modules[__name__]
 
-PVP_BUTTONS, PVP_RANK = range(2)
+PVP_BUTTONS, PVP_RANK, CONFIG_BUTTONS, CONFIG_SET_VARS = range(4)
 
 # Command-functions
 def cmd_help(bot, update):
@@ -81,6 +82,28 @@ def cmd_add(bot, update, args, job_queue):
     chat_id = update.message.chat_id
     userName = update.message.from_user.username
 
+    # Correct args for idiots...
+    args_tmp = []
+    for x in args:
+        if ',' in x:
+            x = x.replace(',',' ')
+            x = x.split(' ')
+            if len(x) > 0:
+                for y in x:
+                    if y != '':
+                        args_tmp.append(y)
+        else:
+            args_tmp.append(x)
+
+
+    # Now check if somewhere is a special character...
+    for x in args_tmp:
+        if not re.match("^[a-zA-Z0-9_]*$", x):
+            bot.sendMessage(chat_id, text="Du hast irgendwo einen Fehler in deiner Eingabe! Bitte versuche es erneut.")
+            return
+
+    args = args_tmp
+
     pref = prefs.get(chat_id)
     pref.set('user_active', 1)
     lan = pref.get('language')
@@ -89,50 +112,35 @@ def cmd_add(bot, update, args, job_queue):
     usage_message = 'Nutzung:\n/pokemon #Nummer oder /pokemon #Nummer1 #Nummer2\n' + \
     '/pokemon #Name oder /pokemon #Name1 #Name2 ... (Ohne #)'
 
-    # Check Args to prevent wrong input
-    if args[0].find(',') >= 0:
-        args = args[0].split(',')
-    else:
-        for x in args:
-            if x.find(',') >= 0:
-                bot.sendMessage(chat_id, text=usage_message)
-                return
+    if len(args) <= 0:
+        bot.sendMessage(chat_id, text=usage_message)
+        return
 
-    if args != []:
-        if len(args) <= 0:
-            bot.sendMessage(chat_id, text=usage_message)
-            return
+    if not args[0].isdigit():
+        if len(args) == 1 and args[0].upper() in ('GEN1', 'GEN2', 'GEN3', 'GEN4', 'GEN5', 'ALLE', 'ALL'):
+                if args[0].upper() == 'GEN1':
+                    args = list(range(1, 152))
+                elif args[0].upper() == 'GEN2':
+                    args = list(range(152, 252))
+                elif args[0].upper() == 'GEN3':
+                    args = list(range(252, 387))
+                elif args[0].upper() == 'GEN4':
+                    args = list(range(387, 493))
+                elif args[0].upper() == 'GEN5':
+                    args = list(range(493, 649))
+                elif args[0].upper() in ['ALLE', 'ALL']:
+                    args = list(range(1, 649))
 
-        if not args[0].isdigit():
-            if len(args) == 1 and args[0].upper() in ('GEN1', 'GEN2', 'GEN3', 'GEN4', 'GEN5', 'ALLE', 'ALL'):
-                    if args[0].upper() == 'GEN1':
-                        args = list(range(1, 152))
-                    elif args[0].upper() == 'GEN2':
-                        args = list(range(152, 252))
-                    elif args[0].upper() == 'GEN3':
-                        args = list(range(252, 387))
-                    elif args[0].upper() == 'GEN4':
-                        args = list(range(387, 493))
-                    elif args[0].upper() == 'GEN5':
-                        args = list(range(493, 649))
-                    elif args[0].upper() in ['ALLE', 'ALL']:
-                        args = list(range(1, 649))
-
-            else:
-                for x in args:
+        else:
+            for x in args:
+                if int(x) > 721 or int(x) <= 0:
+                    bot.sendMessage(chat_id, text='Bitte keine Pokemonnummer über 721 eingeben!')
+                    return
+                else:
                     for poke_id, name in pokemon_name[lan].items():
                         if x.upper() in name.upper():
                             pokemon_ids.append(str(poke_id))
-                if len(pokemon_ids) < 1:
-                    bot.sendMessage(chat_id, text='*Ich habe nicht alle Pokémon gefunden! Bitte versuche es erneut.*', parse_mode='Markdown')
-                    return
-
-                args = pokemon_ids
-
-    for x in args:
-        if int(x) > 721 or int(x) <= 0:
-            bot.sendMessage(chat_id, text='Bitte keine Pokemonnummer über 721 eingeben!')
-            return
+            args = pokemon_ids
 
     addJob(bot, update, job_queue)
     logger.info('[%s@%s] Add pokemon.' % (userName, chat_id))
@@ -172,6 +180,28 @@ def cmd_remove(bot, update, args, job_queue):
     chat_id = update.message.chat_id
     userName = update.message.from_user.username
 
+    # Correct args for idiots...
+    args_tmp = []
+    for x in args:
+        if ',' in x:
+            x = x.replace(',',' ')
+            x = x.split(' ')
+            if len(x) > 0:
+                for y in x:
+                    if y != '':
+                        args_tmp.append(y)
+        else:
+            args_tmp.append(x)
+
+
+    # Now check if somewhere is a special character...
+    for x in args_tmp:
+        if not re.match("^[a-zA-Z0-9_]*$", x):
+            bot.sendMessage(chat_id, text="Du hast irgendwo einen Fehler in deiner Eingabe! Bitte versuche es erneut.")
+            return
+
+    args = args_tmp
+
     pref = prefs.get(chat_id)
     pref.set('user_active', 1)
     addJob(bot, update, job_queue)
@@ -186,45 +216,31 @@ def cmd_remove(bot, update, args, job_queue):
         #'Bitte füge erst Pokémon zu deiner Liste hinzu mit /pokemon 1 2 3 ...')
         #return
 
-    # Check Args to prevent wrong input
-    if args[0].find(',') >= 0:
-        args = args[0].split(',')
-    else:
-        for x in args:
-            if x.find(',') >= 0:
-                bot.sendMessage(chat_id, text=usage_message)
-                return
+    if len(args) <= 0:
+        bot.sendMessage(chat_id, text=usage_message)
+        return
 
-    if args != []:
-        if len(args) <= 0:
-            bot.sendMessage(chat_id, text=usage_message)
-            return
+    if not args[0].isdigit():
+        if len(args) == 1 and args[0].upper() in ('GEN1', 'GEN2', 'GEN3', 'GEN4', 'GEN5', 'ALLE', 'ALL'):
+                if args[0].upper() == 'GEN1':
+                    args = list(range(1, 152))
+                elif args[0].upper() == 'GEN2':
+                    args = list(range(152, 252))
+                elif args[0].upper() == 'GEN3':
+                    args = list(range(252, 387))
+                elif args[0].upper() == 'GEN4':
+                    args = list(range(387, 493))
+                elif args[0].upper() == 'GEN5':
+                    args = list(range(493, 649))
+                elif args[0].upper() in ['ALLE', 'ALL']:
+                    args = list(range(1, 649))
 
-        if not args[0].isdigit():
-            if len(args) == 1 and args[0].upper() in ('GEN1', 'GEN2', 'GEN3', 'GEN4', 'GEN5', 'ALLE', 'ALL'):
-                    if args[0].upper() == 'GEN1':
-                        args = list(range(1, 152))
-                    elif args[0].upper() == 'GEN2':
-                        args = list(range(152, 252))
-                    elif args[0].upper() == 'GEN3':
-                        args = list(range(252, 387))
-                    elif args[0].upper() == 'GEN4':
-                        args = list(range(387, 493))
-                    elif args[0].upper() == 'GEN5':
-                        args = list(range(493, 649))
-                    elif args[0].upper() in ['ALLE', 'ALL']:
-                        args = list(range(1, 649))
-
-            else:
-                for x in args:
-                    for poke_id, name in pokemon_name[lan].items():
-                        if x.upper() in name.upper():
-                            pokemon_ids.append(str(poke_id))
-                if len(pokemon_ids) < 1:
-                    bot.sendMessage(chat_id, text='*Ich habe nicht alle Pokémon gefunden! Bitte versuche es erneut.*', parse_mode='Markdown')
-                    return
-
-                args = pokemon_ids
+        else:
+            for x in args:
+                for poke_id, name in pokemon_name[lan].items():
+                    if x.upper() in name.upper():
+                        pokemon_ids.append(str(poke_id))
+            args = pokemon_ids
 
     try:
         search = pref.get('search_ids')
@@ -588,12 +604,60 @@ def cmd_SwitchVenue(bot, update):
     logger.info('[%s@%s] Switched message style' % (userName, chat_id))
 
 
-# Funktion: Modus = 0 -> Nur Pokemon mit IV . Modus = 1 -> Auch Pokemon ohne IV
-def cmd_pvp(bot, update):
-
-
+def cmd_config(bot, update):
     chat_id = update.message.chat_id
-    userName = update.message.from_user.username
+
+    pref = prefs.get(chat_id)
+    pref.set('user_active', 1)
+    pref.set_preferences()
+
+    keyboard = get_keyboard_config_main()
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    bot.sendMessage(chat_id, text=config_main_text, reply_markup=reply_markup, parse_mode='Markdown')
+
+    return CONFIG_BUTTONS
+
+
+def config_buttons(bot, update):
+    query = update.callback_query
+    chat_id = query.message.chat_id
+    message_id = query.message.message_id
+    pref = prefs.get(chat_id)
+    print(query.data)
+    if query.data == 'button_config_back_to_main':
+        text = "Gespeichert!\n\nDieses Menü erreichst du jederzeit mit /config ."
+        keyboard = get_keyboard_config_main()
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        bot.editMessageText(text=config_main_text, chat_id=chat_id, message_id=message_id, reply_markup=reply_markup, parse_mode='Markdown')
+        return CONFIG_BUTTONS
+    elif query.data == 'button_config_main_pokemon_settings':
+        keyboard = get_keyboard_config_pokemon_settings(pref)
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        bot.editMessageText(text=config_pokemon_text, chat_id=chat_id, message_id=message_id, reply_markup=reply_markup, parse_mode='Markdown')
+    elif query.data == 'button_config_main_location_settings':
+        keyboard = get_keyboard_config_location_settings(pref)
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        bot.editMessageText(text=config_location_text, chat_id=chat_id, message_id=message_id, reply_markup=reply_markup, parse_mode='Markdown')
+    elif query.data == 'button_config_main_message_settings':
+        keyboard = get_keyboard_config_message_settings(pref)
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        bot.editMessageText(text=config_message_text, chat_id=chat_id, message_id=message_id, reply_markup=reply_markup, parse_mode='Markdown')
+
+def config_set_vars(bot, update):
+    #
+    return
+
+
+def cmd_pvp(bot, update):
+    if (hasattr(update, 'callback_query') and update.callback_query is None) or hasattr(update, 'chat_instance'):
+        chat_id = update.message.chat_id
+        message_id = update.message.message_id
+    elif hasattr(update, 'callback_query') and update.callback_query is not None:
+        chat_id = update.callback_query.message.chat_id
+        message_id = update.callback_query.message.message_id
+
+
 
 
 
@@ -630,9 +694,9 @@ def cmd_pvp(bot, update):
 
 
     if hasattr(update, 'callback_query') and update.callback_query is None:
-        bot.sendMessage(chat_id, text=pvp_text, reply_markup=reply_markup)
+        bot.sendMessage(chat_id, text=pvp_text, reply_markup=reply_markup, parse_mode='Markdown')
     else:
-        bot.editMessageText(text=pvp_text, chat_id=chat_id, message_id=update.message.message_id, reply_markup=reply_markup)
+        bot.editMessageText(text=pvp_text, chat_id=chat_id, message_id=message_id, reply_markup=reply_markup, parse_mode='Markdown')
 
     return PVP_BUTTONS
 
@@ -671,13 +735,13 @@ def pvp_buttons(bot, update):
 
     elif query.data == 'button_pvp_max_rank':
         text = "Gib deinen gewünschten maximalen Rang ein:"
-        bot.editMessageText(text=text, chat_id=chat_id, message_id=query.message.message_id, reply_markup=None)
+        bot.editMessageText(text=text, chat_id=chat_id, message_id=query.message.message_id, reply_markup=None, parse_mode='Markdown')
         return PVP_RANK
 
-    elif query.data == 'button_pvp_finished':
-        text = "Gespeichert!\n\nDieses Menü erreichst du jederzeit mit /pvp ."
-        bot.editMessageText(text=text, chat_id=chat_id, message_id=query.message.message_id, reply_markup=None)
-        return ConversationHandler.END
+    #elif query.data == 'button_pvp_finished':
+        #text = "Gespeichert!\n\nDieses Menü erreichst du jederzeit mit /pvp ."
+        #bot.editMessageText(text=text, chat_id=chat_id, message_id=query.message.message_id, reply_markup=None)
+        #return ConversationHandler.END
 
     pref.set_preferences()
 
@@ -692,7 +756,7 @@ def pvp_set_rank(bot, update):
         pref.set('user_pvp_max_rank', update.message.text)
         return cmd_pvp(bot, update)
     else:
-        bot.sendMessage(chat_id, text='Ungültige Eingabe! Starte erneut mit /pvp .')
+        bot.sendMessage(chat_id, text='Ungültige Eingabe! Starte erneut mit /pvp .', parse_mode='Markdown')
         return ConversationHandler.END
 
 
@@ -1613,6 +1677,9 @@ def ReadIncomingCommand(bot, update, args, job_queue):
         cmd_clear(bot, update)
     elif IncomingCommand in ['/PVP']:
          cmd_pvp(bot, update)
+    elif IncomingCommand in ['/CONFIG']:
+         cmd_config(bot, update)
+
 
     # With args:
     elif IncomingCommand in ['/MODUS', '/MODE']:
@@ -1638,7 +1705,7 @@ def ReadIncomingCommand(bot, update, args, job_queue):
         cmd_load(bot, update, job_queue)
     elif IncomingCommand in ['/ADD', '/POKEMON']:
         cmd_add(bot, update, args, job_queue)
-    elif IncomingCommand in ['/ENTFERNE', '/REM']:
+    elif IncomingCommand in ['/ENTFERNE', '/REM', '/RM']:
         cmd_remove(bot, update, args, job_queue)
     elif IncomingCommand in ['/STANDORT', '/LOCATION']:
         cmd_location_str(bot, update, args, job_queue)
@@ -1699,6 +1766,7 @@ def main():
     dp = updater.dispatcher
 
     AvailableCommands = ['Add','Pokemon',
+        'Config',
         'Nachricht',
         'Start',
         'Status',
@@ -1719,19 +1787,28 @@ def main():
         'Ausdauer','Stamina','Sta',
         'Pvp']
 
-    conv_handler = ConversationHandler(
-        entry_points=[CommandHandler('pvp', cmd_pvp)],
+
+    conv_pvp_handler = ConversationHandler(
+        entry_points=[CommandHandler('pvp', cmd_pvp), CommandHandler('config', cmd_config)],
         states={
             PVP_BUTTONS: [CallbackQueryHandler(pvp_buttons, pattern='^button_pvp_1500_league$'),
                     CallbackQueryHandler(pvp_buttons, pattern='^button_pvp_2500_league$'),
                     CallbackQueryHandler(pvp_buttons, pattern='^button_pvp_buddy$'),
                     CallbackQueryHandler(pvp_buttons, pattern='^button_pvp_max_rank$'),
+                    CallbackQueryHandler(config_buttons, pattern='^button_config_back_to_main$')
                     ],
-            PVP_RANK: [MessageHandler(callback=pvp_set_rank, filters=Filters.all)]
+            PVP_RANK: [MessageHandler(callback=pvp_set_rank, filters=Filters.all)],
+            CONFIG_BUTTONS: [CallbackQueryHandler(config_buttons, pattern='^button_config_main_pokemon_settings$'),
+                    CallbackQueryHandler(config_buttons, pattern='^button_config_back_to_main$'),
+                    CallbackQueryHandler(config_buttons, pattern='^button_config_main_location_settings$'),
+                    CallbackQueryHandler(config_buttons, pattern='^button_config_main_message_settings$'),
+                    CallbackQueryHandler(cmd_pvp, pattern='^button_config_main_pvp$')
+                    ],
+            CONFIG_SET_VARS: [MessageHandler(callback=config_set_vars, filters=Filters.all)]
         },
-        fallbacks=[CallbackQueryHandler(pvp_buttons, pattern='^button_pvp_finished$')]
+        fallbacks=[CallbackQueryHandler(config_buttons, pattern='^button_config_main_finished$')]
     )
-    dp.add_handler(conv_handler)
+    dp.add_handler(conv_pvp_handler)
     dp.add_handler(CommandHandler(AvailableCommands, ReadIncomingCommand, pass_args = True, pass_job_queue=True))
     dp.add_handler(MessageHandler(Filters.location, cmd_location))
     dp.add_handler(MessageHandler((Filters.text | Filters.command), cmd_unknown))
