@@ -133,13 +133,9 @@ def cmd_add(bot, update, args, job_queue):
 
         else:
             for x in args:
-                if int(x) > 721 or int(x) <= 0:
-                    bot.sendMessage(chat_id, text='Bitte keine Pokemonnummer über 721 eingeben!')
-                    return
-                else:
-                    for poke_id, name in pokemon_name[lan].items():
-                        if x.upper() in name.upper():
-                            pokemon_ids.append(str(poke_id))
+                for poke_id, name in pokemon_name[lan].items():
+                    if x.upper() in name.upper():
+                        pokemon_ids.append(str(poke_id))
             args = pokemon_ids
 
     addJob(bot, update, job_queue)
