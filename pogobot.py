@@ -359,7 +359,7 @@ def cmd_LVL(bot, update, args):
 
     # Lade User Einstellungen
     pref = prefs.get(chat_id)
-    usage_message = 'Nutzung: "/lvl #minimum oder /lvl #minimum #maximum" (Ohne #! und nicht über 40 / unter 0!)'
+    usage_message = 'Nutzung: "/lvl #minimum oder /lvl #minimum #maximum" (Ohne #! und nicht über 41 / unter 0!)'
 
     # Fange keine Eingabe oder mehr als 2 Eingaben ab
     if args != []:
@@ -377,7 +377,7 @@ def cmd_LVL(bot, update, args):
     # Wenn nur ein Wert eingegeben wird -> minLVL = Eingabe, maxLVL = 40.
     if len(args) == 1:
         LVLmin = int(args[0])
-        LVLmax = int(40)
+        LVLmax = int(51)
     else:
         LVLmin = int(args[0])
         LVLmax = int(args[1])
@@ -386,7 +386,7 @@ def cmd_LVL(bot, update, args):
     if LVLmin < 0 or LVLmax < 0:
         bot.sendMessage(chat_id, text=usage_message)
         return
-    if LVLmin > 40 or LVLmax > 40:
+    if LVLmin > 51 or LVLmax > 51:
         bot.sendMessage(chat_id, text=usage_message)
         return
 
