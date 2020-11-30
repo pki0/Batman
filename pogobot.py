@@ -1481,7 +1481,7 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                                 if int(ranking_1500[k]) <= int(user_pvp_max_rank) and float(pvplvl[k]) >= pkmnlvl and maxcp[k] > (league_cp-200):
                                     send_with_pvp = True
                                     # Build message for pvp
-                                    additional_pvp_message += "*%s* - *Rang:*%s - *WP:*%s@*Level:*%s (%.2f%%)\n" % (pokemon_name[lan][str(pokemon_evos[k])], ranking_1500[k], maxcp[k], pvplvl[k], float(perfection_1500[k]))
+                                    additional_pvp_message += "*%s* - *Rang:*%s - *WP:*%s@*Level:*%s (%.2f%%)\n" % (pokemon_name[lan][str(pokemon_evos[k]).lstrip("0")], ranking_1500[k], maxcp[k], pvplvl[k], float(perfection_1500[k]))
 
                             # No criteria wes met => Skip whole pokemon
                             if send_with_pvp == False:
