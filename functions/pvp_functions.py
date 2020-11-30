@@ -8,7 +8,7 @@ def get_maximum_level(base_attack, base_defense, base_stamina, iv_attack, iv_def
             level = float(level) - 0.5
             cp = calculate_cp(base_attack, base_defense, base_stamina, iv_attack, iv_defense, iv_stamina, cp_multiplier[str(level)])
             break
-    
+
     return level
 
 

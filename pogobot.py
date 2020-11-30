@@ -25,7 +25,7 @@ from geopy.geocoders import Nominatim
 import geopy
 from geopy.distance import VincentyDistance
 from functions.pvp_functions import *
-from functions.cp_multiplier import *
+from functions.cp_multi_50 import *
 from static.instructions import *
 from static.keyboards import *
 
@@ -117,7 +117,7 @@ def cmd_add(bot, update, args, job_queue):
         return
 
     if not args[0].isdigit():
-        if len(args) == 1 and args[0].upper() in ('GEN1', 'GEN2', 'GEN3', 'GEN4', 'GEN5', 'ALLE', 'ALL'):
+        if len(args) == 1 and args[0].upper() in ('GEN1', 'GEN2', 'GEN3', 'GEN4', 'GEN5', 'GEN6', 'ALLE', 'ALL'):
                 if args[0].upper() == 'GEN1':
                     args = list(range(1, 152))
                 elif args[0].upper() == 'GEN2':
@@ -125,11 +125,13 @@ def cmd_add(bot, update, args, job_queue):
                 elif args[0].upper() == 'GEN3':
                     args = list(range(252, 387))
                 elif args[0].upper() == 'GEN4':
-                    args = list(range(387, 493))
+                    args = list(range(387, 494))
                 elif args[0].upper() == 'GEN5':
-                    args = list(range(493, 649))
+                    args = list(range(494, 650))
+                elif args[0].upper() == 'GEN6':
+                    args = list(range(650, 721))
                 elif args[0].upper() in ['ALLE', 'ALL']:
-                    args = list(range(1, 649))
+                    args = list(range(1, 721))
 
         else:
             for x in args:
@@ -1419,10 +1421,14 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                             prepared_pvp_message = '*PVP %s Liga:*\n\n' % league_cp
                             base_stats = []
                             # Get evolutions
-                            pokemon_evos = pokemon_evolutions[str(pok_id)]
+                            #pokemon_evos = pokemon_evolutions[str(pok_id)]
+                            pokemon_evos = pokemon_base_stats[str(pok_id).zfill(3)]["evolutions"]
+                            logger.info(pokemon_evos)
                             # Get all base stats
                             for x in pokemon_evos:
-                                base_stats.append(pokemon_base_stats[str(x)])
+                                b = {"baseAttack": pokemon_base_stats[str(x)]["attack"], "baseDefense": pokemon_base_stats[str(x)]["defense"], "baseStamina": pokemon_base_stats[str(x)]["stamina"]}
+                                base_stats.append(dict(b))
+                                logger.info(base_stats)
                             ranks = []
                             maxcp = []
                             pvplvl = []
@@ -1430,17 +1436,17 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                             # Choose cp_multiplier
 
                             if user_pvp_buddy == True:
-                                cp_multiplier_to_use = cp_multiplier_41
+                                cp_multiplier_to_use = cp_multiplier_51
                                 if user_pvp_league_1500 == True:
-                                    ranking_list_to_use = ranking_data_1500_41
+                                    ranking_list_to_use = ranking_data_1500_51
                                 elif user_pvp_league_2500 == True:
-                                    ranking_list_to_use = ranking_data_2500_41
+                                    ranking_list_to_use = ranking_data_2500_51
                             elif user_pvp_buddy == False:
-                                cp_multiplier_to_use = cp_multiplier_40
+                                cp_multiplier_to_use = cp_multiplier_50
                                 if user_pvp_league_1500 == True:
-                                    ranking_list_to_use = ranking_data_1500_40
+                                    ranking_list_to_use = ranking_data_1500_50
                                 elif user_pvp_league_2500 == True:
-                                    ranking_list_to_use = ranking_data_2500_40
+                                    ranking_list_to_use = ranking_data_2500_50
 
 
 
@@ -1463,7 +1469,10 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
 
                             # Find index in the complete ranking lists
                             for x in pokemon_evos:
-                                ranklist_1500 = ranking_list_to_use['pkmn_%s' % x]
+                                x = x.lstrip("0")
+                                ranklist_1500 = ranking_list_to_use[('pkmn_%s' % x)]
+                                #if ranks[i] in ranklist_1500[str(x)]:
+                                    
                                 ranking_1500.append(ranklist_1500.index(ranks[i])+1)
                                 perfection_1500.append(100*(ranks[i]/ranklist_1500[0]))
                                 i += 1
@@ -1723,25 +1732,25 @@ def main():
 
      # Read stats files
     global pokemon_base_stats
-    with open('static/pokemon_base_stats.json', 'r', encoding='utf-8') as f:
+    with open('static/base_stats.json', 'r', encoding='utf-8') as f:
         pokemon_base_stats = json.loads(f.read())
-    global pokemon_evolutions
-    with open('static/pokemon_evolutions.json', 'r', encoding='utf-8') as f:
-        pokemon_evolutions = json.loads(f.read())
+    #global pokemon_evolutions
+    #with open('static/pokemon_evolutions.json', 'r', encoding='utf-8') as f:
+        #pokemon_evolutions = json.loads(f.read())
 
     # Read ranking files
-    global ranking_data_1500_40
-    global ranking_data_1500_41
-    global ranking_data_2500_40
-    global ranking_data_2500_41
-    with open('static/pvp_rankings_1500_level_40.json', 'r', encoding='utf-8') as f:
-        ranking_data_1500_40 = json.loads(f.read())
-    with open('static/pvp_rankings_2500_level_40.json', 'r', encoding='utf-8') as f:
-        ranking_data_2500_40 = json.loads(f.read())
-    with open('static/pvp_rankings_1500_level_41.json', 'r', encoding='utf-8') as f:
-        ranking_data_1500_41 = json.loads(f.read())
-    with open('static/pvp_rankings_2500_level_41.json', 'r', encoding='utf-8') as f:
-        ranking_data_2500_41 = json.loads(f.read())
+    global ranking_data_1500_50
+    global ranking_data_1500_51
+    global ranking_data_2500_50
+    global ranking_data_2500_51
+    with open('static/pvp_rankings_1500_level_50.json', 'r', encoding='utf-8') as f:
+        ranking_data_1500_50 = json.loads(f.read())
+    with open('static/pvp_rankings_2500_level_50.json', 'r', encoding='utf-8') as f:
+        ranking_data_2500_50 = json.loads(f.read())
+    with open('static/pvp_rankings_1500_level_51.json', 'r', encoding='utf-8') as f:
+        ranking_data_1500_51 = json.loads(f.read())
+    with open('static/pvp_rankings_2500_level_51.json', 'r', encoding='utf-8') as f:
+        ranking_data_2500_51 = json.loads(f.read())
 
     global dataSource
     dataSource = None
