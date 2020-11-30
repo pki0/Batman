@@ -1423,12 +1423,10 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                             # Get evolutions
                             #pokemon_evos = pokemon_evolutions[str(pok_id)]
                             pokemon_evos = pokemon_base_stats[str(pok_id).zfill(3)]["evolutions"]
-                            logger.info(pokemon_evos)
                             # Get all base stats
                             for x in pokemon_evos:
                                 b = {"baseAttack": pokemon_base_stats[str(x)]["attack"], "baseDefense": pokemon_base_stats[str(x)]["defense"], "baseStamina": pokemon_base_stats[str(x)]["stamina"]}
                                 base_stats.append(dict(b))
-                                logger.info(base_stats)
                             ranks = []
                             maxcp = []
                             pvplvl = []
