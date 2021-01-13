@@ -25,7 +25,7 @@ from geopy.geocoders import Nominatim
 import geopy
 from geopy.distance import VincentyDistance
 from functions.pvp_functions import *
-from functions.cp_multi_50 import *
+from functions.cp_multiplier import *
 from static.instructions import *
 from static.keyboards import *
 
@@ -668,6 +668,8 @@ def cmd_pvp(bot, update):
     user_pvp_league_1500 = pref['user_pvp_league_1500']
     user_pvp_league_2500 = pref['user_pvp_league_2500']
     user_pvp_buddy = pref['user_pvp_buddy']
+    user_pvp_max_level_40 = pref['user_pvp_max_level_40']
+    user_pvp_max_level_50 = pref['user_pvp_max_level_50']
 
     # Make a dict for setting signs
     pvp_settings = {}
@@ -675,14 +677,17 @@ def cmd_pvp(bot, update):
     pvp_settings['2500_sign'] = '❌'
     pvp_settings['buddy_sign'] = '❌'
     pvp_settings['user_pvp_max_rank'] = user_pvp_max_rank
-    #check_sign_1500 = ''
-    #check_sign_2500 = ''
-    #buddy_sign = '❌'
+    pvp_settings['level_40_sign'] = '❌'
+    pvp_settings['level_50_sign'] = '❌'
 
     if user_pvp_league_1500:
         pvp_settings['1500_sign'] = '✅'
     if user_pvp_league_2500:
         pvp_settings['2500_sign'] = '✅'
+    if user_pvp_max_level_40:
+        pvp_settings['level_40_sign'] = '✅'
+    if user_pvp_max_level_50:
+        pvp_settings['level_50_sign'] = '✅'
     if user_pvp_buddy:
         pvp_settings['buddy_sign'] = '✅'
 
@@ -731,8 +736,22 @@ def pvp_buttons(bot, update):
         else:
             pref.set('user_pvp_buddy', False)
 
+    elif query.data == 'button_pvp_max_level_40':
+        if not pref['user_pvp_max_level_40']:
+            pref.set('user_pvp_max_level_40', True)
+            pref.set('user_pvp_max_level_50', False)
+        else:
+            pref.set('user_pvp_max_level_40', False)
+
+    elif query.data == 'button_pvp_max_level_50':
+        if not pref['user_pvp_max_level_50']:
+            pref.set('user_pvp_max_level_50', True)
+            pref.set('user_pvp_max_level_40', False)
+        else:
+            pref.set('user_pvp_max_level_50', False)
+
     elif query.data == 'button_pvp_max_rank':
-        text = "Gib deinen gewünschten maximalen Rang ein:"
+        text = "Gib deinen gewünschten maximalen Rang ein (Maximum ist 250):"
         bot.editMessageText(text=text, chat_id=chat_id, message_id=query.message.message_id, reply_markup=None, parse_mode='Markdown')
         return PVP_RANK
 
@@ -751,7 +770,10 @@ def pvp_set_rank(bot, update):
     pref = prefs.get(chat_id)
 
     if update.message.text.isdigit():
-        pref.set('user_pvp_max_rank', update.message.text)
+        if int(update.message.text) > 250:
+            pref.set('user_pvp_max_rank', "250")
+        else:
+            pref.set('user_pvp_max_rank', update.message.text)
         return cmd_pvp(bot, update)
     else:
         bot.sendMessage(chat_id, text='Ungültige Eingabe! Starte erneut mit /pvp .', parse_mode='Markdown')
@@ -1302,6 +1324,8 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
         user_active = int(pref['user_active'])
         user_pvp_league_1500 = pref['user_pvp_league_1500']
         user_pvp_league_2500 = pref['user_pvp_league_2500']
+        user_pvp_max_level_40 = pref['user_pvp_max_level_40']
+        user_pvp_max_level_50 = pref['user_pvp_max_level_50']
         user_pvp_max_rank = int(pref['user_pvp_max_rank'])
         user_pvp_buddy = pref['user_pvp_buddy']
 
@@ -1403,11 +1427,10 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                 if int(iv_stamina) < user_stamina_min or int(iv_stamina) > user_stamina_max:
                     continue
 
-                # NEW PVP filter
+                # NEW: PVP filter
                 if (user_pvp_league_1500 == True or user_pvp_league_2500 == True):
                     if (int(form) in pokemon_forms):
                         continue
-                    #print("%s %s %s %s %s %s" % (pok_id, iv_attack, iv_defense, iv_stamina, pkmnlvl, cp))
 
                     # FIRST: 1500
                     if user_pvp_league_1500 == True:
@@ -1431,20 +1454,41 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                             maxcp = []
                             pvplvl = []
 
-                            # Choose cp_multiplier
+                            # Choose cp_multiplier and league file
 
                             if user_pvp_buddy == True:
-                                cp_multiplier_to_use = cp_multiplier_51
-                                if user_pvp_league_1500 == True:
-                                    ranking_list_to_use = ranking_data_1500_51
-                                elif user_pvp_league_2500 == True:
-                                    ranking_list_to_use = ranking_data_2500_51
+                                if user_pvp_max_level_40 == True:
+                                    cp_multiplier_to_use = cp_multiplier_41
+
+                                    if user_pvp_league_1500 == True:
+                                        ranking_list_to_use = ranking_data_1500_41
+                                    elif user_pvp_league_2500 == True:
+                                        ranking_list_to_use = ranking_data_2500_41
+
+                                elif user_pvp_max_level_50 == True:
+                                    cp_multiplier_to_use = cp_multiplier_51
+
+                                    if user_pvp_league_1500 == True:
+                                        ranking_list_to_use = ranking_data_1500_51
+                                    elif user_pvp_league_2500 == True:
+                                        ranking_list_to_use = ranking_data_2500_51
+
                             elif user_pvp_buddy == False:
-                                cp_multiplier_to_use = cp_multiplier_50
-                                if user_pvp_league_1500 == True:
-                                    ranking_list_to_use = ranking_data_1500_50
-                                elif user_pvp_league_2500 == True:
-                                    ranking_list_to_use = ranking_data_2500_50
+                                if user_pvp_max_level_40 == True:
+                                    cp_multiplier_to_use = cp_multiplier_40
+
+                                    if user_pvp_league_1500 == True:
+                                        ranking_list_to_use = ranking_data_1500_40
+                                    elif user_pvp_league_2500 == True:
+                                        ranking_list_to_use = ranking_data_2500_40
+
+                                elif user_pvp_max_level_50 == True:
+                                    cp_multiplier_to_use = cp_multiplier_50
+
+                                    if user_pvp_league_1500 == True:
+                                        ranking_list_to_use = ranking_data_1500_50
+                                    elif user_pvp_league_2500 == True:
+                                        ranking_list_to_use = ranking_data_2500_50
 
 
 
@@ -1469,7 +1513,10 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                             for x in pokemon_evos:
                                 x = x.lstrip("0")
                                 ranklist_1500 = ranking_list_to_use[('pkmn_%s' % x)]
-                                #if ranks[i] in ranklist_1500[str(x)]:
+                                
+                                if ranks[i] not in ranklist_1500:
+                                    i += 1
+                                    continue
                                     
                                 ranking_1500.append(ranklist_1500.index(ranks[i])+1)
                                 perfection_1500.append(100*(ranks[i]/ranklist_1500[0]))
@@ -1737,10 +1784,22 @@ def main():
         #pokemon_evolutions = json.loads(f.read())
 
     # Read ranking files
+    global ranking_data_1500_40
+    global ranking_data_1500_41
+    global ranking_data_2500_40
+    global ranking_data_2500_41
     global ranking_data_1500_50
     global ranking_data_1500_51
     global ranking_data_2500_50
     global ranking_data_2500_51
+    with open('static/pvp_rankings_1500_level_40.json', 'r', encoding='utf-8') as f:
+        ranking_data_1500_40 = json.loads(f.read())
+    with open('static/pvp_rankings_2500_level_40.json', 'r', encoding='utf-8') as f:
+        ranking_data_2500_40 = json.loads(f.read())
+    with open('static/pvp_rankings_1500_level_41.json', 'r', encoding='utf-8') as f:
+        ranking_data_1500_41 = json.loads(f.read())
+    with open('static/pvp_rankings_2500_level_41.json', 'r', encoding='utf-8') as f:
+        ranking_data_2500_41 = json.loads(f.read())
     with open('static/pvp_rankings_1500_level_50.json', 'r', encoding='utf-8') as f:
         ranking_data_1500_50 = json.loads(f.read())
     with open('static/pvp_rankings_2500_level_50.json', 'r', encoding='utf-8') as f:
@@ -1798,6 +1857,8 @@ def main():
                     CallbackQueryHandler(pvp_buttons, pattern='^button_pvp_2500_league$'),
                     CallbackQueryHandler(pvp_buttons, pattern='^button_pvp_buddy$'),
                     CallbackQueryHandler(pvp_buttons, pattern='^button_pvp_max_rank$'),
+                    CallbackQueryHandler(pvp_buttons, pattern='^button_pvp_max_level_40$'),
+                    CallbackQueryHandler(pvp_buttons, pattern='^button_pvp_max_level_50$'),
                     CallbackQueryHandler(config_buttons, pattern='^button_config_back_to_main$')
                     ],
             PVP_RANK: [MessageHandler(callback=pvp_set_rank, filters=Filters.all)],

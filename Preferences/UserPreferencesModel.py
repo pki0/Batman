@@ -44,7 +44,9 @@ class UserPreferencesModel(object):
             user_pvp_league_1500 = False,
             user_pvp_league_2500 = False,
             user_pvp_max_rank = 0,
-            user_pvp_buddy = False
+            user_pvp_buddy = False,
+            user_pvp_max_level_40 = False,
+            user_pvp_max_level_50 = False
         )
         return preferences
 
