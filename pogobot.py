@@ -1513,11 +1513,11 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                             for x in pokemon_evos:
                                 x = x.lstrip("0")
                                 ranklist_1500 = ranking_list_to_use[('pkmn_%s' % x)]
-                                
+
                                 if ranks[i] not in ranklist_1500:
                                     i += 1
                                     continue
-                                    
+
                                 ranking_1500.append(ranklist_1500.index(ranks[i])+1)
                                 perfection_1500.append(100*(ranks[i]/ranklist_1500[0]))
                                 i += 1
@@ -1608,13 +1608,14 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
 
                 except TelegramError as e:
                     logger.error('[%s] %s' % (chat_id, repr(e)))
-                    if e.message == "Chat not found":
+                    if repr(e) in ['Unauthorized()','ChatMigrated()']:
                         cmd_remove_user(bot, chat_id)
+                        os.remove("userdata/%s.json" % (chat_id))
+                        logger.error('[%s] kicked by exception' % (chat_id))
+                        break
 
     except Exception as e:
         logger.error('[%s] %s' % (chat_id, repr(e)))
-    except Unauthorized:
-        cmd_remove_user(bot, chat_id)
     lock.release()
 
     # Clean already disappeared pokemon
