@@ -152,9 +152,7 @@ def cmd_add(bot, update, args, job_queue):
         for x in args:
             if int(x) not in search:
                 search.append(int(x))
-                tmp += "%s %s\n" % (x, pokemon_name[lan][str(x)])
-            else:
-                tmp += "Du willst *%s %s* hinzufügen. Es existiert aber bereits in deiner Liste.\n" % (x, pokemon_name[lan][str(x)])
+            tmp += "%s %s\n" % (x, pokemon_name[lan][str(x)])
 
         search.sort()
         pref.set('search_ids',search)
@@ -219,7 +217,7 @@ def cmd_remove(bot, update, args, job_queue):
         return
 
     if not args[0].isdigit():
-        if len(args) == 1 and args[0].upper() in ('GEN1', 'GEN2', 'GEN3', 'GEN4', 'GEN5', 'ALLE', 'ALL'):
+        if len(args) == 1 and args[0].upper() in ('GEN1', 'GEN2', 'GEN3', 'GEN4', 'GEN5', 'GEN6', 'ALLE', 'ALL'):
                 if args[0].upper() == 'GEN1':
                     args = list(range(1, 152))
                 elif args[0].upper() == 'GEN2':
@@ -227,12 +225,13 @@ def cmd_remove(bot, update, args, job_queue):
                 elif args[0].upper() == 'GEN3':
                     args = list(range(252, 387))
                 elif args[0].upper() == 'GEN4':
-                    args = list(range(387, 493))
+                    args = list(range(387, 494))
                 elif args[0].upper() == 'GEN5':
-                    args = list(range(493, 649))
+                    args = list(range(494, 650))
+                elif args[0].upper() == 'GEN6':
+                    args = list(range(650, 721))
                 elif args[0].upper() in ['ALLE', 'ALL']:
-                    args = list(range(1, 649))
-
+                    args = list(range(1, 721))
         else:
             for x in args:
                 for poke_id, name in pokemon_name[lan].items():
@@ -247,9 +246,8 @@ def cmd_remove(bot, update, args, job_queue):
         for x in args:
             if int(x) in search:
                 search.remove(int(x))
-                tmp += "%s %s\n" % (x, pokemon_name[lan][str(x)])
-            else:
-                tmp += "Du willst *%s %s* entfernen. Es existiert aber nicht in deiner Liste.\n" % (x, pokemon_name[lan][str(x)])
+            tmp += "%s %s\n" % (x, pokemon_name[lan][str(x)])
+
         pref.set('search_ids',search)
 
         # Stringlänge berechnen und schneiden:
@@ -1515,6 +1513,8 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                                 ranklist_1500 = ranking_list_to_use[('pkmn_%s' % x)]
 
                                 if ranks[i] not in ranklist_1500:
+                                    ranking_1500.append(0)
+                                    perfection_1500.append(0)
                                     i += 1
                                     continue
 
@@ -1525,7 +1525,7 @@ def checkAndSend(bot, chat_id, pokemons, pokemon_db_data):
                             additional_pvp_message = ''
                             for k in range(0, len(ranking_1500)):
                                 # We have at leat one Pokemon that meets the criteria: Ranking < user_pvp_max_rank AND pvplvl >= spawnlevel
-                                if int(ranking_1500[k]) <= int(user_pvp_max_rank) and float(pvplvl[k]) >= pkmnlvl and maxcp[k] > (league_cp-200):
+                                if int(ranking_1500[k]) > 0 and int(ranking_1500[k]) <= int(user_pvp_max_rank) and float(pvplvl[k]) >= pkmnlvl and maxcp[k] > (league_cp-200):
                                     send_with_pvp = True
                                     # Build message for pvp
                                     additional_pvp_message += "*%s* - *Rang:*%s - *WP:*%s@*Level:*%s (%.2f%%)\n" % (pokemon_name[lan][str(pokemon_evos[k]).lstrip("0")], ranking_1500[k], maxcp[k], pvplvl[k], float(perfection_1500[k]))
